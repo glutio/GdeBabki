@@ -1,0 +1,71 @@
+﻿@page "/import"
+@using System.IO
+@using System.Text
+@using GdeBabki.Client.Services
+
+<h1>Import</h1>
+<InputFile OnChange="LoadFileSample" @ref="inputFile" />
+@if (sampleLines != null && columnBindings != null)
+{
+    <RadzenDataGrid Data="sampleLines" AllowColumnResize="true">
+        <Columns>
+            @foreach (var i in Enumerable.Range(0, columnBindings.Length))
+            {
+            <RadzenDataGridColumn TItem="string[]">
+                <HeaderTemplate>
+                    <RadzenDropDown TValue="string" Data="@(Enum.GetNames<GBColumns>())" @bind-Value="columnBindings[i]" Change="@(e => OnColumnBindingChanged((string)e, i))" />
+                </HeaderTemplate>
+                <Template>
+                    @context[i]
+                </Template>
+            </RadzenDataGridColumn>
+            }
+        </Columns>
+    </RadzenDataGrid>
+
+    <RadzenButton>Import</RadzenButton>
+}
+
+@code {
+    IList<string[]> sampleLines = null;
+    string[] columnBindings = null;
+
+    InputFile inputFile;
+    IBrowserFile file;
+
+    async void LoadFileSample(InputFileChangeEventArgs e)
+    {
+        file = e.File;
+
+        sampleLines = null;
+        columnBindings = null;
+
+        using (var stream = file.OpenReadStream())
+        {
+            var parser = new CsvParser();
+            sampleLines = await parser.LoadAsync(stream, 10);
+
+            if (sampleLines.Count > 0)
+            {
+                columnBindings = new string[sampleLines[0].Length];
+            }
+        }
+
+        this.StateHasChanged();
+    }
+
+    void OnColumnBindingChanged(string val, int index)
+    {
+        if (val == null)
+            return;
+
+        for (var i = 0; i < columnBindings.Length; i++)
+        {
+            if (i != index && columnBindings[i] == val)
+            {
+                columnBindings[i] = null;
+                break;
+            }
+        }
+    }
+}
