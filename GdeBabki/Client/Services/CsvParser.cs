@@ -78,6 +78,10 @@ namespace GdeBabki.Client.Services
 
             if (sb.Length > 0)
             {
+                if (nQuotes > 0)
+                {
+                    sb.Append('"', nQuotes / 2);
+                }
                 columns.Add(sb.ToString());
             }
 
