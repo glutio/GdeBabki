@@ -2,9 +2,19 @@
 @using System.IO
 @using System.Text
 @using GdeBabki.Client.Services
+@using GdeBabki.Shared.ViewModels
+
+@inject ImportApi importApi
 
 <h1>Import</h1>
+<br />
 <InputFile OnChange="LoadFileSample" @ref="inputFile" />
+<RadzenDropDown TValue="Guid" Data="model?.Accounts" ValueProperty="AccountId" @bind-Value="accountId">
+    <Template>
+        @context.Bank|@context.Name
+    </Template>
+</RadzenDropDown>
+
 @if (sampleLines != null && columnBindings != null)
 {
     <RadzenDataGrid Data="sampleLines" AllowColumnResize="true">
@@ -23,15 +33,22 @@
         </Columns>
     </RadzenDataGrid>
 
-    <RadzenButton>Import</RadzenButton>
+    <RadzenButton Click=@OnImportClick >Import</RadzenButton>
 }
 
 @code {
-    IList<string[]> sampleLines = null;
-    string[] columnBindings = null;
+    ImportViewModel model;
+    IList<string[]> sampleLines;
+    string[] columnBindings;
+    Guid accountId;
 
     InputFile inputFile;
     IBrowserFile file;
+
+    protected override async Task OnInitializedAsync()
+    {
+        model = await importApi.GetViewModelAsync();
+    }
 
     async void LoadFileSample(InputFileChangeEventArgs e)
     {
@@ -67,5 +84,10 @@
                 break;
             }
         }
+    }
+
+    void OnImportClick()
+    {
+        importApi.ImportAsync(file, columnBindings, accountId);
     }
 }

@@ -35,5 +35,12 @@ namespace GdeBabki.Server.Services
 
             return services;
         }
+
+        public static IServiceCollection AddBabkiServices(this IServiceCollection services)
+        {
+            services.AddScoped<ImportService>();
+            services.AddScoped<AccountsService>();
+            return services;
+        }
     }
 }

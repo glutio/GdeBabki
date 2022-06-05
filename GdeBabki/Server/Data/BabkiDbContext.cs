@@ -9,7 +9,7 @@ namespace GdeBabki.Server.Data
         {
         }
 
-        DbSet<GBBank> Banks { get; set; }
-        DbSet<GBAccount> Accounts { get; set; }
+        public DbSet<GBBank> Banks { get; set; }
+        public DbSet<GBAccount> Accounts { get; set; }
     }
 }

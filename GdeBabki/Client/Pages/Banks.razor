@@ -1,0 +1,41 @@
+﻿@inject BanksViewModel Model
+@inject DialogService dialogService
+
+<RadzenDataList Data="Model.Banks" TItem="Bank">
+    <Template>
+        @context.Name
+        <RadzenButton Click="() => OnAddEditClickAsync(context)">Edit</RadzenButton>
+        <RadzenButton Click="() => OnDeleteClick(context)">Delete</RadzenButton>
+    </Template>
+</RadzenDataList>
+<RadzenButton Click="() => OnAddEditClickAsync(null)">Add</RadzenButton>
+<RadzenButton Click="() => dialogService.Close()">Close</RadzenButton>
+
+@code {
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Model.Initialize();
+    }
+
+    void OnDeleteClick(Bank context)
+    {
+
+    }
+
+    async void OnAddEditClickAsync(Bank context)
+    {
+        var result = await dialogService.OpenInput("Bank Name", context?.Name);
+        if (result == null)
+            return;
+
+        if (context == null)
+        {
+            await Model.AddBankAsync(result);
+        }
+        else if (context.Name != result)
+        {
+            await Model.UpdateBankAsync(context.Id, result);
+        }
+    }
+}

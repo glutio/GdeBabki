@@ -66,6 +66,7 @@ namespace GdeBabki.Client.Services
                         }
                     }
                 }
+
                 if (!isQuoted && c == ',')
                 {
                     columns.Add(sb.ToString());
@@ -76,14 +77,12 @@ namespace GdeBabki.Client.Services
                 sb.Append(c);
             }
 
-            if (sb.Length > 0)
+            if (nQuotes > 0)
             {
-                if (nQuotes > 0)
-                {
-                    sb.Append('"', nQuotes / 2);
-                }
-                columns.Add(sb.ToString());
+                sb.Append('"', nQuotes / 2);
             }
+
+            columns.Add(sb.ToString());
 
             return columns;
         }

@@ -1,0 +1,35 @@
+﻿@page "/accounts"
+@inject AccountsViewModel Model
+
+@inject DialogService dialogService
+
+<h3>Accounts</h3>
+<RadzenDataList TItem="Account" Data="Model.Accounts">
+    <Template>
+        <RadzenCard>
+            @if (context.Id == Guid.Empty)
+            {
+                <NewAccount Account="context"/>
+            }
+            else
+            {
+                @($"{context.Name}|{context.Bank.Name}")
+            }
+        </RadzenCard>
+    </Template>
+</RadzenDataList>
+
+<RadzenButton Click="OnAddClick">Add</RadzenButton>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        Model.PropertyChanged += (s, e) => StateHasChanged();
+        await Model.InitializeAsync();
+    }
+
+    void OnAddClick()
+    {
+        Model.NewAccount();
+    }
+}

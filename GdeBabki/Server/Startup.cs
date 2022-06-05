@@ -24,6 +24,7 @@ namespace GdeBabki.Server
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddTenantDbFactory();
+            services.AddBabkiServices();
             services.AddControllersWithViews();
             services.AddRazorPages();
         }

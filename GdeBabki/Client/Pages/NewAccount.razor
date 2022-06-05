@@ -1,0 +1,46 @@
+﻿@inject NewAccountViewModel Model
+@inject DialogService dialogService
+
+<div class="row">
+    <div class="col-4">
+        <p><b>Account name</b></p>
+        <RadzenTextBox @bind-Value="@Model.Name" Placeholder="account name" Style="width:100%;"/>
+    </div>
+    <div class="col-3">
+        <p><b>Bank</b></p>
+            <RadzenDropDown TValue="Guid" ValueProperty="Id" @bind-Value="Model.BankId" Data="Model.Banks" TextProperty="Name" Style="width:100%"/>
+            <div>
+                <RadzenButton Click="OnAddDeleteClick">Add/Delete Banks</RadzenButton>
+            </div>
+    </div>
+    <div class="col-5">
+        <p>&nbsp;</p>
+        <RadzenButton Click="OnSaveClick">Save</RadzenButton>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public Account Account { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Model.PropertyChanged += (s,e) => StateHasChanged();
+        await Model.InitializeAsync();
+    }
+
+    protected override void OnParametersSet()
+    {
+        Model.Name = Account.Name;
+    }
+
+    async void OnAddDeleteClick()
+    {
+        await dialogService.OpenAsync<Banks>("Add/Delete Banks");
+    }
+
+    async void OnSaveClick()
+    {
+        await Model.Save();
+    }
+}

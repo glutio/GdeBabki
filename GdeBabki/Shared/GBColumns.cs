@@ -8,6 +8,7 @@ namespace GdeBabki.Shared
 {
     public enum GBColumns
     {
+        Unknown = -1,
         TransactionId = 0,
         Date = 1,
         Description = 2,
