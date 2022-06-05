@@ -1,6 +1,10 @@
-﻿using GdeBabki.Shared.ViewModels;
+﻿using GdeBabki.Client.ViewModel;
+using GdeBabki.Shared;
+using GdeBabki.Shared.ViewModels;
 using Microsoft.AspNetCore.Components.Forms;
 using System;
+using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
@@ -14,23 +18,16 @@ namespace GdeBabki.Client.Services
         {
         }
 
-        public async void ImportAsync(IBrowserFile file, string[] filter, Guid accountId)
+        public async Task ImportAsync(Guid accountId, Stream stream, GBColumnName?[] filter)
         {
             var content = new MultipartFormDataContent();
             content.Headers.ContentDisposition = new ContentDispositionHeaderValue("form-data");
 
-            using var stream = file.OpenReadStream();
-            content.Add(new StreamContent(stream), "file");
-            content.Add(new StringContent(accountId.ToString()), "accountId");
-            content.Add(new StringContent(String.Join(',', filter)), "filter");
+            content.Add(new StreamContent(stream), "\"file\"", "filename.ext");
+            content.Add(new StringContent(accountId.ToString()), "\"accountId\"");
+            content.Add(new StringContent(String.Join(',', filter.Cast<int?>())), "\"filter\"");
 
             await httpClient.PostAsync("/api/Import", content);
-        }
-
-        public async Task<ImportViewModel> GetViewModelAsync()
-        {            
-            var model = await httpClient.GetFromJsonAsync<ImportViewModel>("/api/Import");
-            return model;
         }
     }
 }

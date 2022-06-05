@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace GdeBabki.Shared
 {
-    public enum GBColumns
+    public enum GBColumnName
     {
         Unknown = -1,
         TransactionId = 0,

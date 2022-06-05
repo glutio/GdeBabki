@@ -22,31 +22,25 @@ namespace GdeBabki.Server.Services
             this.dbFactory = dbFactory;
         }
 
-        public async Task ImportAsync(Guid accountId, Stream stream, string filter)
+        public async Task ImportAsync(Guid accountId, Stream stream, GBColumnName?[] filter)
         {
             var parser = new CsvParser();
             var lines = await parser.LoadAsync(stream);
 
-            using (var db = await dbFactory.CreateDbContextAsync())
-            {
-                var account = await db.Accounts.FirstOrDefaultAsync(e => e.Id == accountId);
+            using var db = await dbFactory.CreateDbContextAsync();
+            var account = await db.Accounts.FirstOrDefaultAsync(e => e.Id == accountId);
                 
-                var columnsFilter = filter.Split(",")
-                    .Select(e => string.IsNullOrEmpty(e) ? GBColumns.Unknown : Enum.Parse<GBColumns>(e))
-                    .ToArray();
-
-                foreach (var line in lines)
+            foreach (var line in lines)
+            {
+                var transaction = ParseTransaction(line, filter);
+                if (transaction != null)
                 {
-                    var transaction = ParseTransaction(line, columnsFilter);
-                    if (transaction != null)
-                    {
-                        account.Transactions.Add(transaction);
-                    }
+                    account.Transactions.Add(transaction);
                 }
             }
         }
 
-        private GBTransaction ParseTransaction(string[] line, GBColumns[] filter)
+        private GBTransaction ParseTransaction(string[] line, GBColumnName?[] filter)
         {
             var transaction = new GBTransaction();
             
@@ -54,27 +48,27 @@ namespace GdeBabki.Server.Services
             {
                 switch(filter[i])
                 {
-                    case GBColumns.TransactionId:
+                    case GBColumnName.TransactionId:
                         transaction.TransactionId = line[i]; 
                         break;
-                    case GBColumns.Amount:                         
+                    case GBColumnName.Amount:                         
                         if (decimal.TryParse(line[i], out decimal amount))
                         {
                             transaction.Amount = amount;
                             break;
                         };
                         return null;
-                    case GBColumns.Description:
+                    case GBColumnName.Description:
                         transaction.Description = line[i];
                         break;
-                    case GBColumns.Date:
+                    case GBColumnName.Date:
                         if (DateTime.TryParse(line[i], out DateTime dateTime))
                         {
                             transaction.Date = dateTime;
                             break;
                         }
                         return null;
-                    case GBColumns.Unknown:
+                    case null:
                         break;
                     default:
                         return null;

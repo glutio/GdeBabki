@@ -36,9 +36,9 @@ namespace GdeBabki.Server.Controllers
         }
 
         [HttpDelete]
-        public async Task<IActionResult> DeleteAccountAsync(Guid accountId)
+        public async Task<IActionResult> DeleteAccountAsync(Guid id)
         {
-            await accountsService.DeleteAccountAsync(accountId);
+            await accountsService.DeleteAccountAsync(id);
             return Ok();
         }
 
@@ -49,12 +49,18 @@ namespace GdeBabki.Server.Controllers
             return new JsonResult(model);
         }
 
-        [HttpPost("Bank")]
-        public async Task<ActionResult<Guid>> AddBankAsync(AddBank bank)
+        [HttpPost("Banks")]
+        public async Task<ActionResult<Guid>> UpsertBankAsync(Bank bank)
         {
-            var model = await accountsService.AddBankAsync(bank);
+            var model = await accountsService.UpsertBankAsync(bank);
             return new JsonResult(model);
         }
 
+        [HttpDelete("Banks")]
+        public async Task<IActionResult> DeleteBankAsync(Guid id)
+        {
+            await accountsService.DeleteBankAsync(id);
+            return Ok();
+        }
     }
 }

@@ -7,7 +7,9 @@ namespace GdeBabki.Client.Services
 {
     public class CsvParser
     {
-        public async Task<IList<string[]>> LoadAsync(Stream stream, int linesToLoad = 0)
+        StringBuilder sb = new();
+
+        public async Task<List<string[]>> LoadAsync(Stream stream, int linesToLoad = 0)
         {
             var lines = new List<string[]>();
 
@@ -33,11 +35,11 @@ namespace GdeBabki.Client.Services
         List<string> Parse(string line)
         {
             var columns = new List<string>();
-            var sb = new StringBuilder();
 
             bool isQuoted = false;
             int nQuotes = 0;
-            
+
+            sb.Clear();
             foreach(var c in line)
             {
                 if (sb.Length == 0 && !isQuoted && c == '"')

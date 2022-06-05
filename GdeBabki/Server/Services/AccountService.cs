@@ -59,13 +59,13 @@ namespace GdeBabki.Server.Services
             return gbAccount.Id;
         }
 
-        public async Task DeleteAccountAsync([FromQuery]Guid accountId)
+        public async Task DeleteAccountAsync([FromQuery] Guid id)
         {
             using var db = await dbFactory.CreateDbContextAsync();
 
             var gbAccount = new GBAccount()
             {
-                Id = accountId
+                Id = id
             };
             db.Accounts.Remove(gbAccount);
             
@@ -86,18 +86,40 @@ namespace GdeBabki.Server.Services
             return banks;
         }
 
-        public async Task<Guid> AddBankAsync(AddBank bank)
+        public async Task<Guid> UpsertBankAsync(Bank bank)
         {
             using var db = await dbFactory.CreateDbContextAsync();
-            var gbBank = new GBBank()
-            {
-                Name = bank.Name,
-            };
 
-            db.Banks.Add(gbBank);
+            GBBank gbBank;
+            if (bank.Id != Guid.Empty)
+            {
+                gbBank = await db.Banks.FirstOrDefaultAsync(e => e.Id == bank.Id);
+            }
+            else
+            {
+                gbBank = new GBBank();
+                db.Banks.Add(gbBank);
+            }
+
+            gbBank.Name = bank.Name;
+
             db.SaveChanges();
 
             return gbBank.Id;
+        }
+
+        public async Task DeleteBankAsync([FromQuery] Guid id)
+        {
+            using var db = await dbFactory.CreateDbContextAsync();
+
+            var gbBank = new GBBank()
+            {
+                Id = id
+            };
+            db.Banks.Attach(gbBank);
+            db.Banks.Remove(gbBank);
+
+            db.SaveChanges();
         }
 
     }

@@ -38,20 +38,10 @@ namespace GdeBabki.Client.Services
         public async Task DeleteAccountAsync(Guid accountId)
         {
 
-            var response = await httpClient.DeleteAsync($"api/Accounts?accountId={accountId}");
+            var response = await httpClient.DeleteAsync($"api/Accounts?id={accountId}");
             response.EnsureSuccessStatusCode();
 
             AccountsUpdated?.Invoke(this, EventArgs.Empty);
-        }
-
-        public async Task<Guid> AddBankAsync(AddBank bank)
-        {
-            var response = await httpClient.PostAsJsonAsync("api/Accounts/Bank", bank);
-            response.EnsureSuccessStatusCode();
-            var model = await response.Content.ReadFromJsonAsync<Guid>();
-
-            BanksUpdated?.Invoke(this, EventArgs.Empty);
-            return model;
         }
 
         public async Task<List<Bank>> GetBanksAsync()
@@ -61,5 +51,24 @@ namespace GdeBabki.Client.Services
             var model = await response.Content.ReadFromJsonAsync<List<Bank>>();
             return model;
         }
+
+        public async Task<Guid> UpsertBankAsync(Bank bank)
+        {
+            var response = await httpClient.PostAsJsonAsync("api/Accounts/Banks", bank);
+            response.EnsureSuccessStatusCode();
+            var model = await response.Content.ReadFromJsonAsync<Guid>();
+
+            BanksUpdated?.Invoke(this, EventArgs.Empty);
+            return model;
+        }
+
+        public async Task DeleteBankAsync(Guid bankId)
+        {
+            var response = await httpClient.DeleteAsync($"api/Accounts/Banks?id={bankId}");
+            response.EnsureSuccessStatusCode();
+
+            BanksUpdated?.Invoke(this, EventArgs.Empty);
+        }
+
     }
 }

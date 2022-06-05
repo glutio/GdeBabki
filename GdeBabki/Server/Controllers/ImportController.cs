@@ -1,8 +1,10 @@
 ﻿using GdeBabki.Server.Services;
+using GdeBabki.Shared;
 using GdeBabki.Shared.ViewModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -15,10 +17,15 @@ namespace GdeBabki.Server.Controllers
     public class ImportController : ControllerBase
     {
         [HttpPost]
-        public async Task<IActionResult> Post([FromForm] IFormFile file, [FromForm] string filter, [FromForm] Guid accountId, [FromServices] ImportService importService)
+        public async Task<IActionResult> Post([FromForm] IEnumerable<IFormFile> file, [FromForm] string filter, [FromForm] Guid accountId, [FromServices] ImportService importService)
         {
-            using var stream = file.OpenReadStream();
-            await importService.ImportAsync(accountId, stream, filter);
+            using var stream = file.First().OpenReadStream();
+
+            GBColumnName?[] columns = filter.Split(",")
+                .Select(e => string.IsNullOrEmpty(e) ? null : (GBColumnName?)int.Parse(e))
+                .ToArray();
+
+            await importService.ImportAsync(accountId, stream, columns);
 
             return Ok();
         }

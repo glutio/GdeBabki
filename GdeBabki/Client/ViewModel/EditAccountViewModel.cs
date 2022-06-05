@@ -18,13 +18,12 @@ namespace GdeBabki.Client.ViewModel
 
         public void Dispose()
         {
-            this.accountsApi.BanksUpdated -= AccountsApi_BanksUpdated;
+            accountsApi.BanksUpdated -= AccountsApi_BanksUpdated;
         }
 
         private async void AccountsApi_BanksUpdated(object sender, EventArgs e)
         {
             Banks = await accountsApi.GetBanksAsync();
-
             RaisePropertyChanged(nameof(Banks));
         }
 
@@ -32,7 +31,6 @@ namespace GdeBabki.Client.ViewModel
         {
             Banks = await accountsApi.GetBanksAsync();
             IsLoaded = true;
-            RaisePropertyChanged(nameof(IsLoaded));
         }
 
         public async Task<Guid> Save()
@@ -47,6 +45,5 @@ namespace GdeBabki.Client.ViewModel
 
         public Account Account { get; set; }
         public List<Bank> Banks { get; set; }
-        public bool IsLoaded { get; set; }
     }
 }

@@ -4,90 +4,69 @@
 @using GdeBabki.Client.Services
 @using GdeBabki.Shared.ViewModels
 
-@inject ImportApi importApi
+@inject ImportViewModel Model
 
 <h1>Import</h1>
-<br />
-<InputFile OnChange="LoadFileSample" @ref="inputFile" />
-<RadzenDropDown TValue="Guid" Data="model?.Accounts" ValueProperty="AccountId" @bind-Value="accountId">
-    <Template>
-        @context.Bank|@context.Name
-    </Template>
-</RadzenDropDown>
-
-@if (sampleLines != null && columnBindings != null)
+@if (Model.IsLoaded)
 {
-    <RadzenDataGrid Data="sampleLines" AllowColumnResize="true">
+    <InputFile OnChange="OnFileChangeAsync" />
+    <p>Account</p>
+    <RadzenDropDown TValue="Guid" Data="Model.Accounts" ValueProperty="Id" TextProperty="Name" @bind-Value="Model.AccountId">
+        <Template>
+            @context.Name (@context.Bank.Name)
+        </Template>
+    </RadzenDropDown>
+
+    <RadzenDataGrid Data="Model.SampleLines" AllowColumnResize="true">
         <Columns>
-            @foreach (var i in Enumerable.Range(0, columnBindings.Length))
-            {
-            <RadzenDataGridColumn TItem="string[]">
-                <HeaderTemplate>
-                    <RadzenDropDown TValue="string" Data="@(Enum.GetNames<GBColumns>())" @bind-Value="columnBindings[i]" Change="@(e => OnColumnBindingChanged((string)e, i))" />
-                </HeaderTemplate>
-                <Template>
-                    @context[i]
-                </Template>
-            </RadzenDataGridColumn>
+            @foreach (var i in Enumerable.Range(0, Model.ColumnBindings?.Length ?? 0))
+            {            
+                <RadzenDataGridColumn TItem="string[]">
+                    <HeaderTemplate>
+                        <RadzenDropDown 
+                            TValue="GBColumnName?" TextProperty="Value" ValueProperty="Key" 
+                            Data="Enum.GetValues<GBColumnName>().Select(e => new KeyValuePair<GBColumnName, string>(e, ((GBColumnName)e).ToString())) " 
+                            @bind-Value="Model.ColumnBindings[i]"
+                            Change="@(e => OnColumnBindingChanged(i, (GBColumnName?)e))"
+                        />  
+                    </HeaderTemplate>
+                    <Template>
+                        @context[i]
+                    </Template>
+                </RadzenDataGridColumn>
             }
         </Columns>
     </RadzenDataGrid>
-
-    <RadzenButton Click=@OnImportClick >Import</RadzenButton>
+    
+    <RadzenButton Click=@OnImportClick>Import</RadzenButton>
+}
+else
+{
+    <p>Loading...</p>
 }
 
 @code {
-    ImportViewModel model;
-    IList<string[]> sampleLines;
-    string[] columnBindings;
-    Guid accountId;
-
-    InputFile inputFile;
-    IBrowserFile file;
-
     protected override async Task OnInitializedAsync()
     {
-        model = await importApi.GetViewModelAsync();
+        Model.PropertyChanged += (s, e) => StateHasChanged();
+        await Model.InitializeAsync();
     }
 
-    async void LoadFileSample(InputFileChangeEventArgs e)
+    async void OnFileChangeAsync(InputFileChangeEventArgs e)
     {
-        file = e.File;
-
-        sampleLines = null;
-        columnBindings = null;
-
-        using (var stream = file.OpenReadStream())
-        {
-            var parser = new CsvParser();
-            sampleLines = await parser.LoadAsync(stream, 10);
-
-            if (sampleLines.Count > 0)
-            {
-                columnBindings = new string[sampleLines[0].Length];
-            }
-        }
-
-        this.StateHasChanged();
+        Model.ImportFile = e.File;
+        using var stream = e.File.OpenReadStream();
+        Console.WriteLine(stream.Length);
+        await Model.LoadSampleLinesAsync(stream, 10);
     }
 
-    void OnColumnBindingChanged(string val, int index)
+    void OnColumnBindingChanged(int index, GBColumnName? val)
     {
-        if (val == null)
-            return;
-
-        for (var i = 0; i < columnBindings.Length; i++)
-        {
-            if (i != index && columnBindings[i] == val)
-            {
-                columnBindings[i] = null;
-                break;
-            }
-        }
+        Model.SetColumnBinding(index, val);
     }
 
-    void OnImportClick()
+    async void OnImportClick()
     {
-        importApi.ImportAsync(file, columnBindings, accountId);
+        await Model.ImportAsync();
     }
 }

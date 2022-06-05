@@ -2,6 +2,7 @@
 using GdeBabki.Shared.DTO;
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace GdeBabki.Client.ViewModel
@@ -20,7 +21,6 @@ namespace GdeBabki.Client.ViewModel
             accountsApi.AccountsUpdated += AccountsApi_AccountsUpdated;
             Accounts = await accountsApi.GetAccountsAsync();
             IsLoaded = true;
-            RaisePropertyChanged(nameof(IsLoaded));
         }
 
         private async void AccountsApi_AccountsUpdated(object sender, EventArgs e)
@@ -68,7 +68,6 @@ namespace GdeBabki.Client.ViewModel
             await accountsApi.DeleteAccountAsync(accountId);
         }
 
-        public bool IsLoaded { get; set; }
         public Account EditingAccount { get; set; }
         public List<Account> Accounts { get; set; }
     }

@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Radzen;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Threading.Tasks;
 
 namespace GdeBabki.Client.Services
@@ -17,7 +18,7 @@ namespace GdeBabki.Client.Services
             services.AddTransient<AccountsViewModel>();
             services.AddTransient<BanksViewModel>();
             services.AddTransient<EditAccountViewModel>();
-
+            services.AddTransient<ImportViewModel>();
             return services;
         }
 

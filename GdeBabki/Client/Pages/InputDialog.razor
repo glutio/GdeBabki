@@ -1,14 +1,12 @@
 ﻿@inject DialogService ds
 
-<div>
-    <p class="mb-4">@Caption</p>
-    <div class="row">
-        <RadzenTextBox @bind-Value="Value"></RadzenTextBox>
-        <div class="col">
-            <RadzenButton Text="Ok" Click="() => ds.Close(Value)" Class="mr-1" Style="width: 80px;" />
-            <RadzenButton Text="Cancel" Click="() => ds.Close(null)" ButtonStyle="ButtonStyle.Secondary" Class="mr-1" />
-        </div>
-    </div>
+<p class="mb-4">@Caption</p>
+<RadzenCard>
+    <RadzenTextBox @bind-Value="Value" Style="width: 100%;"></RadzenTextBox>
+</RadzenCard>
+<div class="row">
+    <RadzenButton Text="Ok" Click="() => ds.Close(Value)" Class="mr-1" Style="width: 80px;" />
+    <RadzenButton Text="Cancel" Click="() => ds.Close(null)" ButtonStyle="ButtonStyle.Secondary" Class="mr-1" />
 </div>
 
 @code {
