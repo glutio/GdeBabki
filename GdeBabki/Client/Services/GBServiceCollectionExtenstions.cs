@@ -16,7 +16,7 @@ namespace GdeBabki.Client.Services
             services.AddScoped<AccountsApi>();
             services.AddTransient<AccountsViewModel>();
             services.AddTransient<BanksViewModel>();
-            services.AddTransient<NewAccountViewModel>();
+            services.AddTransient<EditAccountViewModel>();
 
             return services;
         }

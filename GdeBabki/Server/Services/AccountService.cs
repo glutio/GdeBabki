@@ -1,6 +1,7 @@
 ﻿using GdeBabki.Server.Data;
 using GdeBabki.Server.Model;
 using GdeBabki.Shared.DTO;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Linq;
@@ -35,19 +36,40 @@ namespace GdeBabki.Server.Services
             return accounts;
         }
 
-        public async Task<Guid> AddAccountAsync(AddAccount account)
+        public async Task<Guid> UpsertAccountAsync(UpsertAccount account)
         {
             using var db = await dbFactory.CreateDbContextAsync();
-            var gbAccount = new GBAccount()
-            {
-                Name = account.Name,
-                BankId = account.BankId
-            };
 
-            db.Accounts.Add(gbAccount);
+            GBAccount gbAccount;
+            if (account.AccountId != Guid.Empty)
+            {
+                gbAccount = await db.Accounts.FirstOrDefaultAsync(e => e.Id == account.AccountId);
+            }
+            else
+            {
+                gbAccount = new GBAccount();
+                db.Accounts.Add(gbAccount);
+            }
+
+            gbAccount.Name = account.Name;
+            gbAccount.BankId = account.BankId;
+
             db.SaveChanges();
 
             return gbAccount.Id;
+        }
+
+        public async Task DeleteAccountAsync([FromQuery]Guid accountId)
+        {
+            using var db = await dbFactory.CreateDbContextAsync();
+
+            var gbAccount = new GBAccount()
+            {
+                Id = accountId
+            };
+            db.Accounts.Remove(gbAccount);
+            
+            db.SaveChanges();
         }
 
         public async Task<Bank[]> GetBanksAsync()

@@ -4,22 +4,41 @@
 @inject DialogService dialogService
 
 <h3>Accounts</h3>
-<RadzenDataList TItem="Account" Data="Model.Accounts">
-    <Template>
-        <RadzenCard>
-            @if (context.Id == Guid.Empty)
-            {
-                <NewAccount Account="context"/>
-            }
-            else
-            {
-                @($"{context.Name}|{context.Bank.Name}")
-            }
-        </RadzenCard>
-    </Template>
-</RadzenDataList>
+@if (Model.IsLoaded)
+{
+    <RadzenDataList TItem="Account" Data="Model.Accounts">
+        <Template>
+            <RadzenCard>
+                @if (Model.EditingAccount == context)
+                {
+                    <EditAccount Account="context" Cancel="OnEditCancel" Save="OnEditSave"/>
+                }
+                else
+                {
+                    <div class="row">
 
-<RadzenButton Click="OnAddClick">Add</RadzenButton>
+                        <div class="col-3">
+                            @context.Name
+                        </div>
+                        <div class="col-3">
+                            <b>@context.Bank.Name</b>
+                        </div>
+                        <div class="col">
+                            <RadzenButton Text="Edit" Click="() => OnEditClick(context)"></RadzenButton>
+                            <RadzenButton Text="Delete" Click="() => OnDeleteClick(context)"></RadzenButton>
+                       </div>
+                    </div>
+                }
+            </RadzenCard>
+        </Template>
+    </RadzenDataList>
+
+    <RadzenButton Click="OnAddClick">Add</RadzenButton>
+}
+else
+{
+    <p>Loading...</p>
+}
 
 @code {
     protected override async Task OnInitializedAsync()
@@ -30,6 +49,27 @@
 
     void OnAddClick()
     {
-        Model.NewAccount();
+        if (Model.EditingAccount?.Id != Guid.Empty)       
+            Model.NewAccount();
+    }
+
+    void OnEditClick(Account account)
+    {
+        Model.EditAccount(account);
+    }
+
+    void OnEditSave()
+    {
+        Model.EditingAccount = null;
+    }
+
+    void OnEditCancel()
+    {
+        Model.CancelEditingAccount();
+    }
+
+    void OnDeleteClick(Account account)
+    {
+        Model.DeleteAccount(account.Id);
     }
 }

@@ -17,16 +17,6 @@ namespace GdeBabki.Client.Services
         {
         }
 
-        public async Task<Guid> AddAccountAsync(AddAccount account)
-        {
-            var response = await httpClient.PostAsJsonAsync("api/Accounts", account);
-            response.EnsureSuccessStatusCode();
-            var model = await response.Content.ReadFromJsonAsync<Guid>();
-            
-            AccountsUpdated?.Invoke(this, EventArgs.Empty);
-            return model;
-        }
-
         public async Task<List<Account>> GetAccountsAsync()
         {
             var response = await httpClient.GetAsync("api/Accounts");
@@ -35,9 +25,23 @@ namespace GdeBabki.Client.Services
             return model;
         }
 
-        internal async Task UpdateBankAsync(Bank addBank)
+        public async Task<Guid> UpsertAccountAsync(UpsertAccount account)
         {
-            throw new NotImplementedException();
+            var response = await httpClient.PostAsJsonAsync("api/Accounts", account);
+            response.EnsureSuccessStatusCode();
+            var model = await response.Content.ReadFromJsonAsync<Guid>();
+
+            AccountsUpdated?.Invoke(this, EventArgs.Empty);
+            return model;
+        }
+
+        public async Task DeleteAccountAsync(Guid accountId)
+        {
+
+            var response = await httpClient.DeleteAsync($"api/Accounts?accountId={accountId}");
+            response.EnsureSuccessStatusCode();
+
+            AccountsUpdated?.Invoke(this, EventArgs.Empty);
         }
 
         public async Task<Guid> AddBankAsync(AddBank bank)

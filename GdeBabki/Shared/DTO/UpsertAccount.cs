@@ -6,8 +6,9 @@ using System.Threading.Tasks;
 
 namespace GdeBabki.Shared.DTO
 {
-    public class AddAccount
+    public class UpsertAccount
     {        
+        public Guid AccountId { get; set; }
         public string Name { get; set; }
         public Guid BankId { get; set; }
     }

@@ -29,10 +29,17 @@ namespace GdeBabki.Server.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<Guid>> AddAccountAsync(AddAccount account)
+        public async Task<ActionResult<Guid>> UpsertAccountAsync(UpsertAccount account)
         {
-            var model = await accountsService.AddAccountAsync(account);
+            var model = await accountsService.UpsertAccountAsync(account);
             return new JsonResult(model);
+        }
+
+        [HttpDelete]
+        public async Task<IActionResult> DeleteAccountAsync(Guid accountId)
+        {
+            await accountsService.DeleteAccountAsync(accountId);
+            return Ok();
         }
 
         [HttpGet("Banks")]

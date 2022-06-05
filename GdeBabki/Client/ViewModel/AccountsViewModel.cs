@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace GdeBabki.Client.ViewModel
 {
-    public class AccountsViewModel: ViewModelBase
+    public class AccountsViewModel : ViewModelBase
     {
         private readonly AccountsApi accountsApi;
 
@@ -19,7 +19,8 @@ namespace GdeBabki.Client.ViewModel
         {
             accountsApi.AccountsUpdated += AccountsApi_AccountsUpdated;
             Accounts = await accountsApi.GetAccountsAsync();
-            RaisePropertyChanged(nameof(Accounts));
+            IsLoaded = true;
+            RaisePropertyChanged(nameof(IsLoaded));
         }
 
         private async void AccountsApi_AccountsUpdated(object sender, EventArgs e)
@@ -33,10 +34,38 @@ namespace GdeBabki.Client.ViewModel
             if (Accounts.Count > 0 && Accounts[Accounts.Count - 1].Id == Guid.Empty)
                 return;
 
-            Accounts.Add(new Account());
-            RaisePropertyChanged(nameof(Accounts));
+            var account = new Account();
+            Accounts.Add(account);
+            EditingAccount = account;
+            RaisePropertyChanged(nameof(EditingAccount));
         }
 
+        public void EditAccount(Account account)
+        {
+            CancelEditingAccount();
+            EditingAccount = account;
+            RaisePropertyChanged(nameof(EditingAccount));
+        }
+
+        public void CancelEditingAccount()
+        {
+            if (EditingAccount == null)
+                return;
+
+            if (EditingAccount.Id == Guid.Empty)
+                Accounts.RemoveAt(Accounts.Count - 1);
+
+            EditingAccount = null;
+            RaisePropertyChanged(nameof(EditingAccount));
+        }
+
+        public async void DeleteAccount(Guid accountId)
+        {
+            await accountsApi.DeleteAccountAsync(accountId);
+        }
+
+        public bool IsLoaded { get; set;}
+        public Account EditingAccount { get; set; }
         public List<Account> Accounts { get; set; }
     }
 }

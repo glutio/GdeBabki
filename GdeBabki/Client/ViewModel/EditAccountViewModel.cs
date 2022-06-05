@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 
 namespace GdeBabki.Client.ViewModel
 {
-    public class NewAccountViewModel: ViewModelBase, IDisposable
+    public class EditAccountViewModel: ViewModelBase, IDisposable
     {
         private readonly AccountsApi accountsApi;
 
-        public NewAccountViewModel(AccountsApi accountsApi)
+        public EditAccountViewModel(AccountsApi accountsApi)
         {
             this.accountsApi = accountsApi;
             this.accountsApi.BanksUpdated += AccountsApi_BanksUpdated;
@@ -35,13 +35,15 @@ namespace GdeBabki.Client.ViewModel
 
         public async Task<Guid> Save()
         {
-            return await accountsApi.AddAccountAsync(new AddAccount()
+            return await accountsApi.UpsertAccountAsync(new UpsertAccount()
             {
+                AccountId = AccountId,
                 Name = Name,
                 BankId = BankId
             });
         }
 
+        public Guid AccountId { get; set; }
         public string Name { get; set; }
         public Guid BankId { get; set; }
         public List<Bank> Banks { get; set; }

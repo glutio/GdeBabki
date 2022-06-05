@@ -38,14 +38,7 @@ namespace GdeBabki.Client.ViewModel
 
         public async Task UpdateBankAsync(Guid id, string Name)
         {
-            await accountsApi.UpdateBankAsync(new Bank()
-            {
-                Id = id,
-                Name = Name
-            });
 
-            Banks.First(e => e.Id == id).Name = Name;
-            RaisePropertyChanged(nameof(Banks));
         }
 
         public List<Bank> Banks { get; set; }
