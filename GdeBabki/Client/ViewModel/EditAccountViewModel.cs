@@ -30,22 +30,23 @@ namespace GdeBabki.Client.ViewModel
 
         public async Task InitializeAsync()
         {
-            Banks = await accountsApi.GetBanksAsync();            
+            Banks = await accountsApi.GetBanksAsync();
+            IsLoaded = true;
+            RaisePropertyChanged(nameof(IsLoaded));
         }
 
         public async Task<Guid> Save()
         {
             return await accountsApi.UpsertAccountAsync(new UpsertAccount()
             {
-                AccountId = AccountId,
-                Name = Name,
-                BankId = BankId
+                AccountId = Account.Id,
+                Name = Account.Name,
+                BankId = Account.Bank.Id
             });
         }
 
-        public Guid AccountId { get; set; }
-        public string Name { get; set; }
-        public Guid BankId { get; set; }
+        public Account Account { get; set; }
         public List<Bank> Banks { get; set; }
+        public bool IsLoaded { get; set; }
     }
 }

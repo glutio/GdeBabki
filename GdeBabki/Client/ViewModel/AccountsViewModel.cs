@@ -34,7 +34,11 @@ namespace GdeBabki.Client.ViewModel
             if (Accounts.Count > 0 && Accounts[Accounts.Count - 1].Id == Guid.Empty)
                 return;
 
-            var account = new Account();
+            var account = new Account()
+            {
+                Bank = new Bank()
+            };
+
             Accounts.Add(account);
             EditingAccount = account;
             RaisePropertyChanged(nameof(EditingAccount));
@@ -64,7 +68,7 @@ namespace GdeBabki.Client.ViewModel
             await accountsApi.DeleteAccountAsync(accountId);
         }
 
-        public bool IsLoaded { get; set;}
+        public bool IsLoaded { get; set; }
         public Account EditingAccount { get; set; }
         public List<Account> Accounts { get; set; }
     }

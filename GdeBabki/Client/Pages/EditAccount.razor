@@ -1,24 +1,31 @@
 ﻿@inject EditAccountViewModel Model
 @inject DialogService dialogService
 
-<div class="row">
-    <div class="col-4">
-        <p><b>Account name</b></p>
-        <RadzenTextBox @bind-Value="@Model.Name" Placeholder="account name" Style="width:100%;"/>
-    </div>
-    <div class="col-3">
-        <p><b>Bank</b></p>
-            <RadzenDropDown TValue="Guid" ValueProperty="Id" @bind-Value="@Model.BankId" Data="Model.Banks" TextProperty="Name" Style="width:100%"/>
+@if (Model.IsLoaded)
+{
+    <div class="row">
+        <div class="col-4">
+            <p><b>Account name</b></p>
+            <RadzenTextBox @bind-Value="@Account.Name" Placeholder="account name" Style="width:100%;" />
+        </div>
+        <div class="col-3">
+            <p><b>Bank</b></p>
+            <RadzenDropDown TValue="Guid" ValueProperty="Id" @bind-Value="@Account.Bank.Id" Data="Model.Banks" TextProperty="Name" Style="width:100%" />
             <div>
                 <RadzenButton Click="OnAddDeleteClick">Add/Delete Banks</RadzenButton>
             </div>
+        </div>
+        <div class="col-5">
+            <p>&nbsp;</p>
+            <RadzenButton Click="OnSaveClick">Save</RadzenButton>
+            <RadzenButton Click="OnCancelClick">Cancel</RadzenButton>
+        </div>
     </div>
-    <div class="col-5">
-        <p>&nbsp;</p>
-        <RadzenButton Click="OnSaveClick">Save</RadzenButton>
-        <RadzenButton Click="OnCancelClick">Cancel</RadzenButton>
-    </div>
-</div>
+}
+else
+{
+    <p>Loading...</p>
+}
 
 @code {
     [Parameter]
@@ -30,15 +37,13 @@
 
     protected override async Task OnInitializedAsync()
     {
-        Model.PropertyChanged += (s,e) => StateHasChanged();
+        Model.PropertyChanged += (s, e) => StateHasChanged();
         await Model.InitializeAsync();
     }
 
     protected override void OnParametersSet()
     {
-        Model.AccountId = Account?.Id ?? Guid.Empty;
-        Model.Name = Account?.Name;
-        Model.BankId = Account?.Bank?.Id ?? Guid.Empty;
+        Model.Account = Account;
     }
 
     async void OnAddDeleteClick()
