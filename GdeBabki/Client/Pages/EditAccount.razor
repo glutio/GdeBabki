@@ -1,4 +1,4 @@
-﻿@inject EditAccountViewModel Model
+﻿@inherits ViewBase<EditAccountViewModel>
 @inject DialogService dialogService
 
 @if (Model.IsLoaded)
@@ -33,18 +33,7 @@ else
     [Parameter]
     public EventCallback Cancel { get; set; }
     [Parameter]
-    public EventCallback Save { get; set; }
-
-    protected override async Task OnInitializedAsync()
-    {
-        Model.PropertyChanged += (s, e) => StateHasChanged();
-        await Model.InitializeAsync();
-    }
-
-    protected override void OnParametersSet()
-    {
-        Model.Account = Account;
-    }
+    public EventCallback<Account> Save { get; set; }
 
     async void OnAddDeleteClick()
     {
@@ -53,8 +42,7 @@ else
 
     async void OnSaveClick()
     {
-        await Model.Save();
-        await Save.InvokeAsync();
+        await Save.InvokeAsync(Account);
     }
 
     async void OnCancelClick()

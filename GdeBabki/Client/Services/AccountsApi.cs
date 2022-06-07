@@ -1,5 +1,6 @@
 ﻿using GdeBabki.Shared.DTO;
 using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -13,12 +14,13 @@ namespace GdeBabki.Client.Services
         public event EventHandler AccountsUpdated;
         public event EventHandler BanksUpdated;
 
-        public AccountsApi(GBHttpClient httpClient) : base(httpClient)
+        public AccountsApi(IHttpClientFactory httpFactory) : base(httpFactory)
         {
         }
 
         public async Task<List<Account>> GetAccountsAsync()
         {
+            var httpClient = httpFactory.CreateClient();
             var response = await httpClient.GetAsync("api/Accounts");
             response.EnsureSuccessStatusCode();
             var model = await response.Content.ReadFromJsonAsync<List<Account>>();
@@ -27,6 +29,7 @@ namespace GdeBabki.Client.Services
 
         public async Task<Guid> UpsertAccountAsync(UpsertAccount account)
         {
+            var httpClient = httpFactory.CreateClient();
             var response = await httpClient.PostAsJsonAsync("api/Accounts", account);
             response.EnsureSuccessStatusCode();
             var model = await response.Content.ReadFromJsonAsync<Guid>();
@@ -37,7 +40,7 @@ namespace GdeBabki.Client.Services
 
         public async Task DeleteAccountAsync(Guid accountId)
         {
-
+            var httpClient = httpFactory.CreateClient();
             var response = await httpClient.DeleteAsync($"api/Accounts?id={accountId}");
             response.EnsureSuccessStatusCode();
 
@@ -46,6 +49,7 @@ namespace GdeBabki.Client.Services
 
         public async Task<List<Bank>> GetBanksAsync()
         {
+            var httpClient = httpFactory.CreateClient();
             var response = await httpClient.GetAsync("api/Accounts/Banks");
             response.EnsureSuccessStatusCode();
             var model = await response.Content.ReadFromJsonAsync<List<Bank>>();
@@ -54,6 +58,7 @@ namespace GdeBabki.Client.Services
 
         public async Task<Guid> UpsertBankAsync(Bank bank)
         {
+            var httpClient = httpFactory.CreateClient();
             var response = await httpClient.PostAsJsonAsync("api/Accounts/Banks", bank);
             response.EnsureSuccessStatusCode();
             var model = await response.Content.ReadFromJsonAsync<Guid>();
@@ -64,6 +69,7 @@ namespace GdeBabki.Client.Services
 
         public async Task DeleteBankAsync(Guid bankId)
         {
+            var httpClient = httpFactory.CreateClient();
             var response = await httpClient.DeleteAsync($"api/Accounts/Banks?id={bankId}");
             response.EnsureSuccessStatusCode();
 

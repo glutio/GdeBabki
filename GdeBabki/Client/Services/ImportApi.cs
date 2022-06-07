@@ -14,7 +14,7 @@ namespace GdeBabki.Client.Services
 {
     public class ImportApi: ApiBase
     {
-        public ImportApi(GBHttpClient httpClient) : base(httpClient)
+        public ImportApi(IHttpClientFactory httpFactory) : base(httpFactory)
         {
         }
 
@@ -23,10 +23,11 @@ namespace GdeBabki.Client.Services
             var content = new MultipartFormDataContent();
             content.Headers.ContentDisposition = new ContentDispositionHeaderValue("form-data");
 
-            content.Add(new StreamContent(stream), "\"file\"", "filename.ext");
-            content.Add(new StringContent(accountId.ToString()), "\"accountId\"");
-            content.Add(new StringContent(String.Join(',', filter.Cast<int?>())), "\"filter\"");
+            content.Add(new StreamContent(stream), "files", "filename.ext");
+            content.Add(new StringContent(accountId.ToString()), "accountId");
+            content.Add(new StringContent(String.Join(',', filter.Cast<int?>())), "filter");
 
+            var httpClient = httpFactory.CreateClient();
             await httpClient.PostAsync("/api/Import", content);
         }
     }

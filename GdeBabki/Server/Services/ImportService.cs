@@ -28,16 +28,19 @@ namespace GdeBabki.Server.Services
             var lines = await parser.LoadAsync(stream);
 
             using var db = await dbFactory.CreateDbContextAsync();
-            var account = await db.Accounts.FirstOrDefaultAsync(e => e.Id == accountId);
-                
+
+            using var dbTransaction = await db.Database.BeginTransactionAsync();
             foreach (var line in lines)
             {
                 var transaction = ParseTransaction(line, filter);
                 if (transaction != null)
                 {
-                    account.Transactions.Add(transaction);
+                    transaction.AccountId = accountId;
+                    db.Transactions.Add(transaction);
                 }
             }
+            await db.SaveChangesAsync();
+            await dbTransaction.CommitAsync();
         }
 
         private GBTransaction ParseTransaction(string[] line, GBColumnName?[] filter)

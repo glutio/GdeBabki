@@ -1,12 +1,14 @@
-﻿namespace GdeBabki.Client.Services
+﻿using System.Net.Http;
+
+namespace GdeBabki.Client.Services
 {
     public class ApiBase
     {
-        protected readonly GBHttpClient httpClient;
+        protected readonly IHttpClientFactory httpFactory;
 
-        public ApiBase(GBHttpClient httpClient)
+        public ApiBase(IHttpClientFactory httpFactory)
         {
-            this.httpClient = httpClient;
+            this.httpFactory = httpFactory;
         }
     }
 }

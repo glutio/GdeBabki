@@ -17,9 +17,9 @@ namespace GdeBabki.Server.Controllers
     public class ImportController : ControllerBase
     {
         [HttpPost]
-        public async Task<IActionResult> Post([FromForm] IEnumerable<IFormFile> file, [FromForm] string filter, [FromForm] Guid accountId, [FromServices] ImportService importService)
+        public async Task<IActionResult> Post([FromForm] IEnumerable<IFormFile> files, [FromForm] string filter, [FromForm] Guid accountId, [FromServices] ImportService importService)
         {
-            using var stream = file.First().OpenReadStream();
+            using var stream = files.First().OpenReadStream();
 
             GBColumnName?[] columns = filter.Split(",")
                 .Select(e => string.IsNullOrEmpty(e) ? null : (GBColumnName?)int.Parse(e))

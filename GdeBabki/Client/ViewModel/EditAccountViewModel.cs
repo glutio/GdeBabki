@@ -13,10 +13,9 @@ namespace GdeBabki.Client.ViewModel
         public EditAccountViewModel(AccountsApi accountsApi)
         {
             this.accountsApi = accountsApi;
-            this.accountsApi.BanksUpdated += AccountsApi_BanksUpdated;
         }
 
-        public void Dispose()
+        protected override void Unsubscribe()
         {
             accountsApi.BanksUpdated -= AccountsApi_BanksUpdated;
         }
@@ -27,20 +26,11 @@ namespace GdeBabki.Client.ViewModel
             RaisePropertyChanged(nameof(Banks));
         }
 
-        public async Task InitializeAsync()
+        public override async Task InitializeAsync()
         {
+            accountsApi.BanksUpdated += AccountsApi_BanksUpdated;
             Banks = await accountsApi.GetBanksAsync();
             IsLoaded = true;
-        }
-
-        public async Task<Guid> Save()
-        {
-            return await accountsApi.UpsertAccountAsync(new UpsertAccount()
-            {
-                AccountId = Account.Id,
-                Name = Account.Name,
-                BankId = Account.Bank.Id
-            });
         }
 
         public Account Account { get; set; }

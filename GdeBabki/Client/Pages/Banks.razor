@@ -1,4 +1,4 @@
-﻿@inject BanksViewModel Model
+﻿@inherits ViewBase<BanksViewModel>
 @inject DialogService dialogService
 
 <RadzenDataList Data="Model.Banks" TItem="Bank">
@@ -19,12 +19,6 @@
 <RadzenButton Click="() => dialogService.Close()">Close</RadzenButton>
 
 @code {
-
-    protected override async Task OnInitializedAsync()
-    {
-        Model.PropertyChanged += (s, e) => StateHasChanged();
-        await Model.InitializeAsync();
-    }
 
     async void OnDeleteClickAsync(Bank bank)
     {

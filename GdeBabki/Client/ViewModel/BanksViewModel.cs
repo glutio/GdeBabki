@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace GdeBabki.Client.ViewModel
 {
-    public class BanksViewModel: ViewModelBase, IDisposable
+    public class BanksViewModel: ViewModelBase
     {
         private readonly AccountsApi accountsApi;
 
@@ -22,15 +22,15 @@ namespace GdeBabki.Client.ViewModel
             RaisePropertyChanged(nameof(Banks));
         }
 
-        public void Dispose()
+        protected override void Unsubscribe()
         {
             accountsApi.BanksUpdated -= AccountsApi_BanksUpdated;
         }
 
-        public async Task InitializeAsync()
+        public override async Task InitializeAsync()
         {
             Banks = await accountsApi.GetBanksAsync();
-            RaisePropertyChanged(nameof(Banks));
+            IsLoaded = true;
         }
 
         public async Task UpsertBankAsync(Bank bank)

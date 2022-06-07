@@ -16,11 +16,16 @@ namespace GdeBabki.Client.ViewModel
             this.accountsApi = accountsApi;
         }
 
-        public async Task InitializeAsync()
+        public override async Task InitializeAsync()
         {
             accountsApi.AccountsUpdated += AccountsApi_AccountsUpdated;
             Accounts = await accountsApi.GetAccountsAsync();
             IsLoaded = true;
+        }
+
+        protected override void Unsubscribe()
+        {
+            accountsApi.AccountsUpdated -= AccountsApi_AccountsUpdated;
         }
 
         private async void AccountsApi_AccountsUpdated(object sender, EventArgs e)
@@ -66,6 +71,17 @@ namespace GdeBabki.Client.ViewModel
         public async void DeleteAccount(Guid accountId)
         {
             await accountsApi.DeleteAccountAsync(accountId);
+        }
+
+        public async void SaveAccount(Account account)
+        {
+            await accountsApi.UpsertAccountAsync(new UpsertAccount()
+            {
+                AccountId = account.Id,
+                Name = account.Name,
+                BankId = account.Bank.Id
+            });
+            EditingAccount = null;
         }
 
         public Account EditingAccount { get; set; }
