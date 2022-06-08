@@ -3,13 +3,13 @@
 @using System.Text
 @using GdeBabki.Client.Services
 @using GdeBabki.Shared.ViewModels
-
-@inject ImportViewModel Model
+@inherits ViewBase<ImportViewModel>
+@inject NavigationManager navigationManager
 
 <h1>Import</h1>
 @if (Model.IsLoaded)
 {
-    <InputFile OnChange="OnFileChangeAsync" />
+    <InputFile OnChange="OnFileChangeAsync"/>
     <p>Account</p>
     <RadzenDropDown TValue="Guid" Data="Model.Accounts" ValueProperty="Id" TextProperty="Name" @bind-Value="Model.AccountId">
         <Template>
@@ -46,18 +46,10 @@ else
 }
 
 @code {
-    protected override async Task OnInitializedAsync()
-    {
-        Model.PropertyChanged += (s, e) => StateHasChanged();
-        await Model.InitializeAsync();
-    }
-
     async void OnFileChangeAsync(InputFileChangeEventArgs e)
     {
         Model.ImportFile = e.File;
-        using var stream = e.File.OpenReadStream();
-        Console.WriteLine(stream.Length);
-        await Model.LoadSampleLinesAsync(stream, 10);
+        await Model.LoadSampleLinesAsync(10);
     }
 
     void OnColumnBindingChanged(int index, GBColumnName? val)
@@ -68,5 +60,6 @@ else
     async void OnImportClick()
     {
         await Model.ImportAsync();
+        navigationManager.NavigateTo($"/review?accountIds={Model.AccountId}");
     }
 }

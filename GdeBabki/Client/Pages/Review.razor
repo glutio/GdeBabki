@@ -4,24 +4,40 @@
 <h3>Review</h3>
 @if (Model.IsLoaded)
 {
-    @foreach(var account in Model.Accounts)
-    {
-        <p>@account.Key.Name (<b>@account.Key.Bank.Name</b>)</p>
-    }    
+    <RadzenCard Style="width: 100%;">
+        <RadzenCheckBoxList Data="Model.Accounts" @bind-Value="Model.SelectedAccounts" ValueProperty="Id" TValue="Guid" TextProperty="FullName" Change="OnSelectedAccountsChangeAsync">
+        </RadzenCheckBoxList>
+    </RadzenCard>
 
-    <RadzenDataGrid TItem="Transaction" Data="Model.Transactions">
+    <RadzenDataGrid TItem="Transaction" Data="Model.Transactions" AllowPaging="true" FilterMode="FilterMode.Simple">
         <Columns>
-            <RadzenDataGridColumn TItem="Transaction" Property="Date"/>
-            <RadzenDataGridColumn TItem="Transaction" Property="Description"/>
+            <RadzenDataGridColumn TItem="Transaction" Property="State" Width="2rem" >
+                <Template>
+                    @if (context.State == GBTransactionState.Imported)
+                    {
+                        <span style="background-color:gold">&nbsp;</span>
+                    }
+                    else
+                    {
+                        <span style="background-color:green">&nbsp;</span>
+                    }
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn TItem="Transaction" Property="Date">
+                <Template>
+                    @context.Date.ToShortDateString()
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn TItem="Transaction" Property="Description" Filterable="true"/>
             <RadzenDataGridColumn TItem="Transaction" Property="Amount">
                 <Template>
                     @if (context.Amount < 0)
                     {
-                        <span style="color:red">@context.Amount</span>
+                        <span style="color:red">@context.Amount.ToString("0.00")</span>
                     }
                     else
                     {
-                        <span style="color:green">@context.Amount</span>                    
+                        <span style="color:green">@context.Amount.ToString("0.00")</span>
                     }
                 </Template>
             </RadzenDataGridColumn>      
@@ -34,5 +50,17 @@ else
 }
 
 @code {
+    [Parameter, SupplyParameterFromQuery]
+    public Guid[] AccountIds { get; set; }
 
+    async Task OnSelectedAccountsChangeAsync(IEnumerable<Guid> accounts)
+    {
+        await Model.OnSelectedAccountsChangeAsync();
+    }
+
+    protected override void OnInitialized()
+    {
+        Model.SelectedAccounts = AccountIds;
+        base.OnInitialized();
+    }
 }

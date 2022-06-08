@@ -11,5 +11,6 @@ namespace GdeBabki.Shared.DTO
         public Guid Id { get; set; }
         public string Name { get; set; }
         public Bank Bank { get; set; }
+        public string FullName => $"{Name} ({Bank.Name})";
     }
 }

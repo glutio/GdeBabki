@@ -1,6 +1,8 @@
 ﻿using GdeBabki.Client.Services;
 using GdeBabki.Shared.DTO;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -11,8 +13,8 @@ namespace GdeBabki.Client.ViewModel
         private readonly AccountsApi accountsApi;
 
         public List<Transaction> Transactions { get; set; }
-        public List<KeyValuePair<Account, bool>> Accounts { get; set; }
-
+        public List<Account> Accounts { get; set; }
+        public IEnumerable<Guid> SelectedAccounts { get; set; }
         public ReviewViewModel(AccountsApi accountsApi)
         {
             this.accountsApi = accountsApi;
@@ -20,11 +22,20 @@ namespace GdeBabki.Client.ViewModel
 
         public override async Task InitializeAsync()
         {
-            var accounts = await accountsApi.GetAccountsAsync();
-            Accounts = accounts.Select(e => new KeyValuePair<Account, bool>(e, true)).ToList();
-            
-            Transactions = await accountsApi.GetTransactionsAsync(accounts.ToArray());
+            Accounts = await accountsApi.GetAccountsAsync();
+            if (SelectedAccounts == null)
+            {
+                SelectedAccounts = Accounts.Select(e => e.Id).ToArray();
+            }
+
+            Transactions = await accountsApi.GetTransactionsAsync(SelectedAccounts);
             IsLoaded = true;
+        }
+
+        public async Task OnSelectedAccountsChangeAsync()
+        {
+            Transactions = await accountsApi.GetTransactionsAsync(SelectedAccounts);
+            RaisePropertyChanged(nameof(Transactions));
         }
     }
 }

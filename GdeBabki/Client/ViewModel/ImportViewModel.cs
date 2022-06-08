@@ -11,6 +11,7 @@ namespace GdeBabki.Client.ViewModel
 {
     public class ImportViewModel: ViewModelBase
     {
+        public const int MAX_STREAM_SIZE = 1024 * 1024 * 2; /* 2 mb */
         private readonly AccountsApi accountsApi;
         private readonly ImportApi importApi;
 
@@ -26,10 +27,12 @@ namespace GdeBabki.Client.ViewModel
             IsLoaded = true;
         }
 
-        public async Task LoadSampleLinesAsync(Stream stream, int count)
+        public async Task LoadSampleLinesAsync(int count)
         {
             SampleLines = null;
             ColumnBindings = null;
+
+            using var stream = ImportFile.OpenReadStream(MAX_STREAM_SIZE);
 
             try
             {
@@ -68,7 +71,7 @@ namespace GdeBabki.Client.ViewModel
 
         public async Task ImportAsync()
         {
-            using var stream = ImportFile.OpenReadStream();
+            using var stream = ImportFile.OpenReadStream(MAX_STREAM_SIZE);
             await importApi.ImportAsync(AccountId, stream, ColumnBindings);
         }
 

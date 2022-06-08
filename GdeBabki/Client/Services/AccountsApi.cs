@@ -27,10 +27,10 @@ namespace GdeBabki.Client.Services
             return model;
         }
 
-        public async Task<List<Transaction>> GetTransactionsAsync(Account[] accounts)
+        public async Task<List<Transaction>> GetTransactionsAsync(IEnumerable<Guid> accountIds)
         {
             var httpClient = httpFactory.CreateClient();
-            var queryString = "accountIds=" + string.Join("&accountIds=", accounts.Select(e => e.Id.ToString()));
+            var queryString = accountIds == null || accountIds.Count() == 0 ? "" : "accountIds=" + string.Join("&accountIds=", accountIds);
             var response = await httpClient.GetAsync($"api/Accounts/Transactions?{queryString}");
             response.EnsureSuccessStatusCode();
             var model = await response.Content.ReadFromJsonAsync<List<Transaction>>();

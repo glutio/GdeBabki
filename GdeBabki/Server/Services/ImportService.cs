@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -30,31 +31,44 @@ namespace GdeBabki.Server.Services
             using var db = await dbFactory.CreateDbContextAsync();
 
             using var dbTransaction = await db.Database.BeginTransactionAsync();
-            foreach (var line in lines)
+            try
             {
-                var transaction = ParseTransaction(line, filter);
-                if (transaction != null)
+                foreach (var line in lines)
                 {
-                    transaction.AccountId = accountId;
-                    db.Transactions.Add(transaction);
+                    var transaction = ParseTransaction(line, filter);
+                    if (transaction != null)
+                    {
+                        transaction.Id = transaction.GetMD5();
+                        transaction.AccountId = accountId;
+                        var isExisting = await db.Transactions.AnyAsync(e => e.Id == transaction.Id);
+                        if (!isExisting)
+                        {
+                            db.Transactions.Add(transaction);
+                        }
+                    }
                 }
+
+                await db.SaveChangesAsync();
+                await dbTransaction.CommitAsync();
             }
-            await db.SaveChangesAsync();
-            await dbTransaction.CommitAsync();
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
         }
 
         private GBTransaction ParseTransaction(string[] line, GBColumnName?[] filter)
         {
             var transaction = new GBTransaction();
-            
-            for(var i = 0; i < filter.Length; i++)
+
+            for (var i = 0; i < filter.Length; i++)
             {
-                switch(filter[i])
+                switch (filter[i])
                 {
                     case GBColumnName.TransactionId:
-                        transaction.TransactionId = line[i]; 
+                        transaction.TransactionId = line[i];
                         break;
-                    case GBColumnName.Amount:                         
+                    case GBColumnName.Amount:
                         if (decimal.TryParse(line[i], out decimal amount))
                         {
                             transaction.Amount = amount;

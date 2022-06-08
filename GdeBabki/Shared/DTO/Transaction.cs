@@ -1,4 +1,7 @@
 ﻿using System;
+using System.IO;
+using System.Linq;
+using System.Security.Cryptography;
 
 namespace GdeBabki.Shared.DTO
 {
@@ -10,6 +13,6 @@ namespace GdeBabki.Shared.DTO
         public string Description { get; set; }
         public decimal Amount { get; set; }
         public string Tags { get; set; }
-        public GBTransactionState State { get; set; }
+        public GBTransactionState State { get; set; }              
     }
 }
