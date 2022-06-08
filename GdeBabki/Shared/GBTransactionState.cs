@@ -1,4 +1,4 @@
-﻿namespace GdeBabki.Server.Model
+﻿namespace GdeBabki.Shared
 {
     public enum GBTransactionState
     {

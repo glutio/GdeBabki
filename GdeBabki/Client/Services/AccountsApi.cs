@@ -75,6 +75,5 @@ namespace GdeBabki.Client.Services
 
             BanksUpdated?.Invoke(this, EventArgs.Empty);
         }
-
     }
 }

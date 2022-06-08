@@ -1,12 +1,10 @@
-﻿using GdeBabki.Shared;
-using System;
+﻿using System;
 
-namespace GdeBabki.Server.Model
+namespace GdeBabki.Shared.DTO
 {
-    public class GBTransaction: GBEntity
+    public class Transaction
     {
-        public Guid AccountId { get; set; }
-        public GBAccount Account { get; set; }
+        public Guid Id { get; set; }
         public string TransactionId { get; set; }
         public DateTime Date { get; set; }
         public string Description { get; set; }

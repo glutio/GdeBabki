@@ -5,9 +5,8 @@ using System.Threading;
 
 namespace GdeBabki.Client.Services
 {
-    public class ErrorService : IDisposable
+    public class ErrorService
     {
-        Timer timer;
         public List<ErrorMessage> errors = new();
         public IEnumerable<ErrorMessage> Errors => errors;
 
@@ -15,7 +14,6 @@ namespace GdeBabki.Client.Services
 
         public ErrorService()
         {
-            timer = new Timer(TimerElapsed, null, 0, 100);
         }
 
         public void AddError(string message, int msTimeout = 10000)
@@ -29,7 +27,7 @@ namespace GdeBabki.Client.Services
             ErrorUpdated?.Invoke(this, new EventArgs());
         }
 
-        public void TimerElapsed(object state)
+        public void ExpireErrors()
         {
             var count = errors.Count;
             for (var i = 0; i < errors.Count; i++)
@@ -56,11 +54,6 @@ namespace GdeBabki.Client.Services
         {
             errors.Remove(error);
             ErrorUpdated?.Invoke(this, new EventArgs());
-        }
-
-        public void Dispose()
-        {
-            timer.Dispose();
         }
     }
 }
