@@ -14,12 +14,21 @@ namespace GdeBabki.Client
         {
             var builder = WebAssemblyHostBuilder.CreateDefault(args);
             builder.RootComponents.Add<App>("#app");
-            builder.Services.AddHttpClient(Options.DefaultName, httpClient => { Console.WriteLine("BaseAddress" + builder.HostEnvironment.BaseAddress);
-                httpClient.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress); });
+            builder.Services.AddHttpClient(Options.DefaultName, httpClient => { httpClient.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress); });
             builder.Services.AddScoped<DialogService>();
             builder.Services.AddBabkiServices();
+            //AppDomain.CurrentDomain.UnhandledException += (s, e) =>
+            //{
+            //    var errorService = builder.Services.BuildServiceProvider().GetService<ErrorService>();
+            //    errorService.AddError(e.ToString());
+            //};
 
             await builder.Build().RunAsync();
+        }
+
+        private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            throw new NotImplementedException();
         }
     }
 }

@@ -13,7 +13,8 @@ namespace GdeBabki.Client.Pages
 
         protected override void OnInitialized()
         {
-            Model.PropertyChanged += Model_PropertyChanged;
+            Model.Initialize();
+            Model.PropertyChanged += Model_PropertyChanged;            
         }
 
         private void Model_PropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -26,6 +27,7 @@ namespace GdeBabki.Client.Pages
             await Model.InitializeAsync();
         }
 
+        
         public void Dispose()
         {
             Model.PropertyChanged -= OnPropertyChanged;

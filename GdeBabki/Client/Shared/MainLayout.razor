@@ -11,9 +11,18 @@
         </div>
 
         <div class="content px-4">
-            @Body
+            <ErrorBoundary>
+                <ChildContent>
+                @Body
+                </ChildContent>
+                <ErrorContent>
+                    
+                        @System.Threading.SynchronizationContext.Current.GetType();
+                    
+                </ErrorContent>
+            </ErrorBoundary>
         </div>
     </div>
 </div>
-
+<GdeBabki.Client.Pages.Error/>
 <RadzenDialog />

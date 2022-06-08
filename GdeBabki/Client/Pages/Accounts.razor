@@ -1,6 +1,6 @@
 ﻿@page "/accounts"
-@inherits ViewBase<AccountsViewModel> 
-@inject DialogService dialogService
+@inherits ViewBase<AccountsViewModel>
+@inject ErrorService es
 
 <h3>Accounts</h3>
 @if (Model.IsLoaded)
@@ -10,7 +10,7 @@
             <RadzenCard>
                 @if (Model.EditingAccount == context)
                 {
-                    <EditAccount Account="context" Cancel="OnEditCancel" Save="OnEditSave"/>
+                    <EditAccount Account="context" Cancel="OnEditCancel" Save="OnEditSave" />
                 }
                 else
                 {
@@ -25,7 +25,7 @@
                         <div class="col">
                             <RadzenButton Text="Edit" Click="() => OnEditClick(context)"></RadzenButton>
                             <RadzenButton Text="Delete" Click="() => OnDeleteClick(context)"></RadzenButton>
-                       </div>
+                        </div>
                     </div>
                 }
             </RadzenCard>
@@ -50,9 +50,16 @@ else
         Model.EditAccount(account);
     }
 
-    void OnEditSave(Account account)
+    async Task OnEditSave(Account account)
     {
-        Model.SaveAccount(account);
+        try
+        {
+            await Model.SaveAccountAsync(account);
+        }
+        catch (Exception e)
+        {
+            es.AddError(e.ToString(), 10000);
+        }
     }
 
     void OnEditCancel()

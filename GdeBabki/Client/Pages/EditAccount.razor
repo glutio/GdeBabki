@@ -12,13 +12,13 @@
             <p><b>Bank</b></p>
             <RadzenDropDown TValue="Guid" ValueProperty="Id" @bind-Value="@Account.Bank.Id" Data="Model.Banks" TextProperty="Name" Style="width:100%" />
             <div>
-                <RadzenButton Click="OnAddDeleteClick">Add/Delete Banks</RadzenButton>
+                <RadzenButton Click="OnAddDeleteClickAsync">Add/Delete Banks</RadzenButton>
             </div>
         </div>
         <div class="col-5">
             <p>&nbsp;</p>
-            <RadzenButton Click="OnSaveClick">Save</RadzenButton>
-            <RadzenButton Click="OnCancelClick">Cancel</RadzenButton>
+            <RadzenButton Click="OnSaveClickAsync">Save</RadzenButton>
+            <RadzenButton Click="OnCancelClickAsync">Cancel</RadzenButton>
         </div>
     </div>
 }
@@ -35,17 +35,17 @@ else
     [Parameter]
     public EventCallback<Account> Save { get; set; }
 
-    async void OnAddDeleteClick()
+    async Task OnAddDeleteClickAsync()
     {
         await dialogService.OpenAsync<Banks>("Add/Delete Banks");
     }
 
-    async void OnSaveClick()
+    async Task OnSaveClickAsync()
     {
         await Save.InvokeAsync(Account);
     }
 
-    async void OnCancelClick()
+    async Task OnCancelClickAsync()
     {
         await Cancel.InvokeAsync();
     }

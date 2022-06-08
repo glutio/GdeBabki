@@ -15,6 +15,10 @@ namespace GdeBabki.Client.ViewModel
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
+        public virtual void Initialize()
+        {
+        }
+
         public virtual Task InitializeAsync()
         {
             return Task.CompletedTask;
@@ -22,10 +26,10 @@ namespace GdeBabki.Client.ViewModel
 
         public void Dispose()
         {
-            Unsubscribe();
+            OnDispose();
         }
 
-        protected virtual void Unsubscribe()
+        protected virtual void OnDispose()
         {
         }
 

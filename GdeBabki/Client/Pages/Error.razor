@@ -1,0 +1,17 @@
+﻿@inherits ViewBase<ErrorViewModel>
+<div style="bottom:0; right:0; position:absolute;">
+    <ul>
+        @foreach(var error in Model.Errors.Reverse())
+        {
+            <li @onmouseenter="() => Model.IsFrozen = true" @onmouseleave="() => Model.IsFrozen = false">
+                <div style="margin:10px;color:white;background-color:crimson;">
+                    (@error.Expire.Second) @error.Message;
+                    <a class="dismiss" @onclick="e => Model.RemoveError(error)">🗙</a>
+                </div>
+            </li>            
+        }
+    </ul>
+</div>
+
+@code {
+}

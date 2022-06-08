@@ -22,7 +22,7 @@ namespace GdeBabki.Client.ViewModel
             RaisePropertyChanged(nameof(Banks));
         }
 
-        protected override void Unsubscribe()
+        protected override void OnDispose()
         {
             accountsApi.BanksUpdated -= AccountsApi_BanksUpdated;
         }

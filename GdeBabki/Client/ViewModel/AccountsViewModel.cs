@@ -23,7 +23,7 @@ namespace GdeBabki.Client.ViewModel
             IsLoaded = true;
         }
 
-        protected override void Unsubscribe()
+        protected override void OnDispose()
         {
             accountsApi.AccountsUpdated -= AccountsApi_AccountsUpdated;
         }
@@ -73,7 +73,7 @@ namespace GdeBabki.Client.ViewModel
             await accountsApi.DeleteAccountAsync(accountId);
         }
 
-        public async void SaveAccount(Account account)
+        public async Task SaveAccountAsync(Account account)
         {
             await accountsApi.UpsertAccountAsync(new UpsertAccount()
             {
@@ -82,6 +82,7 @@ namespace GdeBabki.Client.ViewModel
                 BankId = account.Bank.Id
             });
             EditingAccount = null;
+            RaisePropertyChanged(nameof(EditingAccount));
         }
 
         public Account EditingAccount { get; set; }

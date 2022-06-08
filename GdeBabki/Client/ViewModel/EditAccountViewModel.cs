@@ -15,7 +15,7 @@ namespace GdeBabki.Client.ViewModel
             this.accountsApi = accountsApi;
         }
 
-        protected override void Unsubscribe()
+        protected override void OnDispose()
         {
             accountsApi.BanksUpdated -= AccountsApi_BanksUpdated;
         }
