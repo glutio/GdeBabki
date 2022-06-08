@@ -86,6 +86,26 @@ namespace GdeBabki.Server.Services
             return banks;
         }
 
+        public async Task<Transaction[]> GetTransactionsAsync(Guid[] accountIds)
+        {
+            using var db = await dbFactory.CreateDbContextAsync();
+            var transactions = await db.Transactions
+                .Where(e => accountIds.Any(id => id == e.AccountId))
+                .Select(e => new Transaction()
+                {
+                    Id = e.Id,
+                    Description = e.Description,
+                    Amount = e.Amount,
+                    Date = e.Date,
+                    State = e.State,
+                    Tags = e.Tags,
+                    TransactionId = e.TransactionId
+                })
+                .ToArrayAsync();
+
+            return transactions;
+        }
+
         public async Task<Guid> UpsertBankAsync(Bank bank)
         {
             using var db = await dbFactory.CreateDbContextAsync();

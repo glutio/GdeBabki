@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -61,6 +62,13 @@ namespace GdeBabki.Server.Controllers
         {
             await accountsService.DeleteBankAsync(id);
             return Ok();
+        }
+
+        [HttpGet("Transactions")]
+        public async Task<ActionResult<Transaction[]>> GetTransactionsAsync([FromQuery] Guid[] accountIds)
+        {
+            var model = await accountsService.GetTransactionsAsync(accountIds);
+            return new JsonResult(model);
         }
     }
 }

@@ -16,12 +16,13 @@ namespace GdeBabki.Client.Services
             services.AddScoped<ImportApi>();
             services.AddScoped<AccountsApi>();
             services.AddScoped<ErrorService>();
-
+            
             services.AddTransient<AccountsViewModel>();
             services.AddTransient<BanksViewModel>();
             services.AddTransient<EditAccountViewModel>();
             services.AddTransient<ImportViewModel>();
             services.AddTransient<ErrorViewModel>();
+            services.AddTransient<ReviewViewModel>();
             return services;
         }
 

@@ -2,11 +2,36 @@
 @inherits ViewBase<ReviewViewModel>
 
 <h3>Review</h3>
-<RadzenGrid TItem="Transaction">
-    <Columns>
-        <RadzenGridColumn TItem="string"/>
-    </Columns>
-</RadzenGrid>
+@if (Model.IsLoaded)
+{
+    @foreach(var account in Model.Accounts)
+    {
+        <p>@account.Key.Name (<b>@account.Key.Bank.Name</b>)</p>
+    }    
+
+    <RadzenDataGrid TItem="Transaction" Data="Model.Transactions">
+        <Columns>
+            <RadzenDataGridColumn TItem="Transaction" Property="Date"/>
+            <RadzenDataGridColumn TItem="Transaction" Property="Description"/>
+            <RadzenDataGridColumn TItem="Transaction" Property="Amount">
+                <Template>
+                    @if (context.Amount < 0)
+                    {
+                        <span style="color:red">@context.Amount</span>
+                    }
+                    else
+                    {
+                        <span style="color:green">@context.Amount</span>                    
+                    }
+                </Template>
+            </RadzenDataGridColumn>      
+        </Columns>
+    </RadzenDataGrid>
+}
+else
+{
+    <p>Loading...</p>
+}
 
 @code {
 

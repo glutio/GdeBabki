@@ -1,8 +1,7 @@
 ﻿using GdeBabki.Shared.DTO;
-using Microsoft.AspNetCore.Components;
-using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
@@ -24,6 +23,18 @@ namespace GdeBabki.Client.Services
             var response = await httpClient.GetAsync("api/Accounts");
             response.EnsureSuccessStatusCode();
             var model = await response.Content.ReadFromJsonAsync<List<Account>>();
+
+            return model;
+        }
+
+        public async Task<List<Transaction>> GetTransactionsAsync(Account[] accounts)
+        {
+            var httpClient = httpFactory.CreateClient();
+            var queryString = "accountIds=" + string.Join("&accountIds=", accounts.Select(e => e.Id.ToString()));
+            var response = await httpClient.GetAsync($"api/Accounts/Transactions?{queryString}");
+            response.EnsureSuccessStatusCode();
+            var model = await response.Content.ReadFromJsonAsync<List<Transaction>>();
+
             return model;
         }
 
