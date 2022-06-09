@@ -1,17 +1,18 @@
 ﻿@inherits ViewBase<EditTagsViewModel>
 
-<div style="overflow:auto">
+<div>
         @foreach (var tag in Model.Tags)
         {
-            <div style="display:inline-block">
-                <span style="padding:0.4rem;margin:2px 1px 1px 1px;border-radius:5px;background-color:dimgray;color:white">
+            <div style="float:left" class="abc">
+                <div style="padding:0.4rem;margin:2px;border-radius:5px;background-color:dimgray;color:white">
                     <a href="#" style="color:lightgrey" @onclick="() => Model.DeleteTag(tag)" @onclick:preventDefault="true">🗙</a>&nbsp;@tag
-                </span>
+                </div>
             </div>
         }
-            
-        <input @ref="refTextBox" type="text" style="outline:none;background-color:transparent;padding:0.4rem;border-width:0 0 1px 0" 
+        <div style="float:left">
+            <input @ref="refTextBox" type="text" style="outline:none;background-color:transparent;padding:0.4rem;border-width:0 0 1px 0" 
                    @oninput="e => Model.Tag = e.Value.ToString()" @onkeydown="OnKeyDown" @bind-value="Model.Tag" />
+        </div>
     
 </div>
 @if (Model.SuggestedTags != null)
