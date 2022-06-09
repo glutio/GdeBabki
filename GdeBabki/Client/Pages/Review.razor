@@ -5,13 +5,16 @@
 @if (Model.IsLoaded)
 {
     <RadzenCard Style="width: 100%;">
-        <RadzenCheckBoxList Data="Model.Accounts" @bind-Value="Model.SelectedAccounts" ValueProperty="Id" TValue="Guid" TextProperty="FullName" Change="OnSelectedAccountsChangeAsync">
+        <RadzenCheckBoxList Data="Model.Accounts" @bind-Value="Model.SelectedAccounts" ValueProperty="Id" 
+                            TValue="Guid" TextProperty="FullName" Change="OnSelectedAccountsChangeAsync">
         </RadzenCheckBoxList>
     </RadzenCard>
 
-    <RadzenDataGrid TItem="Transaction" Data="Model.Transactions" AllowPaging="true" FilterMode="FilterMode.Simple">
+    <RadzenDataGrid @ref="refGrid" TItem="Transaction" Data="Model.Transactions" AllowPaging="true" FilterMode="FilterMode.SimpleWithMenu" 
+                    AllowFiltering="true" AllowColumnResize="true" PageSize="12" AllowSorting="true" 
+                    SelectionMode="DataGridSelectionMode.Single" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive">
         <Columns>
-            <RadzenDataGridColumn TItem="Transaction" Property="State" Width="2rem" >
+            <RadzenDataGridColumn TItem="Transaction" Property="State" Width="2rem" Filterable="false" Sortable="false" TextAlign="TextAlign.Center">
                 <Template>
                     @if (context.State == GBTransactionState.Imported)
                     {
@@ -23,13 +26,13 @@
                     }
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="Transaction" Property="Date">
+            <RadzenDataGridColumn TItem="Transaction" Title="Date" Property="Date" Width="8rem" Filterable="false" TextAlign="TextAlign.Right" SortOrder="SortOrder.Descending">
                 <Template>
-                    @context.Date.ToShortDateString()
+                    @(context.Date.Day)&nbsp;<b>@(context.Date.ToString("MMM"))&nbsp;@context.Date.Year</b>
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="Transaction" Property="Description" Filterable="true"/>
-            <RadzenDataGridColumn TItem="Transaction" Property="Amount">
+            <RadzenDataGridColumn TItem="Transaction" Title="Description" Property="Description" Filterable="true"/>
+            <RadzenDataGridColumn TItem="Transaction" Title="Amount" Property="Amount" Width="8rem" Filterable="true" TextAlign="TextAlign.Right">
                 <Template>
                     @if (context.Amount < 0)
                     {
@@ -40,7 +43,17 @@
                         <span style="color:green">@context.Amount.ToString("0.00")</span>
                     }
                 </Template>
-            </RadzenDataGridColumn>      
+                <FooterTemplate>
+                    <b>@refGrid.View.Sum(e => e.Amount).ToString("0.00")</b>
+                </FooterTemplate>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn TItem="Transaction" Title="Tags" Property="Tags" Filterable="false" Sortable="false">
+                <Template>                    
+                    <EditTags Tags="">
+
+                    </EditTags>
+                </Template>
+            </RadzenDataGridColumn>
         </Columns>
     </RadzenDataGrid>
 }
@@ -53,8 +66,10 @@ else
     [Parameter, SupplyParameterFromQuery]
     public Guid[] AccountIds { get; set; }
 
+    RadzenDataGrid<Transaction> refGrid { get; set; }
     async Task OnSelectedAccountsChangeAsync(IEnumerable<Guid> accounts)
     {
+        AccountIds = accounts.ToArray();
         await Model.OnSelectedAccountsChangeAsync();
     }
 

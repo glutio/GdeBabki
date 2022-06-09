@@ -2,14 +2,9 @@
 using GdeBabki.Server.Data;
 using GdeBabki.Server.Model;
 using GdeBabki.Shared;
-using GdeBabki.Shared.ViewModels;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace GdeBabki.Server.Services
@@ -29,32 +24,24 @@ namespace GdeBabki.Server.Services
             var lines = await parser.LoadAsync(stream);
 
             using var db = await dbFactory.CreateDbContextAsync();
-
             using var dbTransaction = await db.Database.BeginTransactionAsync();
-            try
+            foreach (var line in lines)
             {
-                foreach (var line in lines)
+                var transaction = ParseTransaction(line, filter);
+                if (transaction != null)
                 {
-                    var transaction = ParseTransaction(line, filter);
-                    if (transaction != null)
+                    transaction.Id = transaction.GetMD5();
+                    transaction.AccountId = accountId;
+
+                    var isExisting = await db.Transactions.AnyAsync(e => e.Id == transaction.Id);
+                    if (!isExisting)
                     {
-                        transaction.Id = transaction.GetMD5();
-                        transaction.AccountId = accountId;
-                        var isExisting = await db.Transactions.AnyAsync(e => e.Id == transaction.Id);
-                        if (!isExisting)
-                        {
-                            db.Transactions.Add(transaction);
-                        }
+                        db.Transactions.Add(transaction);
                     }
                 }
-
-                await db.SaveChangesAsync();
-                await dbTransaction.CommitAsync();
             }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-            }
+            await db.SaveChangesAsync();
+            await dbTransaction.CommitAsync();
         }
 
         private GBTransaction ParseTransaction(string[] line, GBColumnName?[] filter)

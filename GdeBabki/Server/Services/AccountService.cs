@@ -101,6 +101,7 @@ namespace GdeBabki.Server.Services
                     Tags = e.Tags,
                     TransactionId = e.TransactionId
                 })
+                .OrderByDescending(e => e.Date)
                 .ToArrayAsync();
 
             return transactions;
