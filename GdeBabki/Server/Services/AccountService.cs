@@ -98,7 +98,7 @@ namespace GdeBabki.Server.Services
             }
             else
             {
-                gbTransaction = new GBTransaction();
+                gbTransaction = new();
                 db.Transactions.Add(gbTransaction);
             }
 
@@ -107,7 +107,12 @@ namespace GdeBabki.Server.Services
             gbTransaction.TransactionId = transaction.TransactionId;
             gbTransaction.Date = transaction.Date;
             gbTransaction.Description = transaction.Description;
-            gbTransaction.Tags = new List<GBTag>(transaction.Tags.Select(e => new GBTag() { Id = e }));
+
+            var newTags = transaction.Tags.Except(db.Tags.Select(e => e.Id));
+            db.Tags.AddRange(newTags.Select(e => new GBTag() { Id = e }));
+
+            var gbTags = transaction.Tags.Select(e=>new GBTagGBTransaction() { TagId = e, TransactionId = transaction.Id });
+            db.TagsTransactions.AddRange(gbTags);
 
             db.SaveChanges();
 
@@ -117,8 +122,8 @@ namespace GdeBabki.Server.Services
         public async Task<Transaction[]> GetTransactionsAsync(Guid[] accountIds)
         {
             using var db = await dbFactory.CreateDbContextAsync();
-            var transactions = await db.Transactions
-                .Where(e => accountIds == null || accountIds.Any(id => id == e.AccountId))
+            var transactions = await db.Transactions.Include(e=>e.Tags)
+                .Where(e => accountIds == null || accountIds.Any(id => id == e.AccountId))                
                 .Select(e => new Transaction()
                 {
                     Id = e.Id,
@@ -126,7 +131,7 @@ namespace GdeBabki.Server.Services
                     Amount = e.Amount,
                     Date = e.Date,
                     State = e.State,
-                    Tags = e.Tags.Select(e => e.Id).ToList(),
+                    Tags = e.Tags.Select(e => e.TagId).ToList(),
                     TransactionId = e.TransactionId
                 })
                 .OrderByDescending(e => e.Date)

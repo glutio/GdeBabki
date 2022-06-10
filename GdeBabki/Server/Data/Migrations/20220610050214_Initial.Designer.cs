@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GdeBabki.Server.Data.Migrations
 {
     [DbContext(typeof(BabkiDbContext))]
-    [Migration("20220608035219_AdditionalMigration")]
-    partial class AdditionalMigration
+    [Migration("20220610050214_Initial")]
+    partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -52,6 +52,31 @@ namespace GdeBabki.Server.Data.Migrations
                     b.ToTable("Banks");
                 });
 
+            modelBuilder.Entity("GdeBabki.Server.Model.GBTag", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Tags");
+                });
+
+            modelBuilder.Entity("GdeBabki.Server.Model.GBTagGBTransaction", b =>
+                {
+                    b.Property<string>("TagId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("TransactionId")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("TagId", "TransactionId");
+
+                    b.HasIndex("TransactionId");
+
+                    b.ToTable("TagsTransactions");
+                });
+
             modelBuilder.Entity("GdeBabki.Server.Model.GBTransaction", b =>
                 {
                     b.Property<Guid>("Id")
@@ -72,9 +97,6 @@ namespace GdeBabki.Server.Data.Migrations
 
                     b.Property<int>("State")
                         .HasColumnType("INTEGER");
-
-                    b.Property<string>("Tags")
-                        .HasColumnType("TEXT");
 
                     b.Property<string>("TransactionId")
                         .HasColumnType("TEXT");
@@ -97,6 +119,25 @@ namespace GdeBabki.Server.Data.Migrations
                     b.Navigation("Bank");
                 });
 
+            modelBuilder.Entity("GdeBabki.Server.Model.GBTagGBTransaction", b =>
+                {
+                    b.HasOne("GdeBabki.Server.Model.GBTag", "Tag")
+                        .WithMany("Transactions")
+                        .HasForeignKey("TagId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("GdeBabki.Server.Model.GBTransaction", "Transaction")
+                        .WithMany("Tags")
+                        .HasForeignKey("TransactionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Tag");
+
+                    b.Navigation("Transaction");
+                });
+
             modelBuilder.Entity("GdeBabki.Server.Model.GBTransaction", b =>
                 {
                     b.HasOne("GdeBabki.Server.Model.GBAccount", "Account")
@@ -116,6 +157,16 @@ namespace GdeBabki.Server.Data.Migrations
             modelBuilder.Entity("GdeBabki.Server.Model.GBBank", b =>
                 {
                     b.Navigation("Accounts");
+                });
+
+            modelBuilder.Entity("GdeBabki.Server.Model.GBTag", b =>
+                {
+                    b.Navigation("Transactions");
+                });
+
+            modelBuilder.Entity("GdeBabki.Server.Model.GBTransaction", b =>
+                {
+                    b.Navigation("Tags");
                 });
 #pragma warning restore 612, 618
         }

@@ -17,21 +17,6 @@ namespace GdeBabki.Server.Data.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "6.0.5");
 
-            modelBuilder.Entity("GBTagGBTransaction", b =>
-                {
-                    b.Property<string>("TagsId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<Guid>("TransactionsId")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("TagsId", "TransactionsId");
-
-                    b.HasIndex("TransactionsId");
-
-                    b.ToTable("GBTagGBTransaction");
-                });
-
             modelBuilder.Entity("GdeBabki.Server.Model.GBAccount", b =>
                 {
                     b.Property<Guid>("Id")
@@ -75,6 +60,21 @@ namespace GdeBabki.Server.Data.Migrations
                     b.ToTable("Tags");
                 });
 
+            modelBuilder.Entity("GdeBabki.Server.Model.GBTagGBTransaction", b =>
+                {
+                    b.Property<string>("TagId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<Guid>("TransactionId")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("TagId", "TransactionId");
+
+                    b.HasIndex("TransactionId");
+
+                    b.ToTable("TagsTransactions");
+                });
+
             modelBuilder.Entity("GdeBabki.Server.Model.GBTransaction", b =>
                 {
                     b.Property<Guid>("Id")
@@ -106,21 +106,6 @@ namespace GdeBabki.Server.Data.Migrations
                     b.ToTable("Transactions");
                 });
 
-            modelBuilder.Entity("GBTagGBTransaction", b =>
-                {
-                    b.HasOne("GdeBabki.Server.Model.GBTag", null)
-                        .WithMany()
-                        .HasForeignKey("TagsId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("GdeBabki.Server.Model.GBTransaction", null)
-                        .WithMany()
-                        .HasForeignKey("TransactionsId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("GdeBabki.Server.Model.GBAccount", b =>
                 {
                     b.HasOne("GdeBabki.Server.Model.GBBank", "Bank")
@@ -130,6 +115,25 @@ namespace GdeBabki.Server.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Bank");
+                });
+
+            modelBuilder.Entity("GdeBabki.Server.Model.GBTagGBTransaction", b =>
+                {
+                    b.HasOne("GdeBabki.Server.Model.GBTag", "Tag")
+                        .WithMany("Transactions")
+                        .HasForeignKey("TagId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("GdeBabki.Server.Model.GBTransaction", "Transaction")
+                        .WithMany("Tags")
+                        .HasForeignKey("TransactionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Tag");
+
+                    b.Navigation("Transaction");
                 });
 
             modelBuilder.Entity("GdeBabki.Server.Model.GBTransaction", b =>
@@ -151,6 +155,16 @@ namespace GdeBabki.Server.Data.Migrations
             modelBuilder.Entity("GdeBabki.Server.Model.GBBank", b =>
                 {
                     b.Navigation("Accounts");
+                });
+
+            modelBuilder.Entity("GdeBabki.Server.Model.GBTag", b =>
+                {
+                    b.Navigation("Transactions");
+                });
+
+            modelBuilder.Entity("GdeBabki.Server.Model.GBTransaction", b =>
+                {
+                    b.Navigation("Tags");
                 });
 #pragma warning restore 612, 618
         }

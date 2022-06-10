@@ -6,6 +6,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.IO;
+using Microsoft.Extensions.Logging;
 
 namespace GdeBabki.Server.Services
 {
@@ -30,7 +31,8 @@ namespace GdeBabki.Server.Services
                     ? ""
                     : Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
 
-                options.UseSqlite($"Data Source={Path.Combine(path, dbName)}.sqlite");
+                options.UseSqlite($"Data Source={Path.Combine(path, dbName)}.sqlite")
+                        .LogTo(Console.WriteLine, LogLevel.Information);
             });
 
             return services;

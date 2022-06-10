@@ -12,7 +12,7 @@ namespace GdeBabki.Server.Model
         public DateTime Date { get; set; }
         public string Description { get; set; }
         public decimal Amount { get; set; }
-        public List<GBTag> Tags { get; set; }
+        public ICollection<GBTagGBTransaction> Tags { get; set; }
         public GBTransactionState State { get; set; }
     }
 }
