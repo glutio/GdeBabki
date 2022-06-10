@@ -1,5 +1,6 @@
 ﻿using GdeBabki.Shared;
 using System;
+using System.Collections.Generic;
 
 namespace GdeBabki.Server.Model
 {
@@ -11,7 +12,7 @@ namespace GdeBabki.Server.Model
         public DateTime Date { get; set; }
         public string Description { get; set; }
         public decimal Amount { get; set; }
-        public string Tags { get; set; }
+        public List<GBTag> Tags { get; set; }
         public GBTransactionState State { get; set; }
     }
 }

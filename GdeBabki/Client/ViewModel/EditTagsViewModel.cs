@@ -8,6 +8,7 @@ namespace GdeBabki.Client.ViewModel
         public List<string> Tags { get; set; }
         public string Tag { get; set; }
         public List<string> SuggestedTags { get; set; }
+
         public override void Initialize()
         {
             if (Tags == null)
@@ -19,9 +20,15 @@ namespace GdeBabki.Client.ViewModel
 
         public void AddTag()
         {
-            if (!Tags.Any(e => string.Equals(e, Tag, System.StringComparison.InvariantCultureIgnoreCase)))
+            if (string.IsNullOrWhiteSpace(Tag))
             {
-                Tags.Add(Tag);
+                return;
+            }
+
+            var tag = Tag.ToUpper();
+            if (!Tags.Any(e => string.Equals(e, tag, System.StringComparison.InvariantCultureIgnoreCase)))
+            {
+                Tags.Add(tag);
                 Tag = null;
                 RaisePropertyChanged(nameof(Tag));
             }

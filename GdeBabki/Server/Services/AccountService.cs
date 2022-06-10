@@ -4,6 +4,7 @@ using GdeBabki.Shared.DTO;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -68,7 +69,7 @@ namespace GdeBabki.Server.Services
                 Id = id
             };
             db.Accounts.Remove(gbAccount);
-            
+
             db.SaveChanges();
         }
 
@@ -86,6 +87,33 @@ namespace GdeBabki.Server.Services
             return banks;
         }
 
+        public async Task<Guid> UpsertTransactionAsync(Transaction transaction)
+        {
+            using var db = await dbFactory.CreateDbContextAsync();
+
+            GBTransaction gbTransaction;
+            if (transaction.Id != Guid.Empty)
+            {
+                gbTransaction = await db.Transactions.FirstOrDefaultAsync(e => e.Id == transaction.Id);
+            }
+            else
+            {
+                gbTransaction = new GBTransaction();
+                db.Transactions.Add(gbTransaction);
+            }
+
+            gbTransaction.Amount = transaction.Amount;
+            gbTransaction.State = transaction.State;
+            gbTransaction.TransactionId = transaction.TransactionId;
+            gbTransaction.Date = transaction.Date;
+            gbTransaction.Description = transaction.Description;
+            gbTransaction.Tags = new List<GBTag>(transaction.Tags.Select(e => new GBTag() { Id = e }));
+
+            db.SaveChanges();
+
+            return gbTransaction.Id;
+        }
+
         public async Task<Transaction[]> GetTransactionsAsync(Guid[] accountIds)
         {
             using var db = await dbFactory.CreateDbContextAsync();
@@ -98,7 +126,7 @@ namespace GdeBabki.Server.Services
                     Amount = e.Amount,
                     Date = e.Date,
                     State = e.State,
-                    Tags = e.Tags,
+                    Tags = e.Tags.Select(e => e.Id).ToList(),
                     TransactionId = e.TransactionId
                 })
                 .OrderByDescending(e => e.Date)

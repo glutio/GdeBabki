@@ -26,31 +26,39 @@
                     }
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="Transaction" Title="Date" Property="Date" Width="8rem" Filterable="false" TextAlign="TextAlign.Right" SortOrder="SortOrder.Descending">
+            <RadzenDataGridColumn TItem="Transaction" Title="Date" Property="Date" Width="8rem" Filterable="true" FormatString="@GBUtility.TRANSACTION_DATE_FORMAT" TextAlign="TextAlign.Right" SortOrder="SortOrder.Descending">
                 <Template>
                     @(context.Date.Day)&nbsp;<b>@(context.Date.ToString("MMM"))&nbsp;@context.Date.Year</b>
                 </Template>
+                <FooterTemplate>
+                    @if (refGrid.View.Count() > 0)
+                    {
+                        <b>@refGrid.View.GroupBy(e=> new DateTime(e.Date.Year, e.Date.Month, 1)).Select(g=>g.Sum(e=>e.Amount)).Average().ToCurrency()</b>                       
+                    }
+                </FooterTemplate>
             </RadzenDataGridColumn>
             <RadzenDataGridColumn TItem="Transaction" Title="Description" Property="Description" Filterable="true"/>
             <RadzenDataGridColumn TItem="Transaction" Title="Amount" Property="Amount" Width="8rem" Filterable="true" TextAlign="TextAlign.Right">
                 <Template>
                     @if (context.Amount < 0)
                     {
-                        <span style="color:red">@context.Amount.ToString("0.00")</span>
+                        <span style="color:red">@context.Amount.ToCurrency()</span>
                     }
                     else
                     {
-                        <span style="color:green">@context.Amount.ToString("0.00")</span>
+                        <span style="color:green">@context.Amount.ToCurrency()</span>
                     }
                 </Template>
                 <FooterTemplate>
-                    <b>@refGrid.View.Sum(e => e.Amount).ToString("0.00")</b>
+                    <b>@refGrid.View.Sum(e => e.Amount).ToCurrency() </b>
                 </FooterTemplate>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="Transaction" Title="Tags" Property="Tags" Filterable="false" Sortable="false">
+            <RadzenDataGridColumn TItem="Transaction" Title="Tags" Property="Tags" Filterable="true" Sortable="false">
+                <FilterTemplate>
+                    <EditTags></EditTags>
+                </FilterTemplate>
                 <Template>                    
-                    <EditTags Tags="">
-
+                    <EditTags Tags="@context.Tags" TagsUpdated="(e) => OnTagsUpdatedAsync(e, context)">
                     </EditTags>
                 </Template>
             </RadzenDataGridColumn>
@@ -77,5 +85,11 @@ else
     {
         Model.SelectedAccounts = AccountIds;
         base.OnInitialized();
+    }
+
+    async Task OnTagsUpdatedAsync(List<string> tags, Transaction transaction)
+    {
+        transaction.Tags = tags;
+        await Model.UpdateTagsAsync(transaction);
     }
 }

@@ -12,5 +12,6 @@ namespace GdeBabki.Server.Data
         public DbSet<GBBank> Banks { get; set; }
         public DbSet<GBAccount> Accounts { get; set; }
         public DbSet<GBTransaction> Transactions { get;set; }
+        public DbSet<GBTag> Tags { get; set; }
     }
 }

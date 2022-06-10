@@ -37,5 +37,10 @@ namespace GdeBabki.Client.ViewModel
             Transactions = await accountsApi.GetTransactionsAsync(SelectedAccounts);
             RaisePropertyChanged(nameof(Transactions));
         }
+
+        public async Task UpdateTagsAsync(Transaction transaction)
+        {
+            await accountsApi.UpsertTransactionAsync(transaction);
+        }
     }
 }

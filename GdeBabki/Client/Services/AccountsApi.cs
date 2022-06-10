@@ -17,16 +17,6 @@ namespace GdeBabki.Client.Services
         {
         }
 
-        public async Task<List<Account>> GetAccountsAsync()
-        {
-            var httpClient = httpFactory.CreateClient();
-            var response = await httpClient.GetAsync("api/Accounts");
-            response.EnsureSuccessStatusCode();
-            var model = await response.Content.ReadFromJsonAsync<List<Account>>();
-
-            return model;
-        }
-
         public async Task<List<Transaction>> GetTransactionsAsync(IEnumerable<Guid> accountIds)
         {
             var httpClient = httpFactory.CreateClient();
@@ -34,6 +24,27 @@ namespace GdeBabki.Client.Services
             var response = await httpClient.GetAsync($"api/Accounts/Transactions?{queryString}");
             response.EnsureSuccessStatusCode();
             var model = await response.Content.ReadFromJsonAsync<List<Transaction>>();
+
+            return model;
+        }
+
+        public async Task<Guid> UpsertTransactionAsync(Transaction account)
+        {
+            var httpClient = httpFactory.CreateClient();
+            var response = await httpClient.PostAsJsonAsync("api/Accounts/Transaction", account);
+            response.EnsureSuccessStatusCode();
+            var model = await response.Content.ReadFromJsonAsync<Guid>();
+
+            AccountsUpdated?.Invoke(this, EventArgs.Empty);
+            return model;
+        }
+
+        public async Task<List<Account>> GetAccountsAsync()
+        {
+            var httpClient = httpFactory.CreateClient();
+            var response = await httpClient.GetAsync("api/Accounts");
+            response.EnsureSuccessStatusCode();
+            var model = await response.Content.ReadFromJsonAsync<List<Account>>();
 
             return model;
         }

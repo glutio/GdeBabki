@@ -70,5 +70,12 @@ namespace GdeBabki.Server.Controllers
             var model = await accountsService.GetTransactionsAsync(accountIds);
             return new JsonResult(model);
         }
+
+        [HttpPost("Transaction")]
+        public async Task<ActionResult<Guid>> UpsertTransactionAsync(Transaction transaction)
+        {
+            var model = await accountsService.UpsertTransactionAsync(transaction);
+            return model;
+        }
     }
 }

@@ -34,7 +34,7 @@ namespace GdeBabki.Client.Pages
             Model.Dispose();
         }
 
-        protected void OnPropertyChanged(object sender, PropertyChangedEventArgs e)
+        protected virtual void OnPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             StateHasChanged();
         }

@@ -1,7 +1,10 @@
-﻿namespace GdeBabki.Server.Model
+﻿using System.Collections.Generic;
+
+namespace GdeBabki.Server.Model
 {
-    public class GBTag: GBEntity
+    public class GBTag
     {
-        public string TagId { get; set; }
+        public string Id { get; set; }
+        public List<GBTransaction> Transactions { get; set; }
     }
 }
