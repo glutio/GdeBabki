@@ -108,13 +108,25 @@ namespace GdeBabki.Server.Services
             gbTransaction.Date = transaction.Date;
             gbTransaction.Description = transaction.Description;
 
-            var newTags = transaction.Tags.Except(db.Tags.Select(e => e.Id));
-            db.Tags.AddRange(newTags.Select(e => new GBTag() { Id = e }));
+            var oldTags = db.TagsTransactions.Where(e => e.TransactionId == transaction.Id).ExceptBy(transaction.Tags, e => e.TagId);
+            db.TagsTransactions.RemoveRange(oldTags);
 
-            var gbTags = transaction.Tags.Select(e=>new GBTagGBTransaction() { TagId = e, TransactionId = transaction.Id });
-            db.TagsTransactions.AddRange(gbTags);
+            foreach(var tag in transaction.Tags)
+            {
+                var isExisting = await db.Tags.AnyAsync(e => e.Id == tag);
+                if (!isExisting)
+                {
+                    db.Tags.Add(new GBTag() { Id = tag });
+                }
 
-            db.SaveChanges();
+                isExisting = await db.TagsTransactions.AnyAsync(e => e.TagId == tag);
+                if (!isExisting)
+                {
+                    db.TagsTransactions.Add(new GBTagGBTransaction() { TagId = tag, TransactionId = transaction.Id });
+                }
+            }
+
+            await db.SaveChangesAsync();
 
             return gbTransaction.Id;
         }

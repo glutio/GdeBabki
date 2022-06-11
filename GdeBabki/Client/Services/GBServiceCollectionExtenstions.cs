@@ -15,6 +15,7 @@ namespace GdeBabki.Client.Services
         {
             services.AddScoped<ImportApi>();
             services.AddScoped<AccountsApi>();
+            services.AddScoped<TagsApi>();
             services.AddScoped<ErrorService>();
             
             services.AddTransient<AccountsViewModel>();

@@ -4,9 +4,10 @@
 <div>
         @foreach (var tag in Model.Tags)
         {
+            var localTag = tag;
             <div style="float:left" class="abc">
                 <div style="padding:0.4rem;margin:2px;border-radius:5px;background-color:dimgray;color:white">
-                    <a href="#" style="color:lightgrey" @onclick="() => Model.DeleteTag(tag)" @onclick:preventDefault="true">🗙</a>&nbsp;@tag
+                    <a href="#" style="color:lightgrey" @onclick="async () => await OnDeleteTagClick(localTag)" @onclick:preventDefault="true">🗙</a>&nbsp;@tag
                 </div>
             </div>
         }
@@ -29,9 +30,26 @@
 }
 @code {
     [Parameter]
-    public List<string> Tags { get; set; }
+    public List<string> Tags
+    {
+        get
+        {
+            return Model.Tags;
+        }
+        set
+        {
+            if (value != Model.Tags)
+            {
+                Model.Tags = value;
+                StateHasChanged();
+            }
+        }
+    }
+
     [Parameter]
-    public EventCallback<List<string>> TagsUpdated { get; set; }
+    public EventCallback<CancelEventArgs<string>> BeforeSave { get; set; }
+    [Parameter]
+    public EventCallback<CancelEventArgs<string>> BeforeDelete { get; set;}
 
     ElementReference refTextBox;
     async Task OnKeyDown(KeyboardEventArgs e)
@@ -39,15 +57,51 @@
         switch (e.Key)
         {
             case "Enter":
-                Model.AddTag();
+                await OnKeyDownEnter();
                 break;
             case "Backspace":
-                Model.DeleteLastTag();
+                await OnKeyDownBackspace();
                 break;
             default:
                 return;
         }
-        await TagsUpdated.InvokeAsync(Model.Tags);
+    }
+
+    async Task OnKeyDownEnter()
+    {
+        if (Model.HasNewTag)
+        {
+            var cancelArgs = new CancelEventArgs<string>(Model.Tag.ToUpper());
+            await BeforeSave.InvokeAsync(cancelArgs);
+            if (!cancelArgs.Cancel)
+            {
+                Model.AddTag();
+            }
+        }
+    }
+
+    async Task OnKeyDownBackspace()
+    {
+        if (string.IsNullOrEmpty(Model.Tag) && Model.LastTag != null)
+        {
+            var cancelArgs = new CancelEventArgs<string>(Model.LastTag);
+            await BeforeDelete.InvokeAsync(cancelArgs);
+            if (!cancelArgs.Cancel)
+            {
+                Model.DeleteLastTag();
+            }
+        }
+    }
+
+    async Task OnDeleteTagClick(string tag)
+    {
+        Console.WriteLine(tag);
+        var cancelArgs = new CancelEventArgs<string>(tag);
+        await BeforeDelete.InvokeAsync(cancelArgs);
+        if (!cancelArgs.Cancel)
+        {
+            Model.DeleteTag(tag);
+        }        
     }
 
     protected override void OnInitialized()

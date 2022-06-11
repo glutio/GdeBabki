@@ -42,6 +42,7 @@ namespace GdeBabki.Server.Services
         {
             services.AddScoped<ImportService>();
             services.AddScoped<AccountsService>();
+            services.AddScoped<TagsService>();
             return services;
         }
     }

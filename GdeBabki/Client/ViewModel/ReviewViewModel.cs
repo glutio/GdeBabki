@@ -11,13 +11,15 @@ namespace GdeBabki.Client.ViewModel
     public class ReviewViewModel : ViewModelBase
     {
         private readonly AccountsApi accountsApi;
+        private readonly TagsApi tagsApi;
 
         public List<Transaction> Transactions { get; set; }
         public List<Account> Accounts { get; set; }
         public IEnumerable<Guid> SelectedAccounts { get; set; }
-        public ReviewViewModel(AccountsApi accountsApi)
+        public ReviewViewModel(AccountsApi accountsApi, TagsApi tagsApi)
         {
             this.accountsApi = accountsApi;
+            this.tagsApi = tagsApi;
         }
 
         public override async Task InitializeAsync()
@@ -38,9 +40,18 @@ namespace GdeBabki.Client.ViewModel
             RaisePropertyChanged(nameof(Transactions));
         }
 
-        public async Task UpdateTagsAsync(Transaction transaction)
+        public async Task AddTag(string tag, Guid transactionId)
         {
-            await accountsApi.UpsertTransactionAsync(transaction);
+            await tagsApi.InsertTagAsync(new TransactionTag()
+            {
+                TagId = tag,
+                TransactionId = transactionId
+            });
+        }
+
+        public async Task DeleteTag(string tag, Guid transactionId)
+        {
+            await tagsApi.DeleteTagAsync(tag, transactionId);
         }
     }
 }

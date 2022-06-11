@@ -58,7 +58,7 @@
                     <EditTags></EditTags>
                 </FilterTemplate>
                 <Template>                    
-                    <EditTags Tags="@context.Tags" TagsUpdated="(e) => OnTagsUpdatedAsync(e, context)">
+                    <EditTags Tags="@context.Tags" BeforeSave="e => SaveTag(e, context)" BeforeDelete="e => DeleteTag(e, context)">
                     </EditTags>
                 </Template>
             </RadzenDataGridColumn>
@@ -87,9 +87,30 @@ else
         base.OnInitialized();
     }
 
-    async Task OnTagsUpdatedAsync(List<string> tags, Transaction transaction)
+    async Task SaveTag(CancelEventArgs<string> e, Transaction transaction)
     {
-        transaction.Tags = tags;
-        await Model.UpdateTagsAsync(transaction);
+        try
+        {
+            await Model.AddTag(e.Value, transaction.Id);
+        }
+        catch(Exception ce)
+        {
+            Console.WriteLine(ce.ToString());
+            e.Cancel = true;
+            throw;
+        }
     }
+
+    async Task DeleteTag(CancelEventArgs<string> e, Transaction transaction)
+    {
+        try
+        {
+            await Model.DeleteTag(e.Value, transaction.Id);
+        }
+        catch
+        {
+            e.Cancel = true;
+        }
+    }
+
 }
