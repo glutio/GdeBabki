@@ -1,6 +1,5 @@
 ﻿@page "/review"
 @inherits ViewBase<ReviewViewModel>
-
 <h3>Review</h3>
 @if (Model.IsLoaded)
 {
@@ -53,7 +52,7 @@
                     <b>@refGrid.View.Sum(e => e.Amount).ToCurrency() </b>
                 </FooterTemplate>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="Transaction" Title="Tags" Property="Tags" Filterable="true" Sortable="false">
+            <RadzenDataGridColumn TItem="Transaction" Title="Tags" Property="Tags" Filterable="true" Sortable="false" CssClass="tags-column">
                 <FilterTemplate>
                     <EditTags></EditTags>
                 </FilterTemplate>
@@ -69,6 +68,15 @@ else
 {
     <p>Loading...</p>
 }
+<style>
+.tags-column {
+    overflow: visible !important;
+}
+
+.tags-column .rz-cell-data {
+    overflow: visible !important;
+}
+</style>
 
 @code {
     [Parameter, SupplyParameterFromQuery]
@@ -93,9 +101,8 @@ else
         {
             await Model.AddTag(e.Value, transaction.Id);
         }
-        catch(Exception ce)
+        catch
         {
-            Console.WriteLine(ce.ToString());
             e.Cancel = true;
             throw;
         }
@@ -110,6 +117,7 @@ else
         catch
         {
             e.Cancel = true;
+            throw;
         }
     }
 

@@ -19,7 +19,7 @@ namespace GdeBabki.Client.Pages
 
         private void Model_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            StateHasChanged();
+            OnPropertyChanged(sender, e);
         }
 
         protected async override Task OnInitializedAsync()

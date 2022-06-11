@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace GdeBabki.Client.ViewModel
@@ -10,6 +11,7 @@ namespace GdeBabki.Client.ViewModel
         public List<string> SuggestedTags { get; set; }
         public string LastTag => Tags?[Tags.Count - 1];
         public bool HasNewTag => !string.IsNullOrWhiteSpace(Tag) && !Tags.Contains(Tag.ToUpper());
+        
         public override void Initialize()
         {
             if (Tags == null)
