@@ -1,38 +1,35 @@
 ﻿@using System.ComponentModel
 @using GdeBabki.Client.Model
 @using System.Text.Json
-@using Radzen.Blazor.Rendering
+
 @inherits ViewBase<EditTagsViewModel>
 @inject IJSRuntime JS
 
-<div @ref="refMainDiv" style="position:relative;z-index:1">
+<div @ref="refMainDiv" style="position:relative;">
     @foreach (var tag in Model.Tags)
     {
-        var localTag = tag;
         <div class="inline-div">
-            <div style="padding:0.4rem;margin:2px;border-radius:5px;background-color:dimgray;color:white">
-                <a href="#" style="color:lightgrey" @onclick="async () => await OnDeleteTagClickAsync(localTag)" @onclick:preventDefault="true">🗙</a>&nbsp;@tag
-            </div>
+            @{
+                var style = $"padding:0.4rem;margin:2px;border-radius:5px;background-color:{tag.BackgroundColor()};color:{tag.ForegroundColor()}"; 
+                <div style="@style">
+                    <a href="#" style="color:lightgrey" @onclick="async () => await OnDeleteTagClickAsync(tag)" @onclick:preventDefault="true">🗙</a>&nbsp;@tag
+                </div>
+            }
         </div>
     }
-    <div class="inline-div">
-        <input @ref="refTextBox" type="text" style="outline:none;background-color:transparent;padding:0.4rem;border-width:0 0 1px 0" 
-                @bind-value:event="oninput" @onkeydown="OnKeyDownAsync" @bind-value="Model.Tag"/>
-
-    </div>
-    @if (Model.SuggestedTags != null)
-    {
-        SetPopupTopLeft();
-        var style = $"position:absolute;top:{popupTopLeft?.Y ?? 0}px;left:{popupTopLeft?.X ?? 0}px";
-        <div style="@style">
-            <select size="5">
-                @foreach (var tag in Model.SuggestedTags)
+    <div class="inline-div" @onfocusout="OnBlurAsync" @onfocusin="OnFocusAsync">
+            <datalist @ref="refDatalist" id="@DataListName">
+                @if (Model.SuggestedTags != null)
                 {
-                    <option value="@tag"></option>
+                        @foreach(var tag in Model.SuggestedTags)
+                        {
+                            <option value="@tag" />
+                        }
                 }
-            </select>
-        </div>
-    }
+            </datalist>
+        <input @ref="refTextBox" type="text" style="outline:none;background-color:transparent;padding:0.4rem;border-width:0 0 1px 0" 
+                @bind-value:event="oninput" @onkeydown="OnKeyDownAsync" @bind-value="Model.Tag" list="@DataListName"/>
+    </div>
 </div>
 <style>
     .inline-div
@@ -62,12 +59,17 @@
     [Parameter]
     public EventCallback<CancelEventArgs<string>> BeforeSave { get; set; }
     [Parameter]
-    public EventCallback<CancelEventArgs<string>> BeforeDelete { get; set;}
+    public EventCallback<CancelEventArgs<string>> BeforeDelete { get; set; }
     [Parameter]
-    public EventCallback BeforeSuggestTags { get; set; }
+    public EventCallback TagsUpdated { get; set; }
+
+    string DataListName => $"datalist-{this.GetHashCode()}";
 
     ElementReference refTextBox;
     ElementReference refMainDiv;
+    ElementReference refSelect;
+    ElementReference refDatalist;
+    Popup refPopup;
     Point popupTopLeft;
 
     async Task OnKeyDownAsync(KeyboardEventArgs e)
@@ -80,9 +82,12 @@
             case "Backspace":
                 await OnKeyDownBackspaceAsync();
                 return;
+            case "Escape":
+                await ClearSuggestedTags();
+                return;
         }
 
-        Model.SuggestTags();
+        await Model.SuggestTags();
     }
 
     async Task OnKeyDownEnterAsync()
@@ -94,6 +99,7 @@
             if (!cancelArgs.Cancel)
             {
                 Model.AddTag();
+                await TagsUpdated.InvokeAsync();
             }
         }
     }
@@ -107,8 +113,30 @@
             if (!cancelArgs.Cancel)
             {
                 Model.DeleteLastTag();
+                await TagsUpdated.InvokeAsync();
             }
         }
+    }
+
+    async Task OnBlurAsync()
+    {        
+        //        var isFocusIn= await JS.InvokeAsync<bool>("window.GdeBabkiInterop.isFocusIn", refMainDiv);
+        //Console.WriteLine(isFocusIn);
+        //        if (!isFocusIn)
+        {
+            await ClearSuggestedTags();            
+        }
+    }
+
+    async Task OnFocusAsync()
+    {
+        await Model.SuggestTags();
+    }
+
+    Task ClearSuggestedTags()
+    {
+        Model.SuggestedTags = null;
+        return Task.CompletedTask;
     }
 
     async Task OnDeleteTagClickAsync(string tag)
@@ -118,32 +146,15 @@
         if (!cancelArgs.Cancel)
         {
             Model.DeleteTag(tag);
+            await TagsUpdated.InvokeAsync();
         }        
     }
 
-    void SetPopupTopLeft()
-    {
-        var js = (IJSInProcessRuntime)JS;
-        var textBoxBounds = js.Invoke<ElementBounds>("window.interop_getBoundingClientRect", refTextBox);
-        var mainDivBounds = js.Invoke<ElementBounds>("window.interop_getBoundingClientRect", refMainDiv);
-        popupTopLeft = new Point()
-        {
-            Y = textBoxBounds.bottom - mainDivBounds.top,
-            X = textBoxBounds.left - mainDivBounds.left
-        };
-
-    }
-
-    protected override void OnPropertyChanged(object sender, PropertyChangedEventArgs e)
-    {
-        SetPopupTopLeft();
-        base.OnPropertyChanged(sender, e);
-    }
-
-    protected override void OnAfterRender(bool firstRender)
-    {
-        SetPopupTopLeft();
-    }
+    //protected override void OnAfterRender(bool firstRender)
+    //{
+    //    var js = (IJSInProcessRuntime)JS;
+    //    js.Invoke<bool>("window.GdeBabkiInterop.setDisplayStyle", refDatalist, "block");
+    //}
 
     protected override void OnInitialized()
     {

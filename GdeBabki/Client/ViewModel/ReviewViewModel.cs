@@ -16,6 +16,8 @@ namespace GdeBabki.Client.ViewModel
         public List<Transaction> Transactions { get; set; }
         public List<Account> Accounts { get; set; }
         public IEnumerable<Guid> SelectedAccounts { get; set; }
+        public List<string> FilterTags { get; set; }
+
         public ReviewViewModel(AccountsApi accountsApi, TagsApi tagsApi)
         {
             this.accountsApi = accountsApi;
@@ -29,18 +31,31 @@ namespace GdeBabki.Client.ViewModel
             {
                 SelectedAccounts = Accounts.Select(e => e.Id).ToArray();
             }
-
-            Transactions = await accountsApi.GetTransactionsAsync(SelectedAccounts);
+            
+            Transactions = await GetTransactionsAsync();
             IsLoaded = true;
+
+        }
+
+        private async Task<List<Transaction>> GetTransactionsAsync()
+        {
+            var transactions = await accountsApi.GetTransactionsAsync(SelectedAccounts);
+            if (FilterTags != null && FilterTags.Count > 0)
+            {
+                Console.WriteLine("Hello");
+                transactions = transactions.Where(e => e.Tags.Any(t => FilterTags.Any(f => f == t))).ToList();
+            }
+
+            return transactions;
         }
 
         public async Task OnSelectedAccountsChangeAsync()
         {
-            Transactions = await accountsApi.GetTransactionsAsync(SelectedAccounts);
+            Transactions = await GetTransactionsAsync();
             RaisePropertyChanged(nameof(Transactions));
         }
 
-        public async Task AddTag(string tag, Guid transactionId)
+        public async Task AddTagAsync(string tag, Guid transactionId)
         {
             await tagsApi.InsertTagAsync(new TransactionTag()
             {
@@ -49,9 +64,16 @@ namespace GdeBabki.Client.ViewModel
             });
         }
 
-        public async Task DeleteTag(string tag, Guid transactionId)
+        public async Task DeleteTagAsync(string tag, Guid transactionId)
         {
             await tagsApi.DeleteTagAsync(tag, transactionId);
+        }
+
+        public async Task SetFilterTagsAsync(List<string> tags)
+        {
+            FilterTags = tags;
+            Transactions = await GetTransactionsAsync();
+            RaisePropertyChanged(nameof(Transactions));
         }
     }
 }

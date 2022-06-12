@@ -1,8 +1,10 @@
 ﻿using GdeBabki.Server.Data;
 using GdeBabki.Server.Model;
 using GdeBabki.Shared.DTO;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace GdeBabki.Server.Services
@@ -28,7 +30,7 @@ namespace GdeBabki.Server.Services
             //isExisting = await db.TagsTransactions.AnyAsync(e => e.TagId == insertTag.TagId && e.TransactionId == insertTag.TransactionId);
             //if (!isExisting)
             //{
-                db.TagsTransactions.Add(new GBTagGBTransaction() { TagId = insertTag.TagId, TransactionId = insertTag.TransactionId });
+            db.TagsTransactions.Add(new GBTagGBTransaction() { TagId = insertTag.TagId, TransactionId = insertTag.TransactionId });
             //}
 
             await db.SaveChangesAsync();
@@ -46,5 +48,26 @@ namespace GdeBabki.Server.Services
 
             await db.SaveChangesAsync();
         }
+
+        public async Task<string[]> GetSuggestedTagsAsync(Guid transactionId)
+        {
+            using var db = await dbFactory.CreateDbContextAsync();
+
+            var topTags = await db.TagsTransactions
+                .GroupBy(e => e.TagId)
+                .Select(g => new
+                {
+                    TagId = g.Key,
+                    Count = g.Count()
+                })
+                .OrderByDescending(e => e.Count)
+                .Select(e => e.TagId)
+                .Take(7)
+                .ToArrayAsync();
+
+            return topTags;
+        }
+
+
     }
 }

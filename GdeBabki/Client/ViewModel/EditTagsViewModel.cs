@@ -1,17 +1,26 @@
-﻿using System;
+﻿using GdeBabki.Client.Services;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace GdeBabki.Client.ViewModel
 {
     public class EditTagsViewModel : ViewModelBase
     {
+        private readonly TagsApi tagsApi;
+
         public List<string> Tags { get; set; }
         public string Tag { get; set; }
         public List<string> SuggestedTags { get; set; }
         public string LastTag => Tags?[Tags.Count - 1];
         public bool HasNewTag => !string.IsNullOrWhiteSpace(Tag) && !Tags.Contains(Tag.ToUpper());
         
+        public EditTagsViewModel(TagsApi tagsApi)
+        {
+            this.tagsApi = tagsApi;
+        }
+
         public override void Initialize()
         {
             if (Tags == null)
@@ -33,7 +42,7 @@ namespace GdeBabki.Client.ViewModel
             {
                 Tags.Add(tag);
                 Tag = null;
-                RaisePropertyChanged(nameof(Tag));
+                RaisePropertyChanged(nameof(Tags));
             }
         }
 
@@ -52,9 +61,9 @@ namespace GdeBabki.Client.ViewModel
             }
         }
 
-        public void SuggestTags()
+        public async Task SuggestTags()
         {
-            SuggestedTags = new List<string>() { "Abc", "Def", "Efg" };
+            SuggestedTags = await tagsApi.SuggestTagsAsync(Guid.Empty);
             RaisePropertyChanged(nameof(SuggestedTags));
         }
     }

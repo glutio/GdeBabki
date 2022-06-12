@@ -1,0 +1,59 @@
+﻿@using GdeBabki.Client.Model
+@implements IDisposable
+@inject IJSRuntime JS
+
+@if (IsOpen)
+{
+    var topLeft = GetPopupTopLeft();
+    var style = $"position:fixed;top:{topLeft.Y}px;left:{topLeft.X}px;z-index:{Int32.MaxValue};"; 
+
+    <div @ref="refPopup" style="@style">
+        @Content
+    </div>
+}
+
+
+@code {
+    [Parameter]
+    public ElementReference Element { get; set; }
+    [Parameter]
+    public RenderFragment Content { get; set; }
+    
+    [Parameter]
+    public bool IsOpen { get { return isOpen; } set { if (isOpen != value) { isOpen = value; StateHasChanged(); } } }
+    bool isOpen;
+
+    ElementReference refPopup;
+
+    protected async override Task OnInitializedAsync()
+    {
+        var objRef = DotNetObjectReference.Create(this);
+        await JS.InvokeAsync<bool>("window.GdeBabkiInterop.addScrollListener", objRef, this.GetHashCode());
+        await base.OnInitializedAsync();
+    }
+
+    [JSInvokable]
+    public Task OnScroll()
+    {
+        IsOpen = false;
+        return Task.CompletedTask;
+    }
+
+    public void Dispose()
+    {
+        var js = (IJSInProcessRuntime)JS;
+        js.Invoke<bool>("window.GdeBabkiInterop.removeScrollListener", this.GetHashCode());
+    }
+
+    Point GetPopupTopLeft()
+    {
+        var js = (IJSInProcessRuntime)JS;
+        var textBoxBounds = js.Invoke<ElementBounds>("window.GdeBabkiInterop.getBoundingClientRect", Element);
+        return new Point()
+        {
+            Y = textBoxBounds.bottom,
+            X = textBoxBounds.left
+        };
+        
+    }
+}

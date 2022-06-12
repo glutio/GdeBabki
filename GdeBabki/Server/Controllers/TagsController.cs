@@ -3,6 +3,7 @@ using GdeBabki.Shared.DTO;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace GdeBabki.Server.Controllers
@@ -32,5 +33,11 @@ namespace GdeBabki.Server.Controllers
             return Ok();
         }
 
+        [HttpGet, Route("Suggested/{transactionId=transactionId}")]
+        public async Task<ActionResult<string[]>> GetSuggestedTagsAsync([FromQuery]Guid transactionId)
+        {
+            var result = await tagsService.GetSuggestedTagsAsync(transactionId);
+            return new JsonResult(result);
+        }
     }
 }

@@ -30,10 +30,14 @@ namespace GdeBabki.Client.Pages
 
         public void Dispose()
         {
+            OnDispose();
+        }
+
+        protected virtual void OnDispose()
+        {
             Model.PropertyChanged -= OnPropertyChanged;
             Model.Dispose();
         }
-
         protected virtual void OnPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             StateHasChanged();

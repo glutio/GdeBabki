@@ -9,7 +9,7 @@
         </RadzenCheckBoxList>
     </RadzenCard>
 
-    <RadzenDataGrid @ref="refGrid" TItem="Transaction" Data="Model.Transactions" AllowPaging="true" FilterMode="FilterMode.SimpleWithMenu" 
+    <RadzenDataGrid @ref="refGrid" TItem="Transaction" @bind-Data="Model.Transactions" AllowPaging="true" FilterMode="FilterMode.SimpleWithMenu" 
                     AllowFiltering="true" AllowColumnResize="true" PageSize="12" AllowSorting="true" 
                     SelectionMode="DataGridSelectionMode.Single" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive">
         <Columns>
@@ -54,7 +54,7 @@
             </RadzenDataGridColumn>
             <RadzenDataGridColumn TItem="Transaction" Title="Tags" Property="Tags" Filterable="true" Sortable="false" CssClass="tags-column">
                 <FilterTemplate>
-                    <EditTags></EditTags>
+                    <EditTags @ref="refFilterTags" TagsUpdated="TagsFilterUpdatedAsync"></EditTags>
                 </FilterTemplate>
                 <Template>                    
                     <EditTags Tags="@context.Tags" BeforeSave="e => SaveTag(e, context)" BeforeDelete="e => DeleteTag(e, context)">
@@ -68,20 +68,12 @@ else
 {
     <p>Loading...</p>
 }
-<style>
-.tags-column {
-    overflow: visible !important;
-}
-
-.tags-column .rz-cell-data {
-    overflow: visible !important;
-}
-</style>
 
 @code {
     [Parameter, SupplyParameterFromQuery]
     public Guid[] AccountIds { get; set; }
 
+    EditTags refFilterTags;
     RadzenDataGrid<Transaction> refGrid { get; set; }
     async Task OnSelectedAccountsChangeAsync(IEnumerable<Guid> accounts)
     {
@@ -99,7 +91,7 @@ else
     {
         try
         {
-            await Model.AddTag(e.Value, transaction.Id);
+            await Model.AddTagAsync(e.Value, transaction.Id);
         }
         catch
         {
@@ -112,13 +104,18 @@ else
     {
         try
         {
-            await Model.DeleteTag(e.Value, transaction.Id);
+            await Model.DeleteTagAsync(e.Value, transaction.Id);
         }
         catch
         {
             e.Cancel = true;
             throw;
         }
+    }
+
+    async Task TagsFilterUpdatedAsync()
+    {
+        await Model.SetFilterTagsAsync(refFilterTags.Tags);
     }
 
 }
