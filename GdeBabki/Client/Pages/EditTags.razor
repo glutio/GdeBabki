@@ -120,9 +120,6 @@
 
     async Task OnBlurAsync()
     {        
-        //        var isFocusIn= await JS.InvokeAsync<bool>("window.GdeBabkiInterop.isFocusIn", refMainDiv);
-        //Console.WriteLine(isFocusIn);
-        //        if (!isFocusIn)
         {
             await ClearSuggestedTags();            
         }
@@ -150,15 +147,8 @@
         }        
     }
 
-    //protected override void OnAfterRender(bool firstRender)
-    //{
-    //    var js = (IJSInProcessRuntime)JS;
-    //    js.Invoke<bool>("window.GdeBabkiInterop.setDisplayStyle", refDatalist, "block");
-    //}
-
     protected override void OnInitialized()
     {
-        Model.Tags = Tags;
         base.OnInitialized();
     }
 }
