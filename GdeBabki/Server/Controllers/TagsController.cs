@@ -20,9 +20,9 @@ namespace GdeBabki.Server.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> InsertTagAsync(TransactionTag insertTag)
+        public async Task<IActionResult> InsertTagAsync([FromBody]TransactionTag transactionTag)
         {
-            await tagsService.InsertTagAsync(insertTag);
+            await tagsService.InsertTagAsync(transactionTag);
             return Ok();
         }
 
@@ -39,5 +39,20 @@ namespace GdeBabki.Server.Controllers
             var result = await tagsService.GetSuggestedTagsAsync(transactionId);
             return new JsonResult(result);
         }
+
+        [HttpPost("Shared")]
+        public async Task<IActionResult> InsertSharedTagAsync([FromBody]SharedTag sharedTag)
+        {
+            await tagsService.InsertSharedTagAsync(sharedTag);
+            return Ok();
+        }
+
+        [HttpDelete("Shared")]
+        public async Task<IActionResult> DeleteSharedTagAsync([FromBody]SharedTag sharedTag)
+        {
+            await tagsService.DeleteSharedTagAsync(sharedTag);
+            return Ok();
+        }
+
     }
 }

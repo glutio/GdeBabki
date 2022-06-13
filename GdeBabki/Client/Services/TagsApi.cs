@@ -1,9 +1,12 @@
 ﻿using GdeBabki.Shared.DTO;
+using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace GdeBabki.Client.Services
@@ -14,7 +17,6 @@ namespace GdeBabki.Client.Services
         {
 
         }
-
         public async Task AddTagAsync(TransactionTag transactionTag)
         {
             var httpClient = httpFactory.CreateClient();
@@ -40,20 +42,23 @@ namespace GdeBabki.Client.Services
             return model.ToList();
         }
 
-        public async Task AddTagsAsync(IEnumerable<TransactionTag> transactionTags)
+        public async Task AddSharedTagAsync(SharedTag sharedTag)
         {
-            foreach (var transactionTag in transactionTags)
-            {
-                await AddTagAsync(transactionTag);
-            }
+            var httpClient = httpFactory.CreateClient();
+            var response = await httpClient.PostAsJsonAsync("api/Tags/Shared", sharedTag);
+            
+            response.EnsureSuccessStatusCode();
         }
 
-        public async Task DeleteTagsAsync(string tagId, IEnumerable<Guid> transactionIds)
+        public async Task DeleteSharedTagsAsync(SharedTag sharedTag)
         {
-            foreach (var transactionId in transactionIds)
-            {
-                await DeleteTagAsync(tagId, transactionId);
-            }
+            var httpClient = httpFactory.CreateClient();
+            var request = new HttpRequestMessage(HttpMethod.Delete, "api/Tags/Shared");
+            var jsonSerializer = JsonSerializer.CreateDefault();
+            request.Content = new StringContent(JsonConvert.SerializeObject(sharedTag), Encoding.UTF8, "application/json");
+            var response = await httpClient.SendAsync(request); 
+
+            response.EnsureSuccessStatusCode();
         }
     }
 }

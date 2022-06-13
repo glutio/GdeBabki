@@ -85,7 +85,7 @@ namespace GdeBabki.Client.ViewModel
             RaisePropertyChanged(nameof(Transactions));
         }
 
-        public async Task AddTagAsync(string tag, Guid transactionId)
+        public async Task SaveTagAsync(string tag, Guid transactionId)
         {
             await tagsApi.AddTagAsync(new TransactionTag()
             {
@@ -103,25 +103,28 @@ namespace GdeBabki.Client.ViewModel
         {
             var transactions = TransactionsQuery.Where(e => !e.Tags.Any(t => t == tag));
 
-            await tagsApi.AddTagsAsync(transactions
-                .Select(e => new TransactionTag()
-                {
-                    TagId = tag,
-                    TransactionId = e.Id
-                }));
+            await tagsApi.AddSharedTagAsync(new SharedTag()
+            {
+                TagId = tag,
+                TransactionIds = transactions.Select(e => e.Id).ToList()
+            });
 
-            foreach(var transaction in transactions)
+            foreach (var transaction in transactions)
             {
                 transaction.Tags.Add(tag);
             }
+
         }
 
         public async Task DeleteSharedTagAsync(string tag)
         {
             var transactions = TransactionsQuery.Where(e => e.Tags.Any(t => t == tag));
 
-            await tagsApi.DeleteTagsAsync(tag, transactions
-                .Select(e => e.Id));
+            await tagsApi.DeleteSharedTagsAsync(new SharedTag()
+            {
+                TagId = tag,
+                TransactionIds = transactions.Select(e => e.Id).ToList()
+            });
 
             foreach (var transaction in transactions)
             {

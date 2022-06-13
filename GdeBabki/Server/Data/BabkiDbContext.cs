@@ -13,7 +13,7 @@ namespace GdeBabki.Server.Data
         {
             modelBuilder.Entity<GBTagGBTransaction>()
                 .HasKey(e => new { e.TagId, e.TransactionId });
-            
+
             //modelBuilder.Entity<GBTagGBTransaction>()
             //    .HasOne(e => e.Tag)
             //    .WithMany(e => e.Transactions)
@@ -22,7 +22,8 @@ namespace GdeBabki.Server.Data
             //modelBuilder.Entity<GBTagGBTransaction>()
             //    .HasOne(e => e.Transaction)
             //    .WithMany(e => e.Tags)
-            //    .HasForeignKey(e => e.TagId);
+            //    .HasForeignKey(e => e.TagId)
+            //    .HasPrincipalKey(e => e.TransactionId);
 
             base.OnModelCreating(modelBuilder);
         }

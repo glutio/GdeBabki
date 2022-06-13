@@ -118,7 +118,7 @@ else
     {
         try
         {
-            await Model.AddTagAsync(e.Value, transaction.Id);
+            await Model.SaveTagAsync(e.Value, transaction.Id);
         }
         catch
         {

@@ -49,6 +49,45 @@ namespace GdeBabki.Server.Services
             await db.SaveChangesAsync();
         }
 
+        public async Task InsertSharedTagAsync(SharedTag sharedTag)
+        {
+            using var db = await dbFactory.CreateDbContextAsync();
+
+            using var dbTransaction = await db.Database.BeginTransactionAsync();
+
+            var isExisting = await db.Tags.AnyAsync(e => e.Id == sharedTag.TagId);
+            if (!isExisting)
+            {
+                db.Tags.Add(new GBTag() { Id = sharedTag.TagId });
+            }
+
+            foreach(var transactionId in sharedTag.TransactionIds)
+            {
+                db.TagsTransactions.Add(new GBTagGBTransaction() { TagId = sharedTag.TagId, TransactionId = transactionId });
+            }
+
+            await db.SaveChangesAsync();
+            await dbTransaction.CommitAsync();
+        }
+
+        public async Task DeleteSharedTagAsync(SharedTag sharedTag)
+        {
+            using var db = await dbFactory.CreateDbContextAsync();
+
+            using var dbTransaction = await db.Database.BeginTransactionAsync();
+            foreach(var transactionId in sharedTag.TransactionIds)
+            {
+                db.TagsTransactions.Remove(new GBTagGBTransaction()
+                {
+                    TagId = sharedTag.TagId,
+                    TransactionId = transactionId
+                });
+            }
+
+            await db.SaveChangesAsync();
+            await dbTransaction.CommitAsync();
+        }
+
         public async Task<string[]> GetSuggestedTagsAsync(Guid transactionId)
         {
             using var db = await dbFactory.CreateDbContextAsync();
