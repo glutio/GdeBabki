@@ -15,10 +15,10 @@ namespace GdeBabki.Client.Services
 
         }
 
-        public async Task InsertTagAsync(TransactionTag insertTag)
+        public async Task AddTagAsync(TransactionTag transactionTag)
         {
             var httpClient = httpFactory.CreateClient();
-            var response = await httpClient.PostAsJsonAsync("api/Tags", insertTag);
+            var response = await httpClient.PostAsJsonAsync("api/Tags", transactionTag);
             response.EnsureSuccessStatusCode();
         }
 
@@ -38,6 +38,22 @@ namespace GdeBabki.Client.Services
             var model = await response.Content.ReadFromJsonAsync<string[]>();
 
             return model.ToList();
+        }
+
+        public async Task AddTagsAsync(IEnumerable<TransactionTag> transactionTags)
+        {
+            foreach (var transactionTag in transactionTags)
+            {
+                await AddTagAsync(transactionTag);
+            }
+        }
+
+        public async Task DeleteTagsAsync(string tagId, IEnumerable<Guid> transactionIds)
+        {
+            foreach (var transactionId in transactionIds)
+            {
+                await DeleteTagAsync(tagId, transactionId);
+            }
         }
     }
 }

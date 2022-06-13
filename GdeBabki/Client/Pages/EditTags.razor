@@ -5,7 +5,7 @@
 @inherits ViewBase<EditTagsViewModel>
 @inject IJSRuntime JS
 
-<div @ref="refMainDiv" style="position:relative;">
+<div>
     @foreach (var tag in Model.Tags)
     {
         <div class="inline-div">
@@ -66,11 +66,7 @@
     string DataListName => $"datalist-{this.GetHashCode()}";
 
     ElementReference refTextBox;
-    ElementReference refMainDiv;
-    ElementReference refSelect;
     ElementReference refDatalist;
-    Popup refPopup;
-    Point popupTopLeft;
 
     async Task OnKeyDownAsync(KeyboardEventArgs e)
     {

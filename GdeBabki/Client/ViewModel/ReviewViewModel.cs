@@ -24,7 +24,8 @@ namespace GdeBabki.Client.ViewModel
         public int TransactionsCount => TransactionsQuery?.Count() ?? 0;
 
         public List<string> FilterTags { get; set; } = new List<string>();
-        public List<string> SharedTags { get; set; } = new List<string>();
+        public List<string> SharedTags { get; set; }
+        public bool IsUpdatingSharedTags { get; set; }
 
         public ReviewViewModel(AccountsApi accountsApi, TagsApi tagsApi)
         {
@@ -39,7 +40,7 @@ namespace GdeBabki.Client.ViewModel
             {
                 SelectedAccounts = Accounts.Select(e => e.Id).ToArray();
             }
-            
+
             Transactions = await GetTransactionsAsync();
             IsLoaded = true;
         }
@@ -61,12 +62,15 @@ namespace GdeBabki.Client.ViewModel
             {
                 query = query.OrderBy(args.OrderBy);
             }
-            
+
             TransactionsQuery = query;
             TransactionsView = query.Skip(args.Skip.Value).Take(args.Top.Value).ToList();
 
-            var allTags = query.SelectMany(e => e.Tags).Distinct().ToList();
-            SharedTags = allTags.Where(tag => query.All(tran => tran.Tags.Any(e => e == tag))).ToList();
+            if (!IsUpdatingSharedTags)
+            {
+                var allTags = query.SelectMany(e => e.Tags).Distinct().ToList();
+                SharedTags = allTags.Where(tag => query.All(tran => tran.Tags.Any(e => e == tag))).ToList();
+            }
         }
 
         private async Task<List<Transaction>> GetTransactionsAsync()
@@ -83,7 +87,7 @@ namespace GdeBabki.Client.ViewModel
 
         public async Task AddTagAsync(string tag, Guid transactionId)
         {
-            await tagsApi.InsertTagAsync(new TransactionTag()
+            await tagsApi.AddTagAsync(new TransactionTag()
             {
                 TagId = tag,
                 TransactionId = transactionId
@@ -95,11 +99,34 @@ namespace GdeBabki.Client.ViewModel
             await tagsApi.DeleteTagAsync(tag, transactionId);
         }
 
-        public async Task SetFilterTagsAsync(List<string> tags)
+        public async Task SaveSharedTagAsync(string tag)
         {
-            FilterTags = tags;
-            Transactions = await GetTransactionsAsync();
-            RaisePropertyChanged(nameof(Transactions));
+            var transactions = TransactionsQuery.Where(e => !e.Tags.Any(t => t == tag));
+
+            await tagsApi.AddTagsAsync(transactions
+                .Select(e => new TransactionTag()
+                {
+                    TagId = tag,
+                    TransactionId = e.Id
+                }));
+
+            foreach(var transaction in transactions)
+            {
+                transaction.Tags.Add(tag);
+            }
+        }
+
+        public async Task DeleteSharedTagAsync(string tag)
+        {
+            var transactions = TransactionsQuery.Where(e => e.Tags.Any(t => t == tag));
+
+            await tagsApi.DeleteTagsAsync(tag, transactions
+                .Select(e => e.Id));
+
+            foreach (var transaction in transactions)
+            {
+                transaction.Tags.Remove(tag);
+            }
         }
     }
 }

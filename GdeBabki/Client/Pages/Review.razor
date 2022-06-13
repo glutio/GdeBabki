@@ -9,7 +9,10 @@
         </RadzenCheckBoxList>
     </RadzenCard>
     <RadzenCard>
-        <EditTags @ref="refSharedTags" Tags="Model.SharedTags"></EditTags>
+        <EditTags @ref="refSharedTags" Tags="Model.SharedTags" BeforeSave="SaveSharedTagAsync" BeforeDelete="DeleteSharedTagAsync"></EditTags>
+        <div style="float:right">
+            <RadzenButton Click="ReloadTransactions" Text="Reload"></RadzenButton>
+        </div>
     </RadzenCard>
 
     <RadzenDataGrid @ref="refGrid" TItem="Transaction" Data="Model.TransactionsView" AllowPaging="true" FilterMode="FilterMode.SimpleWithMenu" LoadData="Model.LoadData"
@@ -73,7 +76,7 @@
                     <EditTags @ref="refFilterTags" TagsUpdated="refGrid.Reload" Tags="Model.FilterTags"></EditTags>
                 </FilterTemplate>
                 <Template>
-                    <EditTags Tags="@context.Tags" BeforeSave="e => SaveTag(e, context)" BeforeDelete="e => DeleteTag(e, context)">
+                    <EditTags Tags="@context.Tags" BeforeSave="e => SaveTagAsync(e, context)" BeforeDelete="e => DeleteTagAsync(e, context)">
                     </EditTags>
                 </Template>
             </RadzenDataGridColumn>
@@ -105,7 +108,13 @@ else
         await refGrid.Reload();
     }
 
-    async Task SaveTag(CancelEventArgs<string> e, Transaction transaction)
+    async Task ReloadTransactions(MouseEventArgs e)
+    {
+        await Model.OnSelectedAccountsChangeAsync();
+        await refGrid.Reload();
+    }
+
+    async Task SaveTagAsync(CancelEventArgs<string> e, Transaction transaction)
     {
         try
         {
@@ -118,7 +127,7 @@ else
         }
     }
 
-    async Task DeleteTag(CancelEventArgs<string> e, Transaction transaction)
+    async Task DeleteTagAsync(CancelEventArgs<string> e, Transaction transaction)
     {
         try
         {
@@ -128,6 +137,44 @@ else
         {
             e.Cancel = true;
             throw;
+        }
+    }
+
+    async Task SaveSharedTagAsync(CancelEventArgs<string> e)
+    {
+        try
+        {
+            await Model.SaveSharedTagAsync(e.Value);
+            Model.IsUpdatingSharedTags = true;
+            await refGrid.Reload();
+        }
+        catch
+        {
+            e.Cancel = true;
+            throw;
+        }       
+        finally
+        {
+            Model.IsUpdatingSharedTags = false;
+        }
+    }
+
+    async Task DeleteSharedTagAsync(CancelEventArgs<string> e)
+    {
+        try
+        {
+            await Model.DeleteSharedTagAsync(e.Value);
+            Model.IsUpdatingSharedTags = true;
+            await refGrid.Reload();
+        }
+        catch
+        {
+            e.Cancel = true;
+            throw;
+        }
+        finally
+        {
+            Model.IsUpdatingSharedTags = false;
         }
     }
 }
