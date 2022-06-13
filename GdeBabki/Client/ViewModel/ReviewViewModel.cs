@@ -1,9 +1,11 @@
 ﻿using GdeBabki.Client.Services;
 using GdeBabki.Shared.DTO;
+using Radzen;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Linq.Dynamic.Core;
 using System.Threading.Tasks;
 
 namespace GdeBabki.Client.ViewModel
@@ -13,10 +15,16 @@ namespace GdeBabki.Client.ViewModel
         private readonly AccountsApi accountsApi;
         private readonly TagsApi tagsApi;
 
-        public List<Transaction> Transactions { get; set; }
         public List<Account> Accounts { get; set; }
         public IEnumerable<Guid> SelectedAccounts { get; set; }
-        public List<string> FilterTags { get; set; }
+
+        public List<Transaction> Transactions { get; set; }
+        public IQueryable<Transaction> TransactionsQuery { get; private set; }
+        public List<Transaction> TransactionsView { get; set; }
+        public int TransactionsCount => TransactionsQuery?.Count() ?? 0;
+
+        public List<string> FilterTags { get; set; } = new List<string>();
+        public List<string> SharedTags { get; set; } = new List<string>();
 
         public ReviewViewModel(AccountsApi accountsApi, TagsApi tagsApi)
         {
@@ -34,18 +42,36 @@ namespace GdeBabki.Client.ViewModel
             
             Transactions = await GetTransactionsAsync();
             IsLoaded = true;
+        }
 
+        public void LoadData(LoadDataArgs args)
+        {
+            var query = Transactions.AsQueryable();
+            if (!string.IsNullOrEmpty(args.Filter))
+            {
+                query = query.Where(args.Filter);
+            }
+
+            if (FilterTags.Count > 0)
+            {
+                query = query.Where(e => e.Tags.Any(t => FilterTags.Any(f => f == t)));
+            }
+
+            if (!string.IsNullOrEmpty(args.OrderBy))
+            {
+                query = query.OrderBy(args.OrderBy);
+            }
+            
+            TransactionsQuery = query;
+            TransactionsView = query.Skip(args.Skip.Value).Take(args.Top.Value).ToList();
+
+            var allTags = query.SelectMany(e => e.Tags).Distinct().ToList();
+            SharedTags = allTags.Where(tag => query.All(tran => tran.Tags.Any(e => e == tag))).ToList();
         }
 
         private async Task<List<Transaction>> GetTransactionsAsync()
         {
             var transactions = await accountsApi.GetTransactionsAsync(SelectedAccounts);
-            if (FilterTags != null && FilterTags.Count > 0)
-            {
-                Console.WriteLine("Hello");
-                transactions = transactions.Where(e => e.Tags.Any(t => FilterTags.Any(f => f == t))).ToList();
-            }
-
             return transactions;
         }
 

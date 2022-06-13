@@ -13,7 +13,7 @@ namespace GdeBabki.Client.ViewModel
         public List<string> Tags { get; set; }
         public string Tag { get; set; }
         public List<string> SuggestedTags { get; set; }
-        public string LastTag => Tags?[Tags.Count - 1];
+        public string LastTag => Tags == null || Tags.Count == 0 ? null : Tags[Tags.Count - 1];
         public bool HasNewTag => !string.IsNullOrWhiteSpace(Tag) && !Tags.Contains(Tag.ToUpper());
         
         public EditTagsViewModel(TagsApi tagsApi)
@@ -63,7 +63,8 @@ namespace GdeBabki.Client.ViewModel
 
         public async Task SuggestTags()
         {
-            SuggestedTags = await tagsApi.SuggestTagsAsync(Guid.Empty);
+            var allSuggestedTags = await tagsApi.SuggestTagsAsync(Guid.Empty);
+            SuggestedTags = allSuggestedTags.Except(Tags).ToList();
             RaisePropertyChanged(nameof(SuggestedTags));
         }
     }

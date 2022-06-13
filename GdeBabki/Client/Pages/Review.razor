@@ -9,11 +9,11 @@
         </RadzenCheckBoxList>
     </RadzenCard>
     <RadzenCard>
-        <EditTags @ref="refSharedTags" Tags="SharedTags"></EditTags>
+        <EditTags @ref="refSharedTags" Tags="Model.SharedTags"></EditTags>
     </RadzenCard>
 
-    <RadzenDataGrid @ref="refGrid" TItem="Transaction" @bind-Data="Model.Transactions" AllowPaging="true" FilterMode="FilterMode.SimpleWithMenu"
-                AllowFiltering="true" AllowColumnResize="true" PageSize="12" AllowSorting="true"
+    <RadzenDataGrid @ref="refGrid" TItem="Transaction" Data="Model.TransactionsView" AllowPaging="true" FilterMode="FilterMode.SimpleWithMenu" LoadData="Model.LoadData"
+                AllowFiltering="true" AllowColumnResize="true" Count="Model.TransactionsCount" PageSize="10" PagerHorizontalAlign="HorizontalAlign.Center" AllowSorting="true" 
                 SelectionMode="DataGridSelectionMode.Single" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive">
         <Columns>
             <RadzenDataGridColumn TItem="Transaction" Property="State" Width="2rem" Filterable="false" Sortable="false" TextAlign="TextAlign.Center">
@@ -33,18 +33,18 @@
                     @(context.Date.Day)&nbsp;<b>@(context.Date.ToString("MMM"))&nbsp;@context.Date.Year</b>
                 </Template>
                 <FooterTemplate>
-                    @if (refGrid.View.Count() > 0)
+                    @if (Model.TransactionsCount > 0)
                     {
-                        var grouping = refGrid.View.GroupBy(e => new DateTime(e.Date.Year, e.Date.Month, 1));
+                        var grouping = Model.TransactionsQuery.GroupBy(e => new DateTime(e.Date.Year, e.Date.Month, 1));
                         // times a month
                         var timesPerMonth = @grouping.Select(g => g.Count()).Average();
-                        <b>@timesPerMonth.ToString("0.#") /</b>
+                        <b>@timesPerMonth.ToString("0.#") / </b>
                         // number of months
-                        <b>@grouping.Count() /</b>
+                        <b>@grouping.Count() / </b>
                         // total per month
                         var monthlySpending = @grouping.Select(g => g.Sum(e => e.Amount)).Average();
                         // total per time
-                        <b>@((monthlySpending/(decimal)timesPerMonth).ToCurrency()) /</b>
+                        <b>@((monthlySpending/(decimal)timesPerMonth).ToCurrency()) / </b>
                         <b>@monthlySpending.ToCurrency()</b>
                     }
                 </FooterTemplate>
@@ -62,15 +62,15 @@
                     }
                 </Template>
                 <FooterTemplate>
-                    @if (refGrid.View.Count() > 0)
+                    @if (Model.TransactionsCount > 0)
                     {
-                        <b>@refGrid.View.Sum(e => e.Amount).ToCurrency() </b>
+                        <b>@Model.TransactionsQuery.Sum(e => e.Amount).ToCurrency() </b>
                     }
                 </FooterTemplate>
             </RadzenDataGridColumn>
             <RadzenDataGridColumn TItem="Transaction" Title="Tags" Property="Tags" Filterable="true" Sortable="false" CssClass="tags-column">
                 <FilterTemplate>
-                    <EditTags @ref="refFilterTags" TagsUpdated="TagsFilterUpdatedAsync"></EditTags>
+                    <EditTags @ref="refFilterTags" TagsUpdated="refGrid.Reload" Tags="Model.FilterTags"></EditTags>
                 </FilterTemplate>
                 <Template>
                     <EditTags Tags="@context.Tags" BeforeSave="e => SaveTag(e, context)" BeforeDelete="e => DeleteTag(e, context)">
@@ -92,27 +92,17 @@ else
     EditTags refFilterTags;
     RadzenDataGrid<Transaction> refGrid { get; set; }
     EditTags refSharedTags;
-    List<string> SharedTags
-    {
-        get
-        {
-            var list = refGrid.View;
-            var all = list.SelectMany(e => e.Tags).Distinct().ToList();
-            var shared = all.Where(tag => list.All(tran => tran.Tags.Any(e => e == tag))).ToList();
-            return shared;
-        }
-    }
-
-    async Task OnSelectedAccountsChangeAsync(IEnumerable<Guid> accounts)
-    {
-        AccountIds = accounts.ToArray();
-        await Model.OnSelectedAccountsChangeAsync();
-    }
 
     protected override void OnInitialized()
     {
         Model.SelectedAccounts = AccountIds;
         base.OnInitialized();
+    }
+
+    async Task OnSelectedAccountsChangeAsync(IEnumerable<Guid> accounts)
+    {
+        await Model.OnSelectedAccountsChangeAsync();
+        await refGrid.Reload();
     }
 
     async Task SaveTag(CancelEventArgs<string> e, Transaction transaction)
@@ -140,10 +130,4 @@ else
             throw;
         }
     }
-
-    async Task TagsFilterUpdatedAsync()
-    {
-        await Model.SetFilterTagsAsync(refFilterTags.Tags);
-    }
-
 }
