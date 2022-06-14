@@ -15,7 +15,7 @@ namespace GdeBabki.Client.ViewModel
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        public virtual void Initialize()
+        public virtual void OnInitialize()
         {
         }
 

@@ -77,7 +77,7 @@
                     <RadzenDataGridFilterMenu Column="refTagsFilterColumn" Grid="refGrid" TItem="Transaction" />
                 </FilterTemplate>
                 <Template>
-                    <EditTags Tags="@context.Tags" BeforeSave="e => SaveTagAsync(e, context)" BeforeDelete="e => DeleteTagAsync(e, context)">
+                    <EditTags Tags="@context.Tags" BeforeSave="e => SaveTagAsync(e, context)" BeforeDelete="e => DeleteTagAsync(e, context)" TagsUpdated="Model.UpdateSharedTags">
                     </EditTags>
                 </Template>
             </RadzenDataGridColumn>
@@ -113,31 +113,14 @@ else
         await refGrid.Reload();
     }
 
-    async Task OnColumnFilter(DataGridColumnFilterEventArgs<Transaction> e)
+    void OnColumnFilter(DataGridColumnFilterEventArgs<Transaction> e)
     {
         if (e.Column == refTagsFilterColumn)
         {
             Model.TagsFilterOperator = e.FilterOperator;
         }
 
-        //if (string.IsNullOrEmpty(e.FilterValue?.ToString()))
-        //{
-        //    activeFilters--;
-        //}
-        //else
-        //{
-        //    if (activeFilters == 0)
-        //    {
-        //        unfilteredPage = refGrid.CurrentPage;
-
-        //    }
-        //    activeFilters++;
-        //}
-
-        //if (activeFilters == 0)
-        //{
-        //    await e.Column.Grid.GoToPage(0);
-        //}
+        Model.Freeze = false;
     }
 
     async Task TagsFilterUpdatedAsync()
@@ -152,7 +135,7 @@ else
 
     async Task ReloadTransactions(MouseEventArgs e)
     {
-        await Model.OnSelectedAccountsChangeAsync();
+        await Model.OnSelectedAccountsChangeAsync();        
         await refGrid.Reload();
     }
 

@@ -13,7 +13,7 @@ namespace GdeBabki.Client.Pages
 
         protected override void OnInitialized()
         {
-            Model.Initialize();
+            Model.OnInitialize();
             Model.PropertyChanged += Model_PropertyChanged;
         }
 

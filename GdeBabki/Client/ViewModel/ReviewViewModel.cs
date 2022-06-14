@@ -18,14 +18,16 @@ namespace GdeBabki.Client.ViewModel
         public IEnumerable<Guid> SelectedAccounts { get; set; }
 
         public List<Transaction> Transactions { get; private set; }
-        public List<Transaction> TransactionsQuery { get; private set; }
-        public List<Transaction> TransactionsView { get; private set; }
-        public int TransactionsCount => TransactionsQuery?.Count() ?? 0;
+        public IQueryable<Transaction> TransactionsQuery { get; private set; }
+        public IQueryable<Transaction> TransactionsView { get; private set; }
+        public int TransactionsCount { get; set; }
 
         public List<string> FilterTags { get; set; } = new List<string>();
-        public FilterOperator TagsFilterOperator { get; set; } 
+        public FilterOperator TagsFilterOperator { get; set; }
         public List<string> SharedTags { get; set; }
         public bool IsUpdatingSharedTags { get; set; }
+
+        public bool Freeze { get; set; }
 
         public ReviewViewModel(AccountsApi accountsApi, TagsApi tagsApi)
         {
@@ -48,34 +50,56 @@ namespace GdeBabki.Client.ViewModel
         public void LoadData(LoadDataArgs args)
         {
             Console.WriteLine("load data");
-            var query = Transactions.AsQueryable();
-            if (!string.IsNullOrEmpty(args.Filter))
+            if (!Freeze)
             {
-                query = query.Where(args.Filter);
-            }
-
-            if (FilterTags.Count > 0)
-            {
-                query = query.Where(e => e.Tags.Any(t => FilterTags.Any(f => f == t)));
-            }
-            else
-            {
-                if (TagsFilterOperator == FilterOperator.IsNull)
+                var query = Transactions.AsQueryable();
+                if (!string.IsNullOrEmpty(args.Filter))
                 {
-                    query = query.Where(e => e.Tags == null || e.Tags.Count == 0);
+                    query = query.Where(args.Filter);
                 }
+
+                if (FilterTags.Count > 0)
+                {
+                    switch (TagsFilterOperator)
+                    {
+                        case FilterOperator.Equals:
+                            query = query.Where(e => !e.Tags.IsNullOrEmpty() && e.Tags.All(t => FilterTags.Any(f => t == f)));
+                            break;
+                        case FilterOperator.NotEquals:
+                            query = query.Where(e => FilterTags.All(f => e.Tags.All(t => t != f)));
+                            break;
+                        case FilterOperator.IsNull:
+                            query = query.Where(e => e.Tags.IsNullOrEmpty() || e.Tags.Any(t => FilterTags.Any(f => f == t)));
+                            break;
+                        default:
+                            query = query.Where(e => e.Tags.Any(t => FilterTags.Any(f => f == t)));
+                            break;
+                    }
+                }
+                else if (TagsFilterOperator == FilterOperator.IsNull)
+                {
+                    query = query.Where(e => e.Tags.IsNullOrEmpty());
+                }
+
+                if (!string.IsNullOrEmpty(args.OrderBy))
+                {
+                    query = query.OrderBy(args.OrderBy);
+                }
+
+                TransactionsQuery = query;
+                TransactionsCount = query.Count();
             }
 
-            if (!string.IsNullOrEmpty(args.OrderBy))
-            {
-                query = query.OrderBy(args.OrderBy);
-            }
+            UpdateSharedTags();
 
-            TransactionsQuery = query.ToList();               
-            TransactionsView = query.Skip(args.Skip.Value).Take(args.Top.Value).ToList();
+            TransactionsView = TransactionsQuery.Skip(args.Skip.Value).Take(args.Top.Value);
+        }
 
-            var allTags = query.SelectMany(e => e.Tags).Distinct().ToList();
-            SharedTags = allTags.Where(tag => query.All(tran => tran.Tags.Any(e => e == tag))).ToList();
+        public void UpdateSharedTags()
+        {
+            var allTags = TransactionsQuery.SelectMany(e => e.Tags).Distinct().ToList();
+            SharedTags = allTags.Where(tag => TransactionsQuery.All(tran => tran.Tags.Any(e => e == tag))).ToList();
+            RaisePropertyChanged(nameof(SharedTags));
         }
 
         private async Task<List<Transaction>> GetTransactionsAsync()
@@ -86,6 +110,7 @@ namespace GdeBabki.Client.ViewModel
 
         public async Task OnSelectedAccountsChangeAsync()
         {
+            Freeze = false;
             Transactions = await GetTransactionsAsync();
             RaisePropertyChanged(nameof(Transactions));
         }
@@ -106,6 +131,8 @@ namespace GdeBabki.Client.ViewModel
 
         public async Task SaveSharedTagAsync(string tag)
         {
+            Freeze = true;
+
             var transactions = TransactionsQuery.Where(e => !e.Tags.Any(t => t == tag));
 
             await tagsApi.AddSharedTagAsync(new SharedTag()
@@ -122,6 +149,8 @@ namespace GdeBabki.Client.ViewModel
 
         public async Task DeleteSharedTagAsync(string tag)
         {
+            Freeze = true;
+
             var transactions = TransactionsQuery.Where(e => e.Tags.Any(t => t == tag));
 
             await tagsApi.DeleteSharedTagsAsync(new SharedTag()

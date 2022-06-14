@@ -27,7 +27,7 @@ namespace GdeBabki.Client.ViewModel
             errorService.ExpireErrors();
         }
 
-        public override void Initialize()
+        public override void OnInitialize()
         {
             errorService.ErrorUpdated += ErrorService_ErrorUpdated;
         }

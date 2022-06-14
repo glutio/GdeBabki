@@ -1,5 +1,6 @@
 ﻿using Radzen;
 using System;
+using System.Collections;
 using System.Linq;
 using System.Security.Cryptography;
 
@@ -46,5 +47,9 @@ namespace GdeBabki.Client.Services
             return colorTable[(uint)s.Hash() % colorTable.Length].Item1;
         }
 
+        public static bool IsNullOrEmpty(this IList list)
+        {
+            return list == null || list.Count == 0;
+        }
     }
 }
