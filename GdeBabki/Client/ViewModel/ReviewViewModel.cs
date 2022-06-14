@@ -18,8 +18,8 @@ namespace GdeBabki.Client.ViewModel
         public IEnumerable<Guid> SelectedAccounts { get; set; }
 
         public List<Transaction> Transactions { get; private set; }
-        public IQueryable<Transaction> TransactionsQuery { get; private set; }
-        public IQueryable<Transaction> TransactionsView { get; private set; }
+        public List<Transaction> TransactionsQuery { get; private set; }
+        public List<Transaction> TransactionsView { get; private set; }
         public int TransactionsCount { get; set; }
 
         public List<string> FilterTags { get; set; } = new List<string>();
@@ -66,7 +66,7 @@ namespace GdeBabki.Client.ViewModel
                             query = query.Where(e => !e.Tags.IsNullOrEmpty() && e.Tags.All(t => FilterTags.Any(f => t == f)));
                             break;
                         case FilterOperator.NotEquals:
-                            query = query.Where(e => FilterTags.All(f => e.Tags.All(t => t != f)));
+                            query = query.Where(e => !e.Tags.IsNullOrEmpty() && FilterTags.All(f => e.Tags.All(t => t != f)));
                             break;
                         case FilterOperator.IsNull:
                             query = query.Where(e => e.Tags.IsNullOrEmpty() || e.Tags.Any(t => FilterTags.Any(f => f == t)));
@@ -76,9 +76,18 @@ namespace GdeBabki.Client.ViewModel
                             break;
                     }
                 }
-                else if (TagsFilterOperator == FilterOperator.IsNull)
+                else 
                 {
-                    query = query.Where(e => e.Tags.IsNullOrEmpty());
+                    switch (TagsFilterOperator)
+                    {
+                        case FilterOperator.IsNotNull:
+                            query = query.Where(e => !e.Tags.IsNullOrEmpty());
+                            break;
+                        case FilterOperator.IsNull:
+                            query = query.Where(e => e.Tags.IsNullOrEmpty());
+                            break;
+                    }
+
                 }
 
                 if (!string.IsNullOrEmpty(args.OrderBy))
@@ -86,13 +95,13 @@ namespace GdeBabki.Client.ViewModel
                     query = query.OrderBy(args.OrderBy);
                 }
 
-                TransactionsQuery = query;
+                TransactionsQuery = query.ToList();
                 TransactionsCount = query.Count();
             }
 
-            UpdateSharedTags();
+            TransactionsView = TransactionsQuery.Skip(args.Skip.Value).Take(args.Top.Value).ToList();
 
-            TransactionsView = TransactionsQuery.Skip(args.Skip.Value).Take(args.Top.Value);
+            UpdateSharedTags();
         }
 
         public void UpdateSharedTags()

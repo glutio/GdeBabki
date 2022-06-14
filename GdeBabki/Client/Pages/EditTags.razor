@@ -53,11 +53,11 @@
     }
 
     [Parameter]
+    public EventCallback TagsUpdated { get; set; }
+    [Parameter]
     public EventCallback<CancelEventArgs<string>> BeforeSave { get; set; }
     [Parameter]
     public EventCallback<CancelEventArgs<string>> BeforeDelete { get; set; }
-    [Parameter]
-    public EventCallback TagsUpdated { get; set; }
 
     string DataListName => $"datalist-{this.GetHashCode()}";
 

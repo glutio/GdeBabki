@@ -73,7 +73,7 @@
             </RadzenDataGridColumn>
             <RadzenDataGridColumn @ref="refTagsFilterColumn" TItem="Transaction" Title="Tags" Property="Tags" Filterable="true" Sortable="false" FilterOperator="Model.TagsFilterOperator">
                 <FilterTemplate>
-                    <EditTags @ref="refTagsFilter" TagsUpdated="TagsFilterUpdatedAsync" Tags="Model.FilterTags"></EditTags>
+                    <EditTags @ref="refTagsFilter" Tags="Model.FilterTags" TagsUpdated="FilterTagsUpdatedAsync"></EditTags>
                     <RadzenDataGridFilterMenu Column="refTagsFilterColumn" Grid="refGrid" TItem="Transaction" />
                 </FilterTemplate>
                 <Template>
@@ -113,7 +113,13 @@ else
         await refGrid.Reload();
     }
 
-    void OnColumnFilter(DataGridColumnFilterEventArgs<Transaction> e)
+    async Task FilterTagsUpdatedAsync()
+    {
+        await refGrid.Reload();
+    }
+    
+
+    async Task OnColumnFilter(DataGridColumnFilterEventArgs<Transaction> e)
     {
         if (e.Column == refTagsFilterColumn)
         {
@@ -121,11 +127,9 @@ else
         }
 
         Model.Freeze = false;
-    }
 
-    async Task TagsFilterUpdatedAsync()
-    {
         await refGrid.Reload();
+
         var lastPage = Model.TransactionsCount / refGrid.PageSize;
         if (refGrid.CurrentPage > lastPage)
         {
