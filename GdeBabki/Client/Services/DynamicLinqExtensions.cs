@@ -11,7 +11,6 @@ namespace GdeBabki.Client.Services
     {
         public static bool Contains(this object list, object s)
         {       
-            Console.WriteLine(list.GetType());
             return true;
         }
 

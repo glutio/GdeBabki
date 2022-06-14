@@ -3,7 +3,6 @@ using GdeBabki.Shared.DTO;
 using Radzen;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Linq.Dynamic.Core;
 using System.Threading.Tasks;
@@ -18,12 +17,13 @@ namespace GdeBabki.Client.ViewModel
         public List<Account> Accounts { get; set; }
         public IEnumerable<Guid> SelectedAccounts { get; set; }
 
-        public List<Transaction> Transactions { get; set; }
-        public IQueryable<Transaction> TransactionsQuery { get; private set; }
-        public List<Transaction> TransactionsView { get; set; }
+        public List<Transaction> Transactions { get; private set; }
+        public List<Transaction> TransactionsQuery { get; private set; }
+        public List<Transaction> TransactionsView { get; private set; }
         public int TransactionsCount => TransactionsQuery?.Count() ?? 0;
 
         public List<string> FilterTags { get; set; } = new List<string>();
+        public FilterOperator TagsFilterOperator { get; set; } 
         public List<string> SharedTags { get; set; }
         public bool IsUpdatingSharedTags { get; set; }
 
@@ -47,6 +47,7 @@ namespace GdeBabki.Client.ViewModel
 
         public void LoadData(LoadDataArgs args)
         {
+            Console.WriteLine("load data");
             var query = Transactions.AsQueryable();
             if (!string.IsNullOrEmpty(args.Filter))
             {
@@ -57,20 +58,24 @@ namespace GdeBabki.Client.ViewModel
             {
                 query = query.Where(e => e.Tags.Any(t => FilterTags.Any(f => f == t)));
             }
+            else
+            {
+                if (TagsFilterOperator == FilterOperator.IsNull)
+                {
+                    query = query.Where(e => e.Tags == null || e.Tags.Count == 0);
+                }
+            }
 
             if (!string.IsNullOrEmpty(args.OrderBy))
             {
                 query = query.OrderBy(args.OrderBy);
             }
 
-            TransactionsQuery = query;
+            TransactionsQuery = query.ToList();               
             TransactionsView = query.Skip(args.Skip.Value).Take(args.Top.Value).ToList();
 
-            if (!IsUpdatingSharedTags)
-            {
-                var allTags = query.SelectMany(e => e.Tags).Distinct().ToList();
-                SharedTags = allTags.Where(tag => query.All(tran => tran.Tags.Any(e => e == tag))).ToList();
-            }
+            var allTags = query.SelectMany(e => e.Tags).Distinct().ToList();
+            SharedTags = allTags.Where(tag => query.All(tran => tran.Tags.Any(e => e == tag))).ToList();
         }
 
         private async Task<List<Transaction>> GetTransactionsAsync()
@@ -113,7 +118,6 @@ namespace GdeBabki.Client.ViewModel
             {
                 transaction.Tags.Add(tag);
             }
-
         }
 
         public async Task DeleteSharedTagAsync(string tag)

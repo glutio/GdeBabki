@@ -101,7 +101,6 @@ namespace GdeBabki.Server.Services
                 })
                 .OrderByDescending(e => e.Count)
                 .Select(e => e.TagId)
-                .Take(7)
                 .ToArrayAsync();
 
             return topTags;

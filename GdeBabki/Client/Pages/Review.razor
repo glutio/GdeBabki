@@ -17,7 +17,7 @@
 
     <RadzenDataGrid @ref="refGrid" TItem="Transaction" Data="Model.TransactionsView" AllowPaging="true" FilterMode="FilterMode.SimpleWithMenu" LoadData="Model.LoadData"
                 AllowFiltering="true" AllowColumnResize="true" Count="Model.TransactionsCount" PageSize="10" PagerHorizontalAlign="HorizontalAlign.Center" AllowSorting="true" 
-                SelectionMode="DataGridSelectionMode.Single" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive">
+                SelectionMode="DataGridSelectionMode.Single" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" Filter="OnColumnFilter">
         <Columns>
             <RadzenDataGridColumn TItem="Transaction" Property="State" Width="2rem" Filterable="false" Sortable="false" TextAlign="TextAlign.Center">
                 <Template>
@@ -44,10 +44,10 @@
                         <b>@timesPerMonth.ToString("0.#") / </b>
                         // number of months
                         <b>@grouping.Count() / </b>
-                        // total per month
                         var monthlySpending = @grouping.Select(g => g.Sum(e => e.Amount)).Average();
                         // total per time
                         <b>@((monthlySpending/(decimal)timesPerMonth).ToCurrency()) / </b>
+                        // total per month
                         <b>@monthlySpending.ToCurrency()</b>
                     }
                 </FooterTemplate>
@@ -71,9 +71,10 @@
                     }
                 </FooterTemplate>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="Transaction" Title="Tags" Property="Tags" Filterable="true" Sortable="false" CssClass="tags-column">
+            <RadzenDataGridColumn @ref="refTagsFilterColumn" TItem="Transaction" Title="Tags" Property="Tags" Filterable="true" Sortable="false" FilterOperator="Model.TagsFilterOperator">
                 <FilterTemplate>
-                    <EditTags @ref="refFilterTags" TagsUpdated="refGrid.Reload" Tags="Model.FilterTags"></EditTags>
+                    <EditTags @ref="refTagsFilter" TagsUpdated="TagsFilterUpdatedAsync" Tags="Model.FilterTags"></EditTags>
+                    <RadzenDataGridFilterMenu Column="refTagsFilterColumn" Grid="refGrid" TItem="Transaction" />
                 </FilterTemplate>
                 <Template>
                     <EditTags Tags="@context.Tags" BeforeSave="e => SaveTagAsync(e, context)" BeforeDelete="e => DeleteTagAsync(e, context)">
@@ -91,9 +92,13 @@ else
 @code {
     [Parameter, SupplyParameterFromQuery]
     public Guid[] AccountIds { get; set; }
+    int activeFilters;
+    int unfilteredPage;
 
-    EditTags refFilterTags;
     RadzenDataGrid<Transaction> refGrid { get; set; }
+    RadzenDataGridColumn<Transaction> refTagsFilterColumn { get; set; }
+
+    EditTags refTagsFilter;
     EditTags refSharedTags;
 
     protected override void OnInitialized()
@@ -106,6 +111,43 @@ else
     {
         await Model.OnSelectedAccountsChangeAsync();
         await refGrid.Reload();
+    }
+
+    async Task OnColumnFilter(DataGridColumnFilterEventArgs<Transaction> e)
+    {
+        if (e.Column == refTagsFilterColumn)
+        {
+            Model.TagsFilterOperator = e.FilterOperator;
+        }
+
+        //if (string.IsNullOrEmpty(e.FilterValue?.ToString()))
+        //{
+        //    activeFilters--;
+        //}
+        //else
+        //{
+        //    if (activeFilters == 0)
+        //    {
+        //        unfilteredPage = refGrid.CurrentPage;
+
+        //    }
+        //    activeFilters++;
+        //}
+
+        //if (activeFilters == 0)
+        //{
+        //    await e.Column.Grid.GoToPage(0);
+        //}
+    }
+
+    async Task TagsFilterUpdatedAsync()
+    {
+        await refGrid.Reload();
+        var lastPage = Model.TransactionsCount / refGrid.PageSize;
+        if (refGrid.CurrentPage > lastPage)
+        {
+            await refGrid.GoToPage(lastPage);
+        }
     }
 
     async Task ReloadTransactions(MouseEventArgs e)
@@ -145,18 +187,12 @@ else
         try
         {
             await Model.SaveSharedTagAsync(e.Value);
-            Model.IsUpdatingSharedTags = true;
-            await refGrid.Reload();
         }
         catch
         {
             e.Cancel = true;
             throw;
         }       
-        finally
-        {
-            Model.IsUpdatingSharedTags = false;
-        }
     }
 
     async Task DeleteSharedTagAsync(CancelEventArgs<string> e)
@@ -164,17 +200,11 @@ else
         try
         {
             await Model.DeleteSharedTagAsync(e.Value);
-            Model.IsUpdatingSharedTags = true;
-            await refGrid.Reload();
         }
         catch
         {
             e.Cancel = true;
             throw;
-        }
-        finally
-        {
-            Model.IsUpdatingSharedTags = false;
         }
     }
 }

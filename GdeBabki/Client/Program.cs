@@ -22,7 +22,6 @@ namespace GdeBabki.Client
             //    var errorService = builder.Services.BuildServiceProvider().GetService<ErrorService>();
             //    errorService.AddError(e.ToString());
             //};
-
             await builder.Build().RunAsync();
         }
 
