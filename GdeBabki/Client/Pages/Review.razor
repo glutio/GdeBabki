@@ -25,7 +25,7 @@
     <RadzenDataGrid @ref="refGrid" TItem="Transaction" Data="Model.TransactionsView" AllowPaging="true" FilterMode="FilterMode.SimpleWithMenu" LoadData="Model.LoadData" Style="@style"
                 AllowFiltering="true" AllowColumnResize="true" Count="Model.TransactionsCount" PageSize="10" PagerHorizontalAlign="HorizontalAlign.Center" AllowSorting="true" 
                 SelectionMode="DataGridSelectionMode.Multiple" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" Filter="OnColumnFilter" @bind-Value="Model.SelectedTransactions"
-                RowSelect="OnRowSelectionChangedAsync" RowDeselect="OnRowSelectionChangedAsync">
+                RowSelect="OnRowSelectionChangedAsync" RowDeselect="OnRowSelectionChangedAsync" Sort="OnColumnSort">
         <Columns>
             <RadzenDataGridColumn TItem="Transaction" Sortable="false" Filterable="false" Width="3rem">
                 <HeaderTemplate>
@@ -133,7 +133,7 @@ else
         await ReloadGridAsync();
     }
 
-    async Task OnRowSelectionChangedAsync(Transaction transaction)
+    void OnRowSelectionChangedAsync(Transaction transaction)
     {
         Model.UpdateSharedTags(transaction);
     }
@@ -145,7 +145,13 @@ else
             Model.TagsFilterOperator = e.FilterOperator;
         }
 
+        Model.SelectedTransactions = null;
         await ReloadGridAsync();
+    }
+
+    void OnColumnSort()
+    {
+        Model.IsFrozen = false;
     }
 
     async Task ReloadTransactions(MouseEventArgs e)

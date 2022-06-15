@@ -68,21 +68,36 @@ namespace GdeBabki.Client.ViewModel
                 {
                     switch (TagsFilterOperator)
                     {
-                        case FilterOperator.Equals:
+                        case FilterOperator.Equals: // e.Tag equals A B
                             query = query.Where(e => !e.Tags.IsNullOrEmpty() && e.Tags.All(t => FilterTags.Any(f => t == f)));
                             break;
-                        case FilterOperator.NotEquals:
+                        case FilterOperator.NotEquals: // e.Tag not equals A B
                             query = query.Where(e => !e.Tags.IsNullOrEmpty() && FilterTags.All(f => e.Tags.All(t => t != f)));
                             break;
-                        case FilterOperator.IsNull:
+                        case FilterOperator.IsNull: // e.Tag is null or includes A || B
                             query = query.Where(e => e.Tags.IsNullOrEmpty() || e.Tags.Any(t => FilterTags.Any(f => f == t)));
                             break;
-                        default:
+                        case FilterOperator.IsNotNull: // e.Tag includes A | B
+                            query = query.Where(e => e.Tags.Any(t => FilterTags.Any(f => f == t)));
+                            break;
+                        case FilterOperator.GreaterThan: // e.Tag includes A | B
+                            query = query.Where(e => e.Tags.Any(t => FilterTags.Any(f => f == t)));
+                            break;
+                        case FilterOperator.GreaterThanOrEquals: // e.Tag includes A && B
+                            query = query.Where(e => FilterTags.All(f => e.Tags.Any(t => t == f)));
+                            break;
+                        case FilterOperator.LessThan: // e.Tag excludes A | B
+                            query = query.Where(e => FilterTags.Any(t => !e.Tags.Any(f => f == t)));
+                            break;
+                        case FilterOperator.LessThanOrEquals: // e.Tag excludes A & B
+                            query = query.Where(e => FilterTags.All(f => !e.Tags.Any(t => t == f)));
+                            break;
+                        default: // e.Tag includes A | B
                             query = query.Where(e => e.Tags.Any(t => FilterTags.Any(f => f == t)));
                             break;
                     }
                 }
-                else 
+                else
                 {
                     switch (TagsFilterOperator)
                     {
@@ -110,6 +125,7 @@ namespace GdeBabki.Client.ViewModel
             UpdateSharedTags();
             sw.Stop();
             Console.WriteLine(sw.ElapsedMilliseconds);
+            IsFrozen = true;
         }
 
         public void UpdateSharedTags(Transaction transaction = null)
@@ -117,7 +133,7 @@ namespace GdeBabki.Client.ViewModel
             var query = ActiveTransactions.AsQueryable();
             if (transaction != null)
             {
-                if (SelectedTransactions == null)
+                if (SelectedTransactions.IsNullOrEmpty())
                 {
                     query = (new Transaction[] { transaction }).AsQueryable();
                 }
@@ -153,6 +169,7 @@ namespace GdeBabki.Client.ViewModel
         public async Task OnSelectedAccountsChangeAsync()
         {
             IsFrozen = false;
+            SelectedTransactions = null;
             Transactions = await GetTransactionsAsync();
             RaisePropertyChanged(nameof(Transactions));
         }
