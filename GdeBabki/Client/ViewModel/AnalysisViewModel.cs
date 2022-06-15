@@ -32,35 +32,39 @@ namespace GdeBabki.Client.ViewModel
                 {
                     return null;
                 }
-
-                var all = new List<KeyValuePair<string, Transaction>>();
-                var averageMonthlySpendingByTag = Transactions.Where(e=>e.Amount < 0)
+                   
+                var tagDateAmount = TransactionsQuery
+                    .Where(e => e.Amount < 0)
                     .SelectMany(e => e.Tags
-                        .Select(t => new { Tag = t, e.Date, e.Amount }))
+                        .Select(t => new { Tag = t, e.Date, e.Amount }));
+
+                var tagSameMonthAmount = tagDateAmount
                     .GroupBy(e => new { e.Tag, Date = new DateTime(e.Date.Year, e.Date.Month, 1) })
-                    .Select(g => new { g.Key.Tag, g.Key.Date.Month, Amount = g.Sum(e => e.Amount) })
+                    .Select(g => new { g.Key.Tag, g.Key.Date.Month, Amount = g.Sum(e => e.Amount) });
+
+                var tagMonthAmount = tagSameMonthAmount
                     .GroupBy(e => new { e.Tag, e.Month })
-                    .Select(g => new { g.Key.Tag, Amount = g.Sum(e => e.Amount), Count = g.Count() })
+                    .Select(g => new { g.Key.Tag, Amount = g.Sum(e => e.Amount) });
+
+                var tagAmount = tagMonthAmount
                     .GroupBy(e => e.Tag)
-                    .Select(g => new { Tag = g.Key, Amount = g.Sum(e => e.Amount), Count = g.Count() })
-                    .Select(e => new KeyValuePair<string, decimal>(e.Tag, Math.Round(e.Amount / e.Count, 2)))
+                    .Select(g => new { Tag = g.Key, Amount = g.Sum(e => e.Amount) / g.Count() });
+
+                var averageMonthlySpendingByTag = tagAmount
+                    .Select(e => new KeyValuePair<string, decimal>(e.Tag, -1 * Math.Round(e.Amount, 2)))
                     .OrderByDescending(e => e.Value)
-                    .Take(7);
-
-
-                //var averageMonthlySpendingByTag = all
-                //    .GroupBy(e => new { Tag = e.Key, Date =  })
-                //    .Select(g => new { Tag = g.Key.Tag, Sum = g.Sum(e => e.Value.Amount), Count = g.Count() })
-                //    .GroupBy(e => e.Tag)
-                //    .Select(g => new KeyValuePair<string, decimal>(g.Key, Math.Round(g.Average(e => e.Sum / e.Count), 2)))
-                //    .OrderByDescending(e => e.Value)
-                //    .Take(7);
+                    .Take(10);
 
                 return averageMonthlySpendingByTag.ToList();
             }
         }
 
         public List<Transaction> Transactions { get; set; }
-        public List<Transaction> TransactionsQuery => Transactions;
+        public IEnumerable<Transaction> TransactionsQuery => Transactions.IsNullOrEmpty() 
+            ? null 
+            : Transactions
+                .Where(e => ExcludeTags.IsNullOrEmpty() || !e.Tags.Any(t => ExcludeTags.Any(e => t == e)));
+
+        public List<string> ExcludeTags { get; set; } = new List<string>();
     }
 }
