@@ -126,6 +126,10 @@ namespace GdeBabki.Client.ViewModel
                     if (SelectedTransactions.Contains(transaction))
                     {
                         query = query.Where(e => e.Id != transaction.Id);
+                        if (query.Count() == 0)
+                        {
+                            query = TransactionsQuery.AsQueryable();
+                        }
                     }
                     else
                     {
@@ -133,9 +137,10 @@ namespace GdeBabki.Client.ViewModel
                     }
                 }
             }
-            var allTags = query.SelectMany(e => e.Tags).Distinct().ToList();
 
+            var allTags = query.SelectMany(e => e.Tags).Distinct().ToList();
             SharedTags = allTags.Where(tag => query.All(tran => tran.Tags.Any(e => e == tag))).ToList();
+
             RaisePropertyChanged(nameof(SharedTags));
         }
 
