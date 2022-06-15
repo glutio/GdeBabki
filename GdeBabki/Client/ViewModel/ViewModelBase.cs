@@ -19,7 +19,7 @@ namespace GdeBabki.Client.ViewModel
         {
         }
 
-        public virtual Task InitializeAsync()
+        public virtual Task OnInitializeAsync()
         {
             return Task.CompletedTask;
         }

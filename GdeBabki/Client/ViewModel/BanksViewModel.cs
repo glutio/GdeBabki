@@ -27,7 +27,7 @@ namespace GdeBabki.Client.ViewModel
             accountsApi.BanksUpdated -= AccountsApi_BanksUpdated;
         }
 
-        public override async Task InitializeAsync()
+        public override async Task OnInitializeAsync()
         {
             Banks = await accountsApi.GetBanksAsync();
             IsLoaded = true;

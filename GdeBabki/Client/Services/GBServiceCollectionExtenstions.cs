@@ -26,6 +26,7 @@ namespace GdeBabki.Client.Services
             services.AddTransient<ReviewViewModel>();
             services.AddTransient<EditTagsViewModel>();
             services.AddTransient<PopupViewModel>();
+            services.AddTransient<AnalysisViewModel>();
             return services;
         }
 

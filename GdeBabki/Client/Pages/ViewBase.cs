@@ -24,7 +24,7 @@ namespace GdeBabki.Client.Pages
 
         protected async override Task OnInitializedAsync()
         {
-            await Model.InitializeAsync();
+            await Model.OnInitializeAsync();
             await base.OnInitializedAsync();
         }
 

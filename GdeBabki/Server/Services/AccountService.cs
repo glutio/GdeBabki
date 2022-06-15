@@ -135,7 +135,7 @@ namespace GdeBabki.Server.Services
         {
             using var db = await dbFactory.CreateDbContextAsync();
             var transactions = await db.Transactions.Include(e=>e.Tags)
-                .Where(e => accountIds == null || accountIds.Any(id => id == e.AccountId))                
+                .Where(e => accountIds == null || accountIds.Length == 0 || accountIds.Any(id => id == e.AccountId))                
                 .Select(e => new Transaction()
                 {
                     Id = e.Id,

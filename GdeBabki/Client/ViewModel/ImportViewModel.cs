@@ -21,7 +21,7 @@ namespace GdeBabki.Client.ViewModel
             this.importApi = importApi;
         }
 
-        public override async Task InitializeAsync()
+        public override async Task OnInitializeAsync()
         {
             Accounts = await accountsApi.GetAccountsAsync();
             IsLoaded = true;

@@ -24,7 +24,7 @@
     var style = Model.IsFrozen ? "border:1px solid pink" : "";
     <RadzenDataGrid @ref="refGrid" TItem="Transaction" Data="Model.TransactionsView" AllowPaging="true" FilterMode="FilterMode.SimpleWithMenu" LoadData="Model.LoadData" Style="@style"
                 AllowFiltering="true" AllowColumnResize="true" Count="Model.TransactionsCount" PageSize="10" PagerHorizontalAlign="HorizontalAlign.Center" AllowSorting="true" 
-                SelectionMode="DataGridSelectionMode.Multiple" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" Filter="OnColumnFilter" @bind-Value="Model.SelectedTransactions"
+                SelectionMode="DataGridSelectionMode.Multiple" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" Filter="OnColumnFilterAsync" @bind-Value="Model.SelectedTransactions"
                 RowSelect="OnRowSelectionChangedAsync" RowDeselect="OnRowSelectionChangedAsync" Sort="OnColumnSort">
         <Columns>
             <RadzenDataGridColumn TItem="Transaction" Sortable="false" Filterable="false" Width="3rem">
@@ -112,8 +112,6 @@ else
 @code {
     [Parameter, SupplyParameterFromQuery]
     public Guid[] AccountIds { get; set; }
-    int activeFilters;
-    int unfilteredPage;
 
     RadzenDataGrid<Transaction> refGrid { get; set; }
     RadzenDataGridColumn<Transaction> refTagsFilterColumn { get; set; }
@@ -138,7 +136,7 @@ else
         Model.UpdateSharedTags(transaction);
     }
 
-    async Task OnColumnFilter(DataGridColumnFilterEventArgs<Transaction> e)
+    async Task OnColumnFilterAsync(DataGridColumnFilterEventArgs<Transaction> e)
     {
         if (e.Column == refTagsFilterColumn)
         {
@@ -156,8 +154,7 @@ else
 
     async Task ReloadTransactions(MouseEventArgs e)
     {
-        await Model.OnSelectedAccountsChangeAsync();        
-        await refGrid.Reload();
+        await ReloadGridAsync();
     }
 
     async Task ReloadGridAsync()

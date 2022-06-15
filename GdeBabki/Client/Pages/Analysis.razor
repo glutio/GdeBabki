@@ -1,5 +1,12 @@
-﻿<h3>Analysis</h3>
+﻿@page "/analysis"
+@inherits ViewBase<AnalysisViewModel>
+<h3>Analysis</h3>
 
+<RadzenChart>
+    <RadzenColumnSeries  Data="Model.AverageMonthlySpendingByTag" CategoryProperty="Key" ValueProperty="Value">
+
+    </RadzenColumnSeries>
+</RadzenChart>
 @code {
 
 }
