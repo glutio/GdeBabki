@@ -3,6 +3,7 @@ using GdeBabki.Shared.DTO;
 using Radzen;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Linq.Dynamic.Core;
 using System.Threading.Tasks;
@@ -22,12 +23,15 @@ namespace GdeBabki.Client.ViewModel
         public List<Transaction> TransactionsView { get; private set; }
         public int TransactionsCount { get; set; }
 
+        public IList<Transaction> SelectedTransactions { get; set; }
+        public IList<Transaction> ActiveTransactions => SelectedTransactions.IsNullOrEmpty() ? TransactionsQuery : SelectedTransactions;
+
         public List<string> FilterTags { get; set; } = new List<string>();
         public FilterOperator TagsFilterOperator { get; set; }
         public List<string> SharedTags { get; set; }
         public bool IsUpdatingSharedTags { get; set; }
 
-        public bool Freeze { get; set; }
+        public bool IsFrozen { get; set; }
 
         public ReviewViewModel(AccountsApi accountsApi, TagsApi tagsApi)
         {
@@ -49,8 +53,10 @@ namespace GdeBabki.Client.ViewModel
 
         public void LoadData(LoadDataArgs args)
         {
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
             Console.WriteLine("load data");
-            if (!Freeze)
+            if (!IsFrozen)
             {
                 var query = Transactions.AsQueryable();
                 if (!string.IsNullOrEmpty(args.Filter))
@@ -102,12 +108,34 @@ namespace GdeBabki.Client.ViewModel
             TransactionsView = TransactionsQuery.Skip(args.Skip.Value).Take(args.Top.Value).ToList();
 
             UpdateSharedTags();
+            sw.Stop();
+            Console.WriteLine(sw.ElapsedMilliseconds);
         }
 
-        public void UpdateSharedTags()
+        public void UpdateSharedTags(Transaction transaction = null)
         {
-            var allTags = TransactionsQuery.SelectMany(e => e.Tags).Distinct().ToList();
-            SharedTags = allTags.Where(tag => TransactionsQuery.All(tran => tran.Tags.Any(e => e == tag))).ToList();
+            var query = ActiveTransactions.AsQueryable();
+            if (transaction != null)
+            {
+                if (SelectedTransactions == null)
+                {
+                    query = (new Transaction[] { transaction }).AsQueryable();
+                }
+                else
+                {
+                    if (SelectedTransactions.Contains(transaction))
+                    {
+                        query = query.Where(e => e.Id != transaction.Id);
+                    }
+                    else
+                    {
+                        query = query.Union(new Transaction[] { transaction });
+                    }
+                }
+            }
+            var allTags = query.SelectMany(e => e.Tags).Distinct().ToList();
+
+            SharedTags = allTags.Where(tag => query.All(tran => tran.Tags.Any(e => e == tag))).ToList();
             RaisePropertyChanged(nameof(SharedTags));
         }
 
@@ -119,7 +147,7 @@ namespace GdeBabki.Client.ViewModel
 
         public async Task OnSelectedAccountsChangeAsync()
         {
-            Freeze = false;
+            IsFrozen = false;
             Transactions = await GetTransactionsAsync();
             RaisePropertyChanged(nameof(Transactions));
         }
@@ -140,9 +168,9 @@ namespace GdeBabki.Client.ViewModel
 
         public async Task SaveSharedTagAsync(string tag)
         {
-            Freeze = true;
+            IsFrozen = true;
 
-            var transactions = TransactionsQuery.Where(e => !e.Tags.Any(t => t == tag));
+            var transactions = ActiveTransactions.Where(e => !e.Tags.Any(t => t == tag));
 
             await tagsApi.AddSharedTagAsync(new SharedTag()
             {
@@ -158,9 +186,9 @@ namespace GdeBabki.Client.ViewModel
 
         public async Task DeleteSharedTagAsync(string tag)
         {
-            Freeze = true;
+            IsFrozen = true;
 
-            var transactions = TransactionsQuery.Where(e => e.Tags.Any(t => t == tag));
+            var transactions = ActiveTransactions.Where(e => e.Tags.Any(t => t == tag));
 
             await tagsApi.DeleteSharedTagsAsync(new SharedTag()
             {

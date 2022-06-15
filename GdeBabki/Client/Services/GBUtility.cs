@@ -1,6 +1,7 @@
 ﻿using Radzen;
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
 
@@ -15,7 +16,7 @@ namespace GdeBabki.Client.Services
             ("red", "yellow"), ("red", "lime"),("red", "black"),("red", "white"),
             ("orange", "yellow"), ("orange", "green"), ("orange", "blue"), ("orange", "black"), ("orange", "white"),
             ("yellow", "red"), ("yellow", "blue"),("yellow", "violet"),("yellow", "black"),("yellow", "gray"),
-            ("green", "red"), ("green", "blue"), ("green", "black"),
+            ("green", "blue"), ("green", "black"),
             ("blue", "yellow"), ("blue", "green"), ("blue", "white"),
             ("violet", "yellow"), ("violet", "black"), ("violet", "white"),
             ("black", "red"), ("black", "orange"), ("black", "yellow"), ("black", "green"), ("black", "violet"), ("black", "white"), ("black", "gray"),
@@ -47,7 +48,7 @@ namespace GdeBabki.Client.Services
             return colorTable[(uint)s.Hash() % colorTable.Length].Item1;
         }
 
-        public static bool IsNullOrEmpty(this IList list)
+        public static bool IsNullOrEmpty<T>(this IList<T> list)
         {
             return list == null || list.Count == 0;
         }
