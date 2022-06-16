@@ -1,33 +1,73 @@
 ﻿@page "/analysis"
 @inherits ViewBase<AnalysisViewModel>
 <h3>Analysis</h3>
+@if (Model.IsLoaded)
+{
+    <RadzenCard Style="width: 100%;">
+        <h5>Accounts</h5>
+        <RadzenCheckBoxList Data="Model.Accounts" @bind-Value="Model.SelectedAccounts" ValueProperty="Id"
+                            TValue="Guid" TextProperty="FullName" Change="OnSelectedAccountsChangeAsync">
+        </RadzenCheckBoxList>
+    </RadzenCard>
+    <RadzenCard>
+        <h5>Exclude tags</h5>
+        <EditTags Tags="Model.ExcludeTags" TagsUpdated="StateHasChanged"></EditTags>
+    </RadzenCard>
 
-<RadzenCard>
-    <EditTags Tags="Model.ExcludeTags" TagsUpdated="StateHasChanged"></EditTags>
-</RadzenCard>
+    <div>
+        <h6>Average monthly spending</h6>
+        @{
+            var fills = Model.AverageMonthlySpendingByTag.Select(e => e.Key.ToBackgroundColor());
+        }
+        <RadzenChart>
+            <RadzenColumnSeries Data="Model.AverageMonthlySpendingByTag" CategoryProperty="Key" ValueProperty="Value" Fills="fills">
+                <TooltipTemplate>
+                    <p>@context.Value.ToCurrencyString()</p>
+                </TooltipTemplate>                
+            </RadzenColumnSeries>
+            
+            <RadzenLegend Visible="false" />
+            <RadzenColumnOptions Radius="5" />
+            <RadzenValueAxis Formatter="ToCurrencyFormatter" Step="@(Model.AverageMonthlySpendingByTag.Max(e=>e.Value)/10)" Min="0" Max="Model.AverageMonthlySpendingByTag.Max(e=>e.Value)">
+                <RadzenGridLines Visible="true"  />
+            </RadzenValueAxis>
+        </RadzenChart>
+        @if (!Model.AverageMonthlySpendingByTag.IsNullOrEmpty())
+        {
+            <p>Total @Model.AverageMonthlySpendingByTag.Sum(e => e.Value).ToCurrencyString()</p>
+        }
+    </div>
 
-<div>
-    <h4>Average monthly spending</h4>
-    <RadzenChart>
-        <RadzenColumnSeries Data="Model.AverageMonthlySpendingByTag" CategoryProperty="Key" ValueProperty="Value">
-
-        </RadzenColumnSeries>
-    </RadzenChart>
-    @if (!Model.AverageMonthlySpendingByTag.IsNullOrEmpty())
-    {
-        <p>Total @Model.AverageMonthlySpendingByTag.Sum(e => e.Value).ToCurrencyString()</p>
-    }
-</div>
-
-<div>
-    <h4>Spending by month</h4>
-    <RadzenChart>
-        <RadzenColumnSeries Data="Model.SpendingByMonth" CategoryProperty="Key" ValueProperty="Value">
-
-        </RadzenColumnSeries>
-    </RadzenChart>
-</div>
-
+    <div>
+        <h6>Spending by month</h6>
+        <RadzenChart>
+            <RadzenColumnSeries Data="Model.SpendingByMonth" CategoryProperty="Key" ValueProperty="Value" >
+                <TooltipTemplate>
+                    @foreach(var tag in Model.GetTagsInMonth(DateTime.Parse(context.Key)))
+                    {
+                        <p>@tag</p>
+                    }
+                </TooltipTemplate>                
+            </RadzenColumnSeries>
+            <RadzenValueAxis Formatter="ToCurrencyFormatter" />
+            <RadzenLegend Visible="false" />
+        </RadzenChart>
+    </div>
+}
+else
+{
+    <p>Loading...</p>
+}
 
 @code {
+    async Task OnSelectedAccountsChangeAsync()
+    {
+        await Model.OnSelectedAccountsChangeAsync();
+    }
+
+    string ToCurrencyFormatter(object o)
+    {
+        var d = Convert.ToDecimal(o);
+        return d.ToCurrencyString();
+    }
 }

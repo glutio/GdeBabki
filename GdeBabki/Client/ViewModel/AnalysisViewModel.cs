@@ -19,8 +19,14 @@ namespace GdeBabki.Client.ViewModel
 
         public override async Task OnInitializeAsync()
         {
-            Transactions = await accountsApi.GetTransactionsAsync(null);
-            Console.WriteLine(Transactions.Count());
+            var tasks = new Task[]
+            { 
+                Task.Run(async () => Accounts = await accountsApi.GetAccountsAsync()),
+                Task.Run(async () => Transactions = await accountsApi.GetTransactionsAsync(SelectedAccounts))
+            };
+
+            await Task.WhenAll(tasks);
+            IsLoaded = true;
             await base.OnInitializeAsync();
         }
 
@@ -35,7 +41,7 @@ namespace GdeBabki.Client.ViewModel
 
                 var tagDateAmount = TransactionsQuery
                     .SelectMany(e => e.Tags
-                        .Select(t => new { Tag = t, e.Date, Amount = -1*e.Amount }));
+                        .Select(t => new { Tag = t, e.Date, Amount = -1 * e.Amount }));
 
                 var tagSameMonthAmount = tagDateAmount
                     .GroupBy(e => new { e.Tag, Date = new DateTime(e.Date.Year, e.Date.Month, 1) })
@@ -46,7 +52,7 @@ namespace GdeBabki.Client.ViewModel
                     .Select(g => new { Tag = g.Key, Amount = g.Sum(e => e.Amount) / g.Count() });
 
                 var averageMonthlySpendingByTag = tagAmount
-                    .Select(e => new KeyValuePair<string, decimal>(e.Tag, e.Amount.ToCurrency()))
+                    .Select(e => new KeyValuePair<string, decimal>(e.Tag, e.Amount))
                     .OrderByDescending(e => e.Value)
                     .Take(10);
 
@@ -67,12 +73,33 @@ namespace GdeBabki.Client.ViewModel
                     .GroupBy(e => new DateTime(e.Date.Year, e.Date.Month, 1))
                     .OrderByDescending(g => g.Key)
                     .Take(9)
-                    .Select(g => new KeyValuePair<string, decimal>(g.Key.ToTransactionMonth(), g.Sum(e => -1 * e.Amount)));
-                    
+                    .Select(g => new KeyValuePair<string, decimal>(g.Key.ToTransactionMonthYear(), g.Sum(e => -1 * e.Amount)));
 
-                return spendingByMonth.ToList(); 
+
+                return spendingByMonth.ToList();
             }
         }
+
+        public string[] GetTagsInMonth(DateTime date)
+        {
+            if (Transactions.IsNullOrEmpty())
+            {
+                return null;
+            }
+
+            return TransactionsQuery
+                .Where(e => e.Date >= date && e.Date < e.Date.AddMonths(1))
+                .SelectMany(e => e.Tags)
+                .Distinct()
+                .ToArray();
+        }
+
+        public async Task OnSelectedAccountsChangeAsync()
+        {
+            Transactions = await accountsApi.GetTransactionsAsync(SelectedAccounts);
+            RaisePropertyChanged(nameof(Transactions));
+        }
+
 
         public List<Transaction> Transactions { get; set; }
         public IEnumerable<Transaction> TransactionsQuery => Transactions.IsNullOrEmpty()
@@ -82,5 +109,8 @@ namespace GdeBabki.Client.ViewModel
                 .Where(e => ExcludeTags.IsNullOrEmpty() || !e.Tags.Any(t => ExcludeTags.Any(e => t == e)));
 
         public List<string> ExcludeTags { get; set; } = new List<string>();
+        public List<Account> Accounts { get; set; }
+        public IEnumerable<Guid> SelectedAccounts { get; set; }
+
     }
 }

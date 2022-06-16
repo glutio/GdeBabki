@@ -11,7 +11,7 @@ namespace GdeBabki.Client.Services
     {
         public const string TRANSACTION_CURRENCY_FORMAT = "#,##0.#0";
         public const string TRANSACTION_DATE_FORMAT = "d MMM yyyy";
-        public const string TRANSACTION_MONTH_FORMAT = "MMM yyyy";
+        public const string TRANSACTION_MONTH_YEAR_FORMAT = "MMM yyyy";
         readonly static (string, string)[] colorTable = new (string, string)[]
         {
             ("red", "yellow"), ("red", "lime"),("red", "black"),("red", "white"),
@@ -40,9 +40,9 @@ namespace GdeBabki.Client.Services
             return date.ToString(TRANSACTION_DATE_FORMAT);
         }
 
-        public static string ToTransactionMonth(this DateTime date)
+        public static string ToTransactionMonthYear(this DateTime date)
         {
-            return date.ToString(TRANSACTION_MONTH_FORMAT);
+            return date.ToString(TRANSACTION_MONTH_YEAR_FORMAT);
         }
 
         public static int Hash(this string s)
@@ -54,12 +54,12 @@ namespace GdeBabki.Client.Services
             return result;
         }
 
-        public static string ForegroundColor(this string s)
+        public static string ToForegroundColor(this string s)
         {
             return colorTable[(uint)s.Hash() % colorTable.Length].Item2;
         }
 
-        public static string BackgroundColor(this string s)
+        public static string ToBackgroundColor(this string s)
         {
             return colorTable[(uint)s.Hash() % colorTable.Length].Item1;
         }
