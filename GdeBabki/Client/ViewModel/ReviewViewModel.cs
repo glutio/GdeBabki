@@ -23,12 +23,37 @@ namespace GdeBabki.Client.ViewModel
         public List<Transaction> TransactionsView { get; private set; }
         public int TransactionsCount { get; set; }
 
-        public IList<Transaction> SelectedTransactions { get; set; }
+
+        IList<Transaction> selectedTransactions;
+        public IList<Transaction> SelectedTransactions { 
+            get 
+            { 
+                return selectedTransactions;  
+            } 
+            set 
+            { 
+                if (value != selectedTransactions) 
+                { 
+                    selectedTransactions = value;
+                    RaisePropertyChanged();
+                } 
+            } 
+        }
         public IList<Transaction> ActiveTransactions => SelectedTransactions.IsNullOrEmpty() ? TransactionsQuery : SelectedTransactions;
 
         public List<string> FilterTags { get; set; } = new List<string>();
         public FilterOperator TagsFilterOperator { get; set; }
-        public List<string> SharedTags { get; set; }
+        public List<string> SharedTags
+        {
+            get
+            {
+                if (ActiveTransactions == null)
+                    return null;
+
+                var allTags = ActiveTransactions.SelectMany(e => e.Tags).Distinct().ToList();
+                return allTags.Where(tag => ActiveTransactions.All(tran => tran.Tags.Any(e => e == tag))).ToList();
+            }
+        }
         public bool IsUpdatingSharedTags { get; set; }
 
         public bool IsFrozen { get; set; }
@@ -122,42 +147,9 @@ namespace GdeBabki.Client.ViewModel
 
             TransactionsView = TransactionsQuery.Skip(args.Skip.Value).Take(args.Top.Value).ToList();
 
-            UpdateSharedTags();
             sw.Stop();
             Console.WriteLine(sw.ElapsedMilliseconds);
             IsFrozen = true;
-        }
-
-        public void UpdateSharedTags(Transaction transaction = null)
-        {
-            var query = ActiveTransactions.AsQueryable();
-            if (transaction != null)
-            {
-                if (SelectedTransactions.IsNullOrEmpty())
-                {
-                    query = (new Transaction[] { transaction }).AsQueryable();
-                }
-                else
-                {
-                    if (SelectedTransactions.Contains(transaction))
-                    {
-                        query = query.Where(e => e.Id != transaction.Id);
-                        if (query.Count() == 0)
-                        {
-                            query = TransactionsQuery.AsQueryable();
-                        }
-                    }
-                    else
-                    {
-                        query = query.Union(new Transaction[] { transaction });
-                    }
-                }
-            }
-
-            var allTags = query.SelectMany(e => e.Tags).Distinct().ToList();
-            SharedTags = allTags.Where(tag => query.All(tran => tran.Tags.Any(e => e == tag))).ToList();
-
-            RaisePropertyChanged(nameof(SharedTags));
         }
 
         private async Task<List<Transaction>> GetTransactionsAsync()
@@ -168,7 +160,6 @@ namespace GdeBabki.Client.ViewModel
 
         public async Task OnSelectedAccountsChangeAsync()
         {
-            IsFrozen = false;
             SelectedTransactions = null;
             Transactions = await GetTransactionsAsync();
             RaisePropertyChanged(nameof(Transactions));
@@ -190,8 +181,6 @@ namespace GdeBabki.Client.ViewModel
 
         public async Task SaveSharedTagAsync(string tag)
         {
-            IsFrozen = true;
-
             var transactions = ActiveTransactions.Where(e => !e.Tags.Any(t => t == tag));
 
             await tagsApi.AddSharedTagAsync(new SharedTag()
@@ -208,8 +197,6 @@ namespace GdeBabki.Client.ViewModel
 
         public async Task DeleteSharedTagAsync(string tag)
         {
-            IsFrozen = true;
-
             var transactions = ActiveTransactions.Where(e => e.Tags.Any(t => t == tag));
 
             await tagsApi.DeleteSharedTagsAsync(new SharedTag()

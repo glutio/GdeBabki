@@ -32,26 +32,22 @@ namespace GdeBabki.Client.ViewModel
                 {
                     return null;
                 }
-                   
+
                 var tagDateAmount = TransactionsQuery
                     .Where(e => e.Amount < 0)
                     .SelectMany(e => e.Tags
-                        .Select(t => new { Tag = t, e.Date, e.Amount }));
+                        .Select(t => new { Tag = t, e.Date, Amount = e.Amount * -1 }));
 
                 var tagSameMonthAmount = tagDateAmount
                     .GroupBy(e => new { e.Tag, Date = new DateTime(e.Date.Year, e.Date.Month, 1) })
-                    .Select(g => new { g.Key.Tag, g.Key.Date.Month, Amount = g.Sum(e => e.Amount) });
+                    .Select(g => new { g.Key.Tag, g.Key.Date, Amount = g.Sum(e => e.Amount) });
 
-                var tagMonthAmount = tagSameMonthAmount
-                    .GroupBy(e => new { e.Tag, e.Month })
-                    .Select(g => new { g.Key.Tag, Amount = g.Sum(e => e.Amount) });
-
-                var tagAmount = tagMonthAmount
+                var tagAmount = tagSameMonthAmount
                     .GroupBy(e => e.Tag)
                     .Select(g => new { Tag = g.Key, Amount = g.Sum(e => e.Amount) / g.Count() });
 
                 var averageMonthlySpendingByTag = tagAmount
-                    .Select(e => new KeyValuePair<string, decimal>(e.Tag, -1 * Math.Round(e.Amount, 2)))
+                    .Select(e => new KeyValuePair<string, decimal>(e.Tag, Math.Round(e.Amount, 2)))
                     .OrderByDescending(e => e.Value)
                     .Take(10);
 
