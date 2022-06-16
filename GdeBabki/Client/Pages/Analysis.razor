@@ -2,20 +2,32 @@
 @inherits ViewBase<AnalysisViewModel>
 <h3>Analysis</h3>
 
-<h4>Average monthly spending</h4>
 <RadzenCard>
     <EditTags Tags="Model.ExcludeTags" TagsUpdated="StateHasChanged"></EditTags>
 </RadzenCard>
 
-<RadzenChart>
-    <RadzenColumnSeries  Data="Model.AverageMonthlySpendingByTag" CategoryProperty="Key" ValueProperty="Value">
+<div>
+    <h4>Average monthly spending</h4>
+    <RadzenChart>
+        <RadzenColumnSeries Data="Model.AverageMonthlySpendingByTag" CategoryProperty="Key" ValueProperty="Value">
 
-    </RadzenColumnSeries>
-</RadzenChart>
-@if (!Model.AverageMonthlySpendingByTag.IsNullOrEmpty())
-{
-    <p>Total @Model.AverageMonthlySpendingByTag.Sum(e => e.Value).ToCurrency()</p>
-}
+        </RadzenColumnSeries>
+    </RadzenChart>
+    @if (!Model.AverageMonthlySpendingByTag.IsNullOrEmpty())
+    {
+        <p>Total @Model.AverageMonthlySpendingByTag.Sum(e => e.Value).ToCurrencyString()</p>
+    }
+</div>
+
+<div>
+    <h4>Spending by month</h4>
+    <RadzenChart>
+        <RadzenColumnSeries Data="Model.SpendingByMonth" CategoryProperty="Key" ValueProperty="Value">
+
+        </RadzenColumnSeries>
+    </RadzenChart>
+</div>
+
 
 @code {
 }

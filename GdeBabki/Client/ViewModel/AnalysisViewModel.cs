@@ -34,9 +34,8 @@ namespace GdeBabki.Client.ViewModel
                 }
 
                 var tagDateAmount = TransactionsQuery
-                    .Where(e => e.Amount < 0)
                     .SelectMany(e => e.Tags
-                        .Select(t => new { Tag = t, e.Date, Amount = e.Amount * -1 }));
+                        .Select(t => new { Tag = t, e.Date, Amount = -1*e.Amount }));
 
                 var tagSameMonthAmount = tagDateAmount
                     .GroupBy(e => new { e.Tag, Date = new DateTime(e.Date.Year, e.Date.Month, 1) })
@@ -47,7 +46,7 @@ namespace GdeBabki.Client.ViewModel
                     .Select(g => new { Tag = g.Key, Amount = g.Sum(e => e.Amount) / g.Count() });
 
                 var averageMonthlySpendingByTag = tagAmount
-                    .Select(e => new KeyValuePair<string, decimal>(e.Tag, Math.Round(e.Amount, 2)))
+                    .Select(e => new KeyValuePair<string, decimal>(e.Tag, e.Amount.ToCurrency()))
                     .OrderByDescending(e => e.Value)
                     .Take(10);
 
@@ -55,10 +54,31 @@ namespace GdeBabki.Client.ViewModel
             }
         }
 
+        public List<KeyValuePair<string, decimal>> SpendingByMonth
+        {
+            get
+            {
+                if (Transactions.IsNullOrEmpty())
+                {
+                    return null;
+                }
+
+                var spendingByMonth = TransactionsQuery
+                    .GroupBy(e => new DateTime(e.Date.Year, e.Date.Month, 1))
+                    .OrderByDescending(g => g.Key)
+                    .Take(9)
+                    .Select(g => new KeyValuePair<string, decimal>(g.Key.ToTransactionMonth(), g.Sum(e => -1 * e.Amount)));
+                    
+
+                return spendingByMonth.ToList(); 
+            }
+        }
+
         public List<Transaction> Transactions { get; set; }
-        public IEnumerable<Transaction> TransactionsQuery => Transactions.IsNullOrEmpty() 
-            ? null 
+        public IEnumerable<Transaction> TransactionsQuery => Transactions.IsNullOrEmpty()
+            ? null
             : Transactions
+                .Where(e => e.Amount < 0)
                 .Where(e => ExcludeTags.IsNullOrEmpty() || !e.Tags.Any(t => ExcludeTags.Any(e => t == e)));
 
         public List<string> ExcludeTags { get; set; } = new List<string>();

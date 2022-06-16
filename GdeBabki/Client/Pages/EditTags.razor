@@ -91,6 +91,7 @@
             if (!cancelArgs.Cancel)
             {
                 Model.AddTag();
+                Model.Tag = null;
                 await TagsUpdated.InvokeAsync();
             }
         }

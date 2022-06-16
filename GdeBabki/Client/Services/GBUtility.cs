@@ -10,7 +10,8 @@ namespace GdeBabki.Client.Services
     public static class GBUtility
     {
         public const string TRANSACTION_CURRENCY_FORMAT = "#,##0.#0";
-        public const string TRANSACTION_DATE_FORMAT = "d MMM YYYY";
+        public const string TRANSACTION_DATE_FORMAT = "d MMM yyyy";
+        public const string TRANSACTION_MONTH_FORMAT = "MMM yyyy";
         readonly static (string, string)[] colorTable = new (string, string)[]
         {
             ("red", "yellow"), ("red", "lime"),("red", "black"),("red", "white"),
@@ -24,9 +25,24 @@ namespace GdeBabki.Client.Services
             ("gray", "orange"), ("gray", "yellow"), ("gray", "lime"), ("gray", "blue"), ("gray", "black"), ("gray", "white"),
         };
         
-        public static string ToCurrency(this decimal amount)
+        public static string ToCurrencyString(this decimal amount)
         {
             return amount.ToString(TRANSACTION_CURRENCY_FORMAT);
+        }
+
+        public static decimal ToCurrency(this decimal amount)
+        {
+            return Math.Round(amount, 2);
+        }
+
+        public static string ToTransactionDate(this DateTime date)
+        {
+            return date.ToString(TRANSACTION_DATE_FORMAT);
+        }
+
+        public static string ToTransactionMonth(this DateTime date)
+        {
+            return date.ToString(TRANSACTION_MONTH_FORMAT);
         }
 
         public static int Hash(this string s)

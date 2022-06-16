@@ -50,8 +50,16 @@ namespace GdeBabki.Client.ViewModel
                 if (ActiveTransactions == null)
                     return null;
 
-                var allTags = ActiveTransactions.SelectMany(e => e.Tags).Distinct().ToList();
-                return allTags.Where(tag => ActiveTransactions.All(tran => tran.Tags.Any(e => e == tag))).ToList();
+                var sharedTags = ActiveTransactions
+                    .SelectMany(e => e.Tags)
+                    .Distinct()
+                    .Where(tag => 
+                        ActiveTransactions.All(tran => 
+                            tran.Tags.Any(e => e == tag)
+                     ))
+                    .ToList();
+
+                return sharedTags;
             }
         }
         public bool IsUpdatingSharedTags { get; set; }

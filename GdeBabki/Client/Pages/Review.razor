@@ -64,9 +64,9 @@
                         <b>@grouping.Count() / </b>
                         var monthlySpending = @grouping.Select(g => g.Sum(e => e.Amount)).Average();
                         // total per time
-                        <b>@((monthlySpending/(decimal)timesPerMonth).ToCurrency()) / </b>
+                        <b>@((monthlySpending/(decimal)timesPerMonth).ToCurrencyString()) / </b>
                         // total per month
-                        <b>@monthlySpending.ToCurrency()</b>
+                        <b>@monthlySpending.ToCurrencyString()</b>
                     }
                 </FooterTemplate>
             </RadzenDataGridColumn>
@@ -75,17 +75,17 @@
                 <Template>
                     @if (context.Amount < 0)
                     {
-                        <span style="color:red">@context.Amount.ToCurrency()</span>
+                        <span style="color:red">@context.Amount.ToCurrencyString()</span>
                     }
                     else
                     {
-                        <span style="color:green">@context.Amount.ToCurrency()</span>
+                        <span style="color:green">@context.Amount.ToCurrencyString()</span>
                     }
                 </Template>
                 <FooterTemplate>
                     @if (Model.TransactionsCount > 0)
                     {
-                        <b>@Model.ActiveTransactions.Sum(e => e.Amount).ToCurrency() </b>
+                        <b>@Model.ActiveTransactions.Sum(e => e.Amount).ToCurrencyString() </b>
                     }
                 </FooterTemplate>
             </RadzenDataGridColumn>

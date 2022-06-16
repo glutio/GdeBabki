@@ -37,18 +37,16 @@ namespace GdeBabki.Client.ViewModel
                 return;
             }
 
-            var tag = Tag.ToUpper();
-            if (!Tags.Any(e => string.Equals(e, tag, System.StringComparison.InvariantCultureIgnoreCase)))
+            if (!Tags.Any(e => string.Equals(e, Tag, System.StringComparison.InvariantCultureIgnoreCase)))
             {
-                Tags.Add(tag);
-                Tag = null;
+                Tags.Add(Tag.ToUpper());
                 RaisePropertyChanged(nameof(Tags));
             }
         }
 
-        public void DeleteTag(string Tag)
+        public void DeleteTag(string tag)
         {
-            Tags.Remove(Tag);
+            Tags.Remove(tag);
             RaisePropertyChanged(nameof(Tags));
         }
         
