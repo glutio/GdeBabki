@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.IO;
 using Microsoft.Extensions.Logging;
+using Microsoft.Data.Sqlite;
 
 namespace GdeBabki.Server.Services
 {
@@ -31,8 +32,16 @@ namespace GdeBabki.Server.Services
                     ? ""
                     : Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
 
-                options.UseSqlite($"Data Source={Path.Combine(path, dbName)}.sqlite")
-                        .LogTo(Console.WriteLine, LogLevel.Information);
+                var baseConnectionString = $"Data Source={Path.Combine(path, dbName)}.sqlite";
+                var connectionString = new SqliteConnectionStringBuilder(baseConnectionString)
+                {
+                    Mode = SqliteOpenMode.ReadWriteCreate,
+                    //Password = "hello"
+                }.ToString();
+
+                options
+                    .UseSqlite(connectionString)
+                    .LogTo(Console.WriteLine, LogLevel.Information);
             });
 
             return services;

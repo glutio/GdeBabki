@@ -17,7 +17,7 @@
     <div>
         <h6>Average monthly spending</h6>
         @{
-            var fills = Model.AverageMonthlySpendingByTag.Select(e => e.Key.ToBackgroundColor());
+            var fills = Model.AverageMonthlySpendingByTag?.Select(e => e.Key.ToBackgroundColor());
         }
         <RadzenChart>
             <RadzenColumnSeries Data="Model.AverageMonthlySpendingByTag" CategoryProperty="Key" ValueProperty="Value" Fills="fills">
@@ -28,8 +28,8 @@
             
             <RadzenLegend Visible="false" />
             <RadzenColumnOptions Radius="5" />
-            <RadzenValueAxis Formatter="ToCurrencyFormatter" Step="@(Model.AverageMonthlySpendingByTag.Max(e=>e.Value)/10)" Min="0" Max="Model.AverageMonthlySpendingByTag.Max(e=>e.Value)">
-                <RadzenGridLines Visible="true"  />
+            <RadzenValueAxis Formatter="ToCurrencyFormatter">
+                <RadzenGridLines Visible="true" />
             </RadzenValueAxis>
         </RadzenChart>
         @if (!Model.AverageMonthlySpendingByTag.IsNullOrEmpty())
@@ -41,17 +41,30 @@
     <div>
         <h6>Spending by month</h6>
         <RadzenChart>
-            <RadzenColumnSeries Data="Model.SpendingByMonth" CategoryProperty="Key" ValueProperty="Value" >
+            <RadzenColumnSeries Data="Model.SpendingByMonth" CategoryProperty="Key" ValueProperty="Value">
                 <TooltipTemplate>
-                    @foreach(var tag in Model.GetTagsInMonth(DateTime.Parse(context.Key)))
-                    {
-                        <p>@tag</p>
-                    }
+                    <div style="max-width:500px">
+                        <p>@context.Value.ToCurrencyString()</p>
+                        <div style="overflow:auto;max-height:500px">
+                            @foreach(var tag in Model.GetTagsInMonth(DateTime.Parse(context.Key)))
+                            {
+                                var style = $"float:left;margin:2px;padding:10px;border-radius:5px;background:{tag.ToBackgroundColor()};color:{tag.ToForegroundColor()}";
+                                <span style="@style">@tag</span>
+                            }
+                        </div>
+                    </div>
                 </TooltipTemplate>                
             </RadzenColumnSeries>
-            <RadzenValueAxis Formatter="ToCurrencyFormatter" />
+            <RadzenValueAxis Formatter="ToCurrencyFormatter">
+                <RadzenGridLines Visible="true" />
+            </RadzenValueAxis>
             <RadzenLegend Visible="false" />
+            <RadzenColumnOptions Radius="5" />
         </RadzenChart>
+        @if (!Model.SpendingByMonth.IsNullOrEmpty())
+        {
+            <p>Average @Model.SpendingByMonth.Average(e => e.Value).ToCurrencyString()</p>
+        }
     </div>
 }
 else
