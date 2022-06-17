@@ -8,50 +8,48 @@ using System;
 using System.IO;
 using Microsoft.Extensions.Logging;
 using Microsoft.Data.Sqlite;
+using System.Security.Claims;
+using GdeBabki.Server.Auth;
 
 namespace GdeBabki.Server.Services
 {
     public static class GBServiceCollectionExtensions
     {
-        public static IServiceCollection AddTenantDbFactory(this IServiceCollection services)
+        public static IServiceCollection AddUserDbFactory(this IServiceCollection services)
         {
-            services.AddHttpContextAccessor();
-            services.AddTransient(provider => provider.GetService<IHttpContextAccessor>().HttpContext?.User);
-            services.AddSingleton<ITenantProvider, TenantProvider>();
-
             services.AddDbContextFactory<BabkiDbContext>((provider, options) =>
             {
-                var dbName = provider.GetService<ITenantProvider>().DBName;
+                var userProvider = provider.GetService<UserService>();
 
-                if (dbName.Equals("GdeBabki", StringComparison.InvariantCultureIgnoreCase))
+                if (userProvider.DBName.Equals("GdeBabki", StringComparison.OrdinalIgnoreCase))
                 {
-                    throw new InvalidOperationException($"Unsupported Tenant DB Name - {dbName}");
+                    throw new InvalidOperationException($"Reserved DB Name - {userProvider.DBName}");
                 }
 
-                var path = provider.GetService<IWebHostEnvironment>().IsDevelopment()
-                    ? ""
-                    : Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-
-                var baseConnectionString = $"Data Source={Path.Combine(path, dbName)}.sqlite";
+                var baseConnectionString = $"Data Source={userProvider.DBFilePath}.sqlite";
                 var connectionString = new SqliteConnectionStringBuilder(baseConnectionString)
                 {
                     Mode = SqliteOpenMode.ReadWriteCreate,
-                    //Password = "hello"
+                    Password = userProvider.DBPassword
                 }.ToString();
 
                 options
                     .UseSqlite(connectionString)
                     .LogTo(Console.WriteLine, LogLevel.Information);
-            });
+            }, ServiceLifetime.Scoped);
 
             return services;
         }
 
+
         public static IServiceCollection AddBabkiServices(this IServiceCollection services)
         {
+            services.AddSingleton<UserService>();
             services.AddScoped<ImportService>();
             services.AddScoped<AccountsService>();
             services.AddScoped<TagsService>();
+            services.AddScoped<DatabaseService>();
+
             return services;
         }
     }

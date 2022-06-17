@@ -17,6 +17,7 @@
     <div>
         <h6>Average monthly spending</h6>
         @{
+            Console.WriteLine(string.Join(",", Model.AverageMonthlySpendingByTag.Select(e => e.Value)));
             var fills = Model.AverageMonthlySpendingByTag?.Select(e => e.Key.ToBackgroundColor());
         }
         <RadzenChart>
@@ -28,7 +29,7 @@
             
             <RadzenLegend Visible="false" />
             <RadzenColumnOptions Radius="5" />
-            <RadzenValueAxis Formatter="ToCurrencyFormatter">
+            <RadzenValueAxis Formatter="ToCurrencyFormatter" Step="100">
                 <RadzenGridLines Visible="true" />
             </RadzenValueAxis>
         </RadzenChart>

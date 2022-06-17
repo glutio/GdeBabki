@@ -1,4 +1,7 @@
-﻿using System.Net.Http;
+﻿using GdeBabki.Shared;
+using GdeBabki.Shared.DTO;
+using System.Net.Http;
+using System.Net.Http.Headers;
 
 namespace GdeBabki.Client.Services
 {

@@ -13,10 +13,11 @@ namespace GdeBabki.Client.Services
     {
         public static IServiceCollection AddBabkiServices(this IServiceCollection services)
         {
-            services.AddScoped<ImportApi>();
-            services.AddScoped<AccountsApi>();
-            services.AddScoped<TagsApi>();
-            services.AddScoped<ErrorService>();
+            services.AddSingleton<ImportApi>();
+            services.AddSingleton<AccountsApi>();
+            services.AddSingleton<TagsApi>();
+            services.AddSingleton<UserApi>();
+            services.AddSingleton<ErrorService>();
             
             services.AddTransient<AccountsViewModel>();
             services.AddTransient<BanksViewModel>();
@@ -27,6 +28,7 @@ namespace GdeBabki.Client.Services
             services.AddTransient<EditTagsViewModel>();
             services.AddTransient<PopupViewModel>();
             services.AddTransient<AnalysisViewModel>();
+            services.AddTransient<LoginViewModel>();
             return services;
         }
 
@@ -36,5 +38,4 @@ namespace GdeBabki.Client.Services
             return result;
         }
     }
-
 }

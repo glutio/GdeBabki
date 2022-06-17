@@ -1,0 +1,44 @@
+﻿@page "/"
+
+@inherits ViewBase<LoginViewModel>
+@inject NavigationManager nav
+@inject ErrorService errorService
+
+<h3>Login</h3>
+
+
+<p>User name</p>
+<RadzenTextBox @bind-Value="Model.UserName"></RadzenTextBox>
+<p>Password</p>
+<RadzenTextBox @bind-Value="Model.Password"></RadzenTextBox>
+
+@if (Model.IsNewUser)
+{
+    <p>Confirm password</p>
+    <RadzenTextBox @bind-Value="Model.ConfirmPassword"></RadzenTextBox>
+    <RadzenButton Text="Create" Click="OnCreateButtonClickedAsync"></RadzenButton>   
+    <RadzenButton Text="Existing user" Click="() => Model.IsNewUser = false"></RadzenButton>   
+}
+else
+{
+    <RadzenButton Text="Login" Click="OnLoginButtonClickedAsync"></RadzenButton>
+    <RadzenButton Text="New user" Click="() => Model.IsNewUser = true"></RadzenButton>   
+}
+
+@code {
+    async Task OnLoginButtonClickedAsync(MouseEventArgs args)
+    {
+        if (await Model.Login())
+        {
+            nav.NavigateTo("/analysis");
+        }
+    }
+
+    async Task OnCreateButtonClickedAsync(MouseEventArgs args)
+    {
+        if (await Model.Create())
+        {
+            nav.NavigateTo("/accounts");
+        }
+    }
+}
