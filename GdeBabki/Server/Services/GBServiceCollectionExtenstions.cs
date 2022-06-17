@@ -35,7 +35,8 @@ namespace GdeBabki.Server.Services
 
                 options
                     .UseSqlite(connectionString)
-                    .LogTo(Console.WriteLine, LogLevel.Information);
+                    //.LogTo(Console.WriteLine, LogLevel.Information)
+                    ;
             }, ServiceLifetime.Scoped);
 
             return services;
