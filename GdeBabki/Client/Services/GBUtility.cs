@@ -68,5 +68,18 @@ namespace GdeBabki.Client.Services
         {
             return list == null || list.Count == 0;
         }
+
+        public static double GetAxisStepSize(this decimal range, int steps)
+        {
+            var d = (double)range;
+            double x = Math.Pow(10.0, Math.Floor(Math.Log10(d)));
+            if (d / x >= steps)
+                return x;
+            else if (d / (x / 2.0) >= steps)
+                return x / 2.0;
+            else
+                return x / 5.0;
+        }
+
     }
 }

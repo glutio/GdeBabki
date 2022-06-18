@@ -1,36 +1,43 @@
-﻿@page "/"
-
-@inherits ViewBase<LoginViewModel>
+﻿@inherits ViewBase<LoginViewModel>
 @inject NavigationManager nav
 @inject ErrorService errorService
 
-<h3>Login</h3>
 
+<div style="display:flex;align-content:center;justify-items:center">
+    <RadzenCard>
+        <h3 style="margin:auto">GdeBabki</h3>
+        <p>User name</p>
+        <RadzenTextBox @bind-Value="Model.UserName"></RadzenTextBox>
+        <p>Password</p>
+        <RadzenTextBox @bind-Value="Model.Password"></RadzenTextBox>
 
-<p>User name</p>
-<RadzenTextBox @bind-Value="Model.UserName"></RadzenTextBox>
-<p>Password</p>
-<RadzenTextBox @bind-Value="Model.Password"></RadzenTextBox>
-
-@if (Model.IsNewUser)
-{
-    <p>Confirm password</p>
-    <RadzenTextBox @bind-Value="Model.ConfirmPassword"></RadzenTextBox>
-    <RadzenButton Text="Create" Click="OnCreateButtonClickedAsync"></RadzenButton>   
-    <RadzenButton Text="Existing user" Click="() => Model.IsNewUser = false"></RadzenButton>   
-}
-else
-{
-    <RadzenButton Text="Login" Click="OnLoginButtonClickedAsync"></RadzenButton>
-    <RadzenButton Text="New user" Click="() => Model.IsNewUser = true"></RadzenButton>   
-}
+        @if (Model.IsNewUser)
+        {
+            <p>Confirm password</p>
+            <RadzenTextBox @bind-Value="Model.ConfirmPassword"></RadzenTextBox>
+            <RadzenButton Text="Create" Click="OnCreateButtonClickedAsync"></RadzenButton>   
+            <RadzenButton Text="Existing user" Click="() => Model.IsNewUser = false"></RadzenButton>   
+        }
+        else
+        {
+            <div style="display:flex;">
+                <RadzenButton Text="Login" Click="OnLoginButtonClickedAsync"></RadzenButton>
+                <div style="flex:auto"/>
+                <RadzenButton Text="New user" Click="() => Model.IsNewUser = true"></RadzenButton>   
+            </div>
+        }
+    </RadzenCard>
+</div>
 
 @code {
+    [Parameter]
+    public EventCallback LoggedIn { get; set; }
+
     async Task OnLoginButtonClickedAsync(MouseEventArgs args)
     {
         if (await Model.Login())
         {
-            nav.NavigateTo("/analysis");
+            await LoggedIn.InvokeAsync();
         }
     }
 
@@ -38,7 +45,7 @@ else
     {
         if (await Model.Create())
         {
-            nav.NavigateTo("/accounts");
+            nav.NavigateTo("/import");
         }
     }
 }

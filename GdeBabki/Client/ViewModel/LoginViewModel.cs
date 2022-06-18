@@ -10,6 +10,7 @@ namespace GdeBabki.Client.ViewModel
     {
         private readonly UserApi userApi;
         private readonly ErrorService errorService;
+        private readonly UserService userService;
 
         public string UserName { get; set; }
         public string Password { get; set; }
@@ -19,56 +20,53 @@ namespace GdeBabki.Client.ViewModel
 
         public override void OnInitialize()
         {
-            UserApi.LoginInfo = null;
+            userService.LoginInfo = null;
+            userService.IsLoggedIn = false;
             base.OnInitialize();
         }
 
-        public LoginViewModel(UserApi userApi, ErrorService errorService)
+        public LoginViewModel(UserApi userApi, ErrorService errorService, UserService userService)
         {
             this.userApi = userApi;
             this.errorService = errorService;
-        }
-
-        public override Task OnInitializeAsync()
-        {
-            UserApi.LoginInfo = null;
-            return base.OnInitializeAsync();
+            this.userService = userService;
         }
 
         public async Task<bool> Login()
         {
-            var loginInfo = new LoginInfo() { UserName = UserName, Password = Password };
-            UserApi.LoginInfo = loginInfo;
-
+            userService.LoginInfo = new LoginInfo() { UserName = UserName, Password = Password };
             try
             {
                 await userApi.Login();
-                errorService.AddError("Welcome to GdeBabki");
             }
             catch (Exception e)
             {
+                userService.LoginInfo = null;
                 errorService.AddError(e.ToString());
                 return false;
             }
 
+            errorService.AddError("Welcome to GdeBabki");
+            userService.IsLoggedIn = true;
             return true;
         }
 
         public async Task<bool> Create()
         {
-            var loginInfo = new LoginInfo() { UserName = UserName, Password = Password };
-            UserApi.LoginInfo = loginInfo;
+            userService.LoginInfo = new LoginInfo() { UserName = UserName, Password = Password };
             try
             {
                 await userApi.Create();
-                errorService.AddError("User created");
             }
             catch (Exception e)
             {
+                userService.LoginInfo = null;
                 errorService.AddError(e.ToString());
                 return false;
             }
 
+            errorService.AddError("Welcome to new user");
+            userService.IsLoggedIn = true;
             return true;
         }
     }

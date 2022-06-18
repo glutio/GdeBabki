@@ -8,7 +8,7 @@ namespace GdeBabki.Shared
     {
         public const string AuthenticationScheme = "GdeBabkiAuth";
 
-        public static AuthenticationHeaderValue GetAuthHeader(LoginInfo loginInfo)
+        public static AuthenticationHeaderValue GetAuthHeaderFromLoginInfo(LoginInfo loginInfo)
         {
             if (loginInfo == null)
             {

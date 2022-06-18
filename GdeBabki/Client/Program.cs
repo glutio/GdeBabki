@@ -16,10 +16,11 @@ namespace GdeBabki.Client
         {
             var builder = WebAssemblyHostBuilder.CreateDefault(args);
             builder.RootComponents.Add<App>("#app");
-            builder.Services.AddHttpClient(Options.DefaultName, httpClient => 
+            builder.Services.AddHttpClient(Options.DefaultName, (provider, httpClient) => 
             {
+                var userService = provider.GetService<UserService>();
                 httpClient.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress);
-                httpClient.DefaultRequestHeaders.Authorization = GBAuthentication.GetAuthHeader(UserApi.LoginInfo);
+                httpClient.DefaultRequestHeaders.Authorization = GBAuthentication.GetAuthHeaderFromLoginInfo(userService.LoginInfo);
             });
 
             builder.Services.AddBabkiServices();

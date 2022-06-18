@@ -13,12 +13,14 @@ namespace GdeBabki.Client.Services
     {
         public static IServiceCollection AddBabkiServices(this IServiceCollection services)
         {
+            services.AddSingleton<UserService>();
+            services.AddSingleton<ErrorService>();
+
             services.AddSingleton<ImportApi>();
             services.AddSingleton<AccountsApi>();
             services.AddSingleton<TagsApi>();
             services.AddSingleton<UserApi>();
-            services.AddSingleton<ErrorService>();
-            
+
             services.AddTransient<AccountsViewModel>();
             services.AddTransient<BanksViewModel>();
             services.AddTransient<EditAccountViewModel>();

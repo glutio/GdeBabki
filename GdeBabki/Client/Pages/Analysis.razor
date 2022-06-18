@@ -17,7 +17,6 @@
     <div>
         <h6>Average monthly spending</h6>
         @{
-            Console.WriteLine(string.Join(",", Model.AverageMonthlySpendingByTag.Select(e => e.Value)));
             var fills = Model.AverageMonthlySpendingByTag?.Select(e => e.Key.ToBackgroundColor());
         }
         <RadzenChart>
@@ -29,7 +28,11 @@
             
             <RadzenLegend Visible="false" />
             <RadzenColumnOptions Radius="5" />
-            <RadzenValueAxis Formatter="ToCurrencyFormatter" Step="100">
+            @{
+                var max = Model.AverageMonthlySpendingByTag.Max(e => e.Value);
+                var step = max.GetAxisStepSize(5);
+            }
+            <RadzenValueAxis Formatter="ToCurrencyFormatter" Step="step" Min="0">
                 <RadzenGridLines Visible="true" />
             </RadzenValueAxis>
         </RadzenChart>
@@ -56,7 +59,11 @@
                     </div>
                 </TooltipTemplate>                
             </RadzenColumnSeries>
-            <RadzenValueAxis Formatter="ToCurrencyFormatter">
+            @{
+                var max = Model.SpendingByMonth.Max(e => e.Value);
+                var step = max.GetAxisStepSize(5);
+            }
+            <RadzenValueAxis Formatter="ToCurrencyFormatter" Step="step" Min="0">
                 <RadzenGridLines Visible="true" />
             </RadzenValueAxis>
             <RadzenLegend Visible="false" />

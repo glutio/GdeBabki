@@ -1,25 +1,42 @@
 ﻿@inherits LayoutComponentBase
 @inject IJSRuntime js
+@inject UserService userService
+@inject NavigationManager nav
 
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
+@if (userService.IsLoggedIn)
+{
+    <div class="page">
+            <div class="sidebar">
+                <NavMenu />
+            </div>
+            <div class="main">
+                <div class="top-row px-4">
+                    <span class="ml-md-auto">@userService.LoginInfo.UserName</span>
+                </div>
+                <div class="content px-4">
+                    @Body
+                </div>
+            </div>
+        }
     </div>
-
-    <div class="main">
-        <div class="top-row px-4">
-            <a href="http://blazor.net" target="_blank" class="ml-md-auto">About</a>
-        </div>
-
-        <div class="content px-4">
-            @Body
-        </div>
+    <RadzenDialog />
+}
+else
+{
+    <style>
+        html, body, div#app
+        {
+            height:100%;
+        }
+    </style>
+    <div style="display:flex;justify-content:center;align-items:center;height:100%;">
+        <GdeBabki.Client.Pages.Login LoggedIn="StateHasChanged"/>
     </div>
-</div>
+}
+
 <GdeBabki.Client.Pages.Error/>
-<RadzenDialog />
 
-@code {        
+@code {
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if(firstRender)
@@ -27,4 +44,18 @@
             await js.InvokeAsync<IJSObjectReference>("import", "/js/scripts.js");
         }
     }
+
+    //    var relativeUri = nav.ToBaseRelativePath(nav.Uri);
+    //    if (!string.IsNullOrEmpty(relativeUri) && relativeUri.ToLower().StartsWith("login"))
+    //    {
+    //        relativeUri = null;
+    //    }
+
+    //    if (!userService.IsLoggedIn)
+    //    {
+    //        var query = string.IsNullOrEmpty(relativeUri) ? "" : $"?returnUrl={relativeUri}";
+    //        nav.NavigateTo($"/login{query}");
+    //    }
+    //}
+
 }

@@ -15,8 +15,6 @@ namespace GdeBabki.Client.Services
         {
         }
 
-        public static LoginInfo LoginInfo { get; set; }
-
         public async Task Login()
         {
             using var httpClient = httpFactory.CreateClient();
