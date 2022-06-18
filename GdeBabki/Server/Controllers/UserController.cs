@@ -29,7 +29,6 @@ namespace GdeBabki.Server.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateDatabase()
         {
-            throw new InvalidOperationException("Hello");
             await databaseService.CreateDatabase();
             return Ok();
         }
