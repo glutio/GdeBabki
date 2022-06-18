@@ -62,10 +62,10 @@ namespace GdeBabki.Server
 
             app.UseRouting();
 
-            app.UseMiddleware<ExceptionHandlingMiddleware>();
-
             app.UseAuthentication();
             app.UseAuthorization();
+
+            app.UseMiddleware<ExceptionHandlingMiddleware>();
 
             app.UseEndpoints(endpoints =>
             {
