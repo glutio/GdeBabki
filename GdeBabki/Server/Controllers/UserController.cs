@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Threading.Tasks;
 
 namespace GdeBabki.Server.Controllers
@@ -20,7 +21,7 @@ namespace GdeBabki.Server.Controllers
 
         [HttpGet]
         public IActionResult TestDatabaseConnection()
-        {
+        {            
             return Ok();
         }
 
@@ -28,6 +29,7 @@ namespace GdeBabki.Server.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateDatabase()
         {
+            throw new InvalidOperationException("Hello");
             await databaseService.CreateDatabase();
             return Ok();
         }
