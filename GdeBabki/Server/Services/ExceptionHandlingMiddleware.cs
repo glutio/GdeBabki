@@ -23,6 +23,7 @@ namespace GdeBabki.Server.Services
             }
             catch (Exception ex)
             {
+                Console.WriteLine("A" + ex.Message);
                 await HandleExceptionAsync(httpContext, ex);
             }
         }
@@ -31,7 +32,7 @@ namespace GdeBabki.Server.Services
         {
             context.Response.ContentType = "application/json";
             context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-            var result = exception.ToString();
+            var result = "A" + exception.ToString();
             await context.Response.WriteAsync(result);
         }
     }
