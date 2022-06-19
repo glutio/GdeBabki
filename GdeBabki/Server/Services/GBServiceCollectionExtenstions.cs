@@ -1,8 +1,5 @@
 ﻿using GdeBabki.Server.Data;
-using Microsoft.Data.Sqlite;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using System;
 
 namespace GdeBabki.Server.Services
 {

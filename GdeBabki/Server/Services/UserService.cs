@@ -31,35 +31,13 @@ namespace GdeBabki.Server.Services
             get
             {
                 var loginInfo = GBAuthentication.GetLoginInfoFromAuthHeader(httpContextAccessor.HttpContext?.Request?.Headers?.Authorization);
-                if (!webHostEnvironment.IsDevelopment() && (string.IsNullOrEmpty(loginInfo?.UserName)))
-                {
-                    throw new ArgumentException("User name cannot be empty");
-                }
 
+                
                 var dbName = string.IsNullOrEmpty(loginInfo?.UserName)
-                        ? DEFAULT_DB
+                        ? (webHostEnvironment.IsDevelopment() ? DEFAULT_DB : null)
                         : string.Concat(loginInfo.UserName.Split(Path.GetInvalidFileNameChars()));
 
                 return dbName;
-            }
-        }
-
-        public string DBPath
-        {
-            get
-            {
-                var path = webHostEnvironment.IsDevelopment()
-                    ? ""
-                    : Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-                return path;
-            }
-        }
-
-        public string DBFilePath
-        {
-            get
-            {
-                return $"{Path.Combine(DBPath, DBName)}.sqlite";
             }
         }
 
@@ -68,12 +46,33 @@ namespace GdeBabki.Server.Services
             get
             {
                 var loginInfo = GBAuthentication.GetLoginInfoFromAuthHeader(httpContextAccessor.HttpContext?.Request?.Headers?.Authorization);
-                if (!webHostEnvironment.IsDevelopment() && (string.IsNullOrEmpty(loginInfo?.Password)))
+                return loginInfo?.Password;
+            }
+        }
+
+        public string DBPath
+        {
+            get
+            {
+                if (webHostEnvironment.IsDevelopment())
                 {
-                    throw new ArgumentException("Password cannot be empty");
+                    return "";
                 }
 
-                return loginInfo?.Password;
+                return Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            }
+        }
+
+        public string DBFilePath
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(DBName))
+                {
+                    return null;
+                }
+
+                return $"{Path.Combine(DBPath, DBName)}.sqlite";
             }
         }
 
