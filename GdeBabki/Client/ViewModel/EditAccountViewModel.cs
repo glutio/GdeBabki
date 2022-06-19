@@ -26,7 +26,7 @@ namespace GdeBabki.Client.ViewModel
             RaisePropertyChanged(nameof(Banks));
         }
 
-        public override async Task OnInitializeAsync()
+        public override async Task OnInitializedAsync()
         {
             accountsApi.BanksUpdated += AccountsApi_BanksUpdated;
             Banks = await accountsApi.GetBanksAsync();

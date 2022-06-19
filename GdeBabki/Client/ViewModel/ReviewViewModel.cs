@@ -72,7 +72,7 @@ namespace GdeBabki.Client.ViewModel
             this.tagsApi = tagsApi;
         }
 
-        public override async Task OnInitializeAsync()
+        public override async Task OnInitializedAsync()
         {
             Accounts = await accountsApi.GetAccountsAsync();
             if (SelectedAccounts == null)

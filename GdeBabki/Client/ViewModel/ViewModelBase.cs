@@ -15,11 +15,11 @@ namespace GdeBabki.Client.ViewModel
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        public virtual void OnInitialize()
+        public virtual void OnInitialized()
         {
         }
 
-        public virtual Task OnInitializeAsync()
+        public virtual Task OnInitializedAsync()
         {
             return Task.CompletedTask;
         }

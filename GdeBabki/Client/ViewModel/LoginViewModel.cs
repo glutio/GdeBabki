@@ -18,11 +18,11 @@ namespace GdeBabki.Client.ViewModel
 
         public bool IsNewUser { get; set; }
 
-        public override void OnInitialize()
+        public override void OnInitialized()
         {
             userService.LoginInfo = null;
             userService.IsLoggedIn = false;
-            base.OnInitialize();
+            base.OnInitialized();
         }
 
         public LoginViewModel(UserApi userApi, ErrorService errorService, UserService userService)
@@ -42,11 +42,11 @@ namespace GdeBabki.Client.ViewModel
             catch (Exception e)
             {
                 userService.LoginInfo = null;
-                errorService.AddError(e.ToString());
+                errorService.AddError(e.ToString(), 10000000);
                 return false;
             }
 
-            errorService.AddError("Welcome to GdeBabki");
+            errorService.AddInfo("Welcome to GdeBabki");
             userService.IsLoggedIn = true;
             return true;
         }
@@ -65,7 +65,8 @@ namespace GdeBabki.Client.ViewModel
                 return false;
             }
 
-            errorService.AddError("Welcome to new user");
+            errorService.AddSuccess("New user created");
+            errorService.AddInfo("Welcome to GdeBabki");
             userService.IsLoggedIn = true;
             return true;
         }

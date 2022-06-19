@@ -1,0 +1,34 @@
+﻿@@keyframes scale-up-br {
+    0% {
+        transform: scale(0.5);
+        transform-origin: 100% 100%;
+    }
+
+    100% {
+        transform: scale(1);
+        transform-origin: 100% 100%;
+    }
+}
+
+.notification {
+    padding: 15px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    margin-right: 10px;
+    animation: scale-up-br 0.2s cubic-bezier(0.390, 0.575, 0.565, 1.000) both;
+    max-width: 100%;
+}
+
+.error-list {
+    display: flex;
+    flex-direction: column;
+    align-items: self-end;
+    bottom: 0;
+    right: 0;
+    position: absolute;
+    max-width: 40%
+}
+
+.error-message {
+    overflow: hidden
+}

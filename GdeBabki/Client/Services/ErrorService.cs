@@ -7,6 +7,14 @@ namespace GdeBabki.Client.Services
 {
     public class ErrorService
     {
+        public enum NotificationType
+        {
+            Info,
+            Success,
+            Warning,
+            Error,
+        }
+
         public List<ErrorMessage> errors = new();
         public IEnumerable<ErrorMessage> Errors => errors;
 
@@ -16,15 +24,33 @@ namespace GdeBabki.Client.Services
         {
         }
 
-        public void AddError(string message, int msTimeout = 10000)
+        void AddNotification(string message, int msTimeout, NotificationType notificationType)
         {
             errors.Add(new ErrorMessage()
             {
                 Expire = DateTime.UtcNow.AddMilliseconds(msTimeout),
-                Message = message
+                Message = message,
+                NotificationType = notificationType
             });
 
             ErrorUpdated?.Invoke(this, new EventArgs());
+        }
+
+        public void AddError(string message, int msTimeout = 10000)
+        {
+            AddNotification(message, msTimeout, NotificationType.Error);
+        }
+        public void AddInfo(string message, int msTimeout = 10000)
+        {
+            AddNotification(message, msTimeout, NotificationType.Info);
+        }
+        public void AddWarning(string message, int msTimeout = 10000)
+        {
+            AddNotification(message, msTimeout, NotificationType.Warning);
+        }
+        public void AddSuccess(string message, int msTimeout = 10000)
+        {
+            AddNotification(message, msTimeout, NotificationType.Success);
         }
 
         public void ExpireErrors()

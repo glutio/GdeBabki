@@ -6,18 +6,17 @@
 @if (userService.IsLoggedIn)
 {
     <div class="page">
-            <div class="sidebar">
-                <NavMenu />
+        <div class="sidebar">
+            <NavMenu />
+        </div>
+        <div class="main">
+            <div class="top-row px-4">
+                <span class="ml-md-auto">@userService.LoginInfo.UserName</span>
             </div>
-            <div class="main">
-                <div class="top-row px-4">
-                    <span class="ml-md-auto">@userService.LoginInfo.UserName</span>
-                </div>
-                <div class="content px-4">
-                    @Body
-                </div>
+            <div class="content px-4">
+                @Body
             </div>
-        }
+        </div>
     </div>
     <RadzenDialog />
 }

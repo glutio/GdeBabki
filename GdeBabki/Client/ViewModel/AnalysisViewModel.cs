@@ -17,7 +17,7 @@ namespace GdeBabki.Client.ViewModel
             this.accountsApi = accountsApi;
         }
 
-        public override async Task OnInitializeAsync()
+        public override async Task OnInitializedAsync()
         {
             var tasks = new Task[]
             {
@@ -27,7 +27,7 @@ namespace GdeBabki.Client.ViewModel
 
             await Task.WhenAll(tasks);
             IsLoaded = true;
-            await base.OnInitializeAsync();
+            await base.OnInitializedAsync();
         }
 
         public List<KeyValuePair<string, decimal>> AverageMonthlySpendingByTag

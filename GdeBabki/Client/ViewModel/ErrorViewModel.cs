@@ -19,7 +19,6 @@ namespace GdeBabki.Client.ViewModel
         public ErrorViewModel(ErrorService errorService)
         {            
             this.errorService = errorService;
-            timer = new Timer(TimerElapsed, null, 0, 100);
         }
 
         public void TimerElapsed(object state)
@@ -27,15 +26,16 @@ namespace GdeBabki.Client.ViewModel
             errorService.ExpireErrors();
         }
 
-        public override void OnInitialize()
+        public override void OnInitialized()
         {
             errorService.ErrorUpdated += ErrorService_ErrorUpdated;
+            timer = new Timer(TimerElapsed, null, 0, 100);
         }
 
         protected override void OnDispose()
         {
-            errorService.ErrorUpdated -= ErrorService_ErrorUpdated;
             timer.Dispose();
+            errorService.ErrorUpdated -= ErrorService_ErrorUpdated;
         }
 
         private void ErrorService_ErrorUpdated(object sender, EventArgs e)
@@ -48,6 +48,7 @@ namespace GdeBabki.Client.ViewModel
 
         public void RemoveError(ErrorMessage error)
         {
+            IsFrozen = false;
             errorService.RemoveError(error);
         }
 
@@ -55,7 +56,5 @@ namespace GdeBabki.Client.ViewModel
         {
             errorService.PinError(error, isPinned);
         }
-
-
     }
 }

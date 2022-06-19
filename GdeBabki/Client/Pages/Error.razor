@@ -1,16 +1,25 @@
 ﻿@inherits ViewBase<ErrorViewModel>
-<div style="bottom:0; right:0; position:absolute;">
-    <ul>
-        @foreach(var error in Model.Errors.Reverse())
+<div class="error-list">
+    @foreach (var error in Model.Errors)
+    {
+        (string background_color, string foreground_color, string icon) notificationStyle = error.NotificationType switch
         {
-            <li @onmouseenter="() => Model.IsFrozen = true" @onmouseleave="() => Model.IsFrozen = false">
-                <div style="margin:10px;color:white;background-color:crimson;">
-                    (@error.Expire.Second) @error.Message;
-                    <a class="dismiss" @onclick="e => Model.RemoveError(error)">🗙</a>
-                </div>
-            </li>            
-        }
-    </ul>
+            ErrorService.NotificationType.Info => ("lightblue", "white", "info"),
+            ErrorService.NotificationType.Success => ("lightgreen", "black", "done"),
+            ErrorService.NotificationType.Warning => ("lightyellow", "black", "warning"),
+            ErrorService.NotificationType.Error => ("crimson", "white", "error")
+        };
+
+        var style = $"background-color:{notificationStyle.background_color};color:{notificationStyle.foreground_color};";
+
+        <div class="notification" style="@style" title="@error.Message">
+@*            <RadzenIcon Icon="@notificationStyle.icon" Style="float:left;margin: -10px 5px 0 -10px;"></RadzenIcon>
+*@            <RadzenIcon Icon="close" Style="float:right; cursor:pointer; margin: -10px -5px 0 0" @onclick="e => Model.RemoveError(error)"></RadzenIcon>
+            <div class="error-message">
+                @error.Message
+            </div>
+        </div>
+    }
 </div>
 
 @code {

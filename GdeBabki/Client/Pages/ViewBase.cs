@@ -13,7 +13,7 @@ namespace GdeBabki.Client.Pages
 
         protected override void OnInitialized()
         {
-            Model.OnInitialize();
+            Model.OnInitialized();
             Model.PropertyChanged += Model_PropertyChanged;
         }
 
@@ -24,7 +24,7 @@ namespace GdeBabki.Client.Pages
 
         protected async override Task OnInitializedAsync()
         {
-            await Model.OnInitializeAsync();
+            await Model.OnInitializedAsync();
             await base.OnInitializedAsync();
         }
 
