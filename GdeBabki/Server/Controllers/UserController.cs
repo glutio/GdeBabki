@@ -3,11 +3,12 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
+using System.Data;
+using System.Net;
 using System.Threading.Tasks;
 
 namespace GdeBabki.Server.Controllers
 {
-    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class UserController : ControllerBase
@@ -19,6 +20,7 @@ namespace GdeBabki.Server.Controllers
             this.databaseService = databaseService;
         }
 
+        [Authorize]
         [HttpGet]
         public IActionResult TestDatabaseConnection()
         {            
@@ -29,7 +31,15 @@ namespace GdeBabki.Server.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateDatabase()
         {
-            await databaseService.CreateDatabase();
+            try
+            {
+                await databaseService.CreateDatabase();
+            } 
+            catch (DuplicateNameException)
+            {
+                return StatusCode((int)HttpStatusCode.Conflict);
+            }
+
             return Ok();
         }
     }

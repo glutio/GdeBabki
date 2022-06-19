@@ -17,6 +17,9 @@
     margin-right: 10px;
     animation: scale-up-br 0.2s cubic-bezier(0.390, 0.575, 0.565, 1.000) both;
     max-width: 100%;
+    font-size: 0.8rem;
+    pointer-events: auto;
+    border-style: groove;
 }
 
 .error-list {
@@ -26,9 +29,11 @@
     bottom: 0;
     right: 0;
     position: absolute;
-    max-width: 40%
+    max-width: 40%;
+    pointer-events: none;
 }
 
 .error-message {
-    overflow: hidden
+    overflow: hidden;
+    margin-top: 6px;
 }

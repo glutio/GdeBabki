@@ -4,17 +4,17 @@
     {
         (string background_color, string foreground_color, string icon) notificationStyle = error.NotificationType switch
         {
-            ErrorService.NotificationType.Info => ("lightblue", "white", "info"),
-            ErrorService.NotificationType.Success => ("lightgreen", "black", "done"),
-            ErrorService.NotificationType.Warning => ("lightyellow", "black", "warning"),
-            ErrorService.NotificationType.Error => ("crimson", "white", "error")
+            ErrorService.NotificationType.Info => ("royalblue", "white", "info_outline"),
+            ErrorService.NotificationType.Success => ("lightgreen", "black", "task_alt"),
+            ErrorService.NotificationType.Warning => ("lightyellow", "black", "warning_amber"),
+            ErrorService.NotificationType.Error => ("crimson", "white", "dangerous")
         };
 
         var style = $"background-color:{notificationStyle.background_color};color:{notificationStyle.foreground_color};";
 
-        <div class="notification" style="@style" title="@error.Message">
-@*            <RadzenIcon Icon="@notificationStyle.icon" Style="float:left;margin: -10px 5px 0 -10px;"></RadzenIcon>
-*@            <RadzenIcon Icon="close" Style="float:right; cursor:pointer; margin: -10px -5px 0 0" @onclick="e => Model.RemoveError(error)"></RadzenIcon>
+        <div class="notification" style="@style" title="@error.Message" @onmouseenter="e => Model.IsFrozen = true" @onmouseleave="e => Model.IsFrozen = false">
+            <RadzenIcon Icon="@notificationStyle.icon" Style="float:left;margin: -10px 5px 0 -10px;font-size:3rem"></RadzenIcon>
+            <RadzenIcon Icon="close" Style="float:right; cursor:pointer; margin: -15px -15px 0 0" @onclick="e => Model.RemoveError(error)"></RadzenIcon>
             <div class="error-message">
                 @error.Message
             </div>

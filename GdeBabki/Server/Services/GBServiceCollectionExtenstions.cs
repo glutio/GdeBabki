@@ -12,24 +12,8 @@ namespace GdeBabki.Server.Services
         {
             services.AddDbContextFactory<BabkiDbContext>((provider, options) =>
             {
-                var userProvider = provider.GetService<UserService>();
-
-                if (userProvider.DBName.Equals("GdeBabki", StringComparison.OrdinalIgnoreCase))
-                {
-                    throw new InvalidOperationException($"Reserved DB Name - {userProvider.DBName}");
-                }
-
-                var baseConnectionString = $"Data Source={userProvider.DBFilePath}.sqlite";
-                var connectionString = new SqliteConnectionStringBuilder(baseConnectionString)
-                {
-                    Mode = SqliteOpenMode.ReadWriteCreate,
-                    Password = userProvider.DBPassword
-                }.ToString();
-
-                options
-                    .UseSqlite(connectionString)
-                    //.LogTo(Console.WriteLine, LogLevel.Information)
-                    ;
+                var userService = provider.GetService<UserService>();
+                userService.SetubDbContextOptions(options, false);
             }, ServiceLifetime.Scoped);
 
             return services;

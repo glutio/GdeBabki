@@ -3,6 +3,7 @@ using GdeBabki.Server.Data;
 using GdeBabki.Shared;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Hosting;
 using System;
@@ -30,6 +31,11 @@ namespace GdeBabki.Server.Services
             get
             {
                 var loginInfo = GBAuthentication.GetLoginInfoFromAuthHeader(httpContextAccessor.HttpContext?.Request?.Headers?.Authorization);
+                if (!webHostEnvironment.IsDevelopment() && (string.IsNullOrEmpty(loginInfo?.UserName)))
+                {
+                    throw new ArgumentException("User name cannot be empty");
+                }
+
                 var dbName = string.IsNullOrEmpty(loginInfo?.UserName)
                         ? DEFAULT_DB
                         : string.Concat(loginInfo.UserName.Split(Path.GetInvalidFileNameChars()));
@@ -53,7 +59,7 @@ namespace GdeBabki.Server.Services
         {
             get
             {
-                return Path.Combine(DBPath, DBName);
+                return $"{Path.Combine(DBPath, DBName)}.sqlite";
             }
         }
 
@@ -61,20 +67,29 @@ namespace GdeBabki.Server.Services
         {
             get
             {
-                var context = httpContextAccessor.HttpContext;
-                if (context == null)
+                var loginInfo = GBAuthentication.GetLoginInfoFromAuthHeader(httpContextAccessor.HttpContext?.Request?.Headers?.Authorization);
+                if (!webHostEnvironment.IsDevelopment() && (string.IsNullOrEmpty(loginInfo?.Password)))
                 {
-                    return null;
+                    throw new ArgumentException("Password cannot be empty");
                 }
 
-                var loginInfo = GBAuthentication.GetLoginInfoFromAuthHeader(context.Request.Headers.Authorization);
-                if (loginInfo == null)
-                {
-                    return null;
-                }
-
-                return loginInfo.Password;
+                return loginInfo?.Password;
             }
+        }
+
+        public void SetubDbContextOptions(DbContextOptionsBuilder options, bool canCreate)
+        {
+            var baseConnectionString = $"Data Source={DBFilePath}";
+            var connectionString = new SqliteConnectionStringBuilder(baseConnectionString)
+            {
+                Mode = canCreate ? SqliteOpenMode.ReadWriteCreate : SqliteOpenMode.ReadWrite,
+                Password = DBPassword
+            }.ToString();
+
+            options
+                .UseSqlite(connectionString)
+                //.LogTo(Console.WriteLine, LogLevel.Information)
+                ;
         }
     }
 }

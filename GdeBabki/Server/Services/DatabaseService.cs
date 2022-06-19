@@ -25,7 +25,7 @@ namespace GdeBabki.Server.Services
                 using var db = await dbFactory.CreateDbContextAsync();
                 await db.Banks.CountAsync();
             }
-            catch (Exception e)
+            catch
             {
                 return false;
             }
@@ -40,8 +40,10 @@ namespace GdeBabki.Server.Services
             {
                 throw new DuplicateNameException($"Database {dbPath} alredy exists");
             }
-
-            using var db = await dbFactory.CreateDbContextAsync();
+            
+            var options = new DbContextOptionsBuilder<BabkiDbContext>();
+            userService.SetubDbContextOptions(options, true);
+            using var db = new BabkiDbContext(options.Options);
             await db.Database.MigrateAsync();
         }
     }

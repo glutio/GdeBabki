@@ -12,11 +12,11 @@
     <p>User name</p>
     <RadzenTextBox @bind-Value="Model.UserName"></RadzenTextBox>
     <p>Password</p>
-    <RadzenTextBox @bind-Value="Model.Password"></RadzenTextBox>
+    <RadzenPassword @bind-Value="Model.Password"></RadzenPassword>
     @if (Model.IsNewUser)
     {
         <p>Confirm password</p>
-        <RadzenTextBox @bind-Value="Model.ConfirmPassword"></RadzenTextBox>
+        <RadzenPassword @bind-Value="Model.ConfirmPassword" s></RadzenPassword>
         <RadzenButton Text="Create" Click="OnCreateButtonClickedAsync"></RadzenButton>   
         <hr />
         <RadzenButton Text="Existing user" Click="() => Model.IsNewUser = false"></RadzenButton>   
