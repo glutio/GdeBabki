@@ -2,32 +2,32 @@
 @inject NavigationManager nav
 @inject ErrorService errorService
 
-
-<div style="display:flex;align-content:center;justify-items:center">
-    <RadzenCard>
-        <h3 style="margin:auto">GdeBabki</h3>
-        <p>User name</p>
-        <RadzenTextBox @bind-Value="Model.UserName"></RadzenTextBox>
-        <p>Password</p>
-        <RadzenTextBox @bind-Value="Model.Password"></RadzenTextBox>
-
-        @if (Model.IsNewUser)
-        {
-            <p>Confirm password</p>
-            <RadzenTextBox @bind-Value="Model.ConfirmPassword"></RadzenTextBox>
-            <RadzenButton Text="Create" Click="OnCreateButtonClickedAsync"></RadzenButton>   
-            <RadzenButton Text="Existing user" Click="() => Model.IsNewUser = false"></RadzenButton>   
-        }
-        else
-        {
-            <div style="display:flex;">
-                <RadzenButton Text="Login" Click="OnLoginButtonClickedAsync"></RadzenButton>
-                <div style="flex:auto"/>
-                <RadzenButton Text="New user" Click="() => Model.IsNewUser = true"></RadzenButton>   
-            </div>
-        }
-    </RadzenCard>
-</div>
+<style>
+    .rz-textbox {
+        margin-bottom: 15px;
+    }
+</style>
+<RadzenCard>
+    <img src="/img/logo.png" class="logo"/>
+    <p>User name</p>
+    <RadzenTextBox @bind-Value="Model.UserName"></RadzenTextBox>
+    <p>Password</p>
+    <RadzenTextBox @bind-Value="Model.Password"></RadzenTextBox>
+    @if (Model.IsNewUser)
+    {
+        <p>Confirm password</p>
+        <RadzenTextBox @bind-Value="Model.ConfirmPassword"></RadzenTextBox>
+        <RadzenButton Text="Create" Click="OnCreateButtonClickedAsync"></RadzenButton>   
+        <hr />
+        <RadzenButton Text="Existing user" Click="() => Model.IsNewUser = false"></RadzenButton>   
+    }
+    else
+    {
+        <RadzenButton Text="Login" Click="OnLoginButtonClickedAsync"></RadzenButton>
+        <hr />
+        <RadzenButton Text="New user" Click="() => Model.IsNewUser = true"></RadzenButton>   
+    }
+</RadzenCard>
 
 @code {
     [Parameter]

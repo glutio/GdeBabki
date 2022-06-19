@@ -24,14 +24,18 @@
 else
 {
     <style>
-        html, body, div#app
-        {
-            height:100%;
+        html, body, div#app {
+            height: 100%;
+        }
+
+        div#app {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
         }
     </style>
-    <div style="display:flex;justify-content:center;align-items:center;height:100%;">
-        <GdeBabki.Client.Pages.Login LoggedIn="StateHasChanged"/>
-    </div>
+    <GdeBabki.Client.Pages.Login LoggedIn="StateHasChanged"/>
 }
 
 <GdeBabki.Client.Pages.Error/>
@@ -44,18 +48,4 @@ else
             await js.InvokeAsync<IJSObjectReference>("import", "/js/scripts.js");
         }
     }
-
-    //    var relativeUri = nav.ToBaseRelativePath(nav.Uri);
-    //    if (!string.IsNullOrEmpty(relativeUri) && relativeUri.ToLower().StartsWith("login"))
-    //    {
-    //        relativeUri = null;
-    //    }
-
-    //    if (!userService.IsLoggedIn)
-    //    {
-    //        var query = string.IsNullOrEmpty(relativeUri) ? "" : $"?returnUrl={relativeUri}";
-    //        nav.NavigateTo($"/login{query}");
-    //    }
-    //}
-
 }
