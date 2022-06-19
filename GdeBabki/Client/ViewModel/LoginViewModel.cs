@@ -37,11 +37,12 @@ namespace GdeBabki.Client.ViewModel
 
         public async Task<bool> Login()
         {
-            //if (!webAssemblyHostEnvironment.IsDevelopment() && (string.IsNullOrWhiteSpace(UserName) || string.IsNullOrWhiteSpace(Password)))
-            //{
-            //    errorService.AddWarning("Please enter username and password");
-            //    return false;
-            //}
+            if (!webAssemblyHostEnvironment.IsDevelopment() && (string.IsNullOrWhiteSpace(UserName) || string.IsNullOrWhiteSpace(Password)))
+            {
+                errorService.AddWarning("Please enter username and password");
+                return false;
+            }
+            
             userService.LoginInfo = new LoginInfo() { UserName = UserName, Password = Password };
             try
             {
@@ -61,11 +62,11 @@ namespace GdeBabki.Client.ViewModel
 
         public async Task<bool> Create()
         {
-            //if (!webAssemblyHostEnvironment.IsDevelopment() && (string.IsNullOrWhiteSpace(UserName) || string.IsNullOrWhiteSpace(Password) || string.IsNullOrWhiteSpace(ConfirmPassword)))
-            //{
-            //    errorService.AddWarning("Please enter username, password and confirm password");
-            //    return false;
-            //}
+            if (!webAssemblyHostEnvironment.IsDevelopment() && (string.IsNullOrWhiteSpace(UserName) || string.IsNullOrWhiteSpace(Password) || string.IsNullOrWhiteSpace(ConfirmPassword)))
+            {
+                errorService.AddWarning("Please enter username, password and confirm password");
+                return false;
+            }
 
             if (Password != ConfirmPassword)
             {
