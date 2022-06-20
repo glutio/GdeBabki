@@ -14,17 +14,18 @@
                 }
                 else
                 {
-                    <div class="row">
-
-                        <div class="col-3">
-                            @context.Name
+                    <div class="d-flex justify-content-between">
+                        <div class="row w-100 flex-nowrap align-items-center">
+                            <div class="col-4">
+                                @context.Name
+                            </div>
+                            <div class="col-8">
+                                <b>@context.Bank.Name</b>
+                            </div>
                         </div>
-                        <div class="col-3">
-                            <b>@context.Bank.Name</b>
-                        </div>
-                        <div class="col">
-                            <RadzenButton Text="Edit" Click="() => OnEditClick(context)"></RadzenButton>
-                            <RadzenButton Text="Delete" Click="() => OnDeleteClick(context)"></RadzenButton>
+                        <div class="d-flex">
+                            <RadzenButton Text="Edit" class="mr-2" Click="() => OnEditClick(context)"></RadzenButton>
+                            <RadzenButton Text="Delete" Click="() => OnDeleteClick(context)" ButtonStyle="ButtonStyle.Danger"></RadzenButton>
                         </div>
                     </div>
                 }
@@ -32,7 +33,11 @@
         </Template>
     </RadzenDataList>
 
-    <RadzenButton Click="OnAddClick">Add</RadzenButton>
+    if (Model.EditingAccount == null)
+    {
+        <hr />    
+        <RadzenButton Click="OnAddClick" class="m-2">Add</RadzenButton>       
+    }
 }
 else
 {
@@ -58,7 +63,7 @@ else
         }
         catch (Exception e)
         {
-            es.AddError(e.ToString(), 10000);
+            es.AddError(e.ToString());
         }
     }
 

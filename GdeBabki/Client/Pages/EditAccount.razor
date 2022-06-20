@@ -3,22 +3,23 @@
 
 @if (Model.IsLoaded)
 {
-    <div class="row">
-        <div class="col-4">
-            <p><b>Account name</b></p>
-            <RadzenTextBox @bind-Value="@Account.Name" Placeholder="account name" Style="width:100%;" />
-        </div>
-        <div class="col-3">
-            <p><b>Bank</b></p>
-            <RadzenDropDown TValue="Guid" ValueProperty="Id" @bind-Value="@Account.Bank.Id" Data="Model.Banks" TextProperty="Name" Style="width:100%" />
-            <div>
-                <RadzenButton Click="OnAddDeleteClickAsync">Add/Delete Banks</RadzenButton>
+    <div class="d-flex justify-content-between flex-column">
+        <div class="row">
+            <div class="col-4">
+                <p><b>Account name</b></p>
+                <RadzenTextBox @bind-Value="@Account.Name" Placeholder="account name" class="w-100" />
+            </div>
+            <div class="col-8">
+                <p><b>Bank</b></p>
+                <div class="d-flex">
+                    <RadzenDropDown TValue="Guid" ValueProperty="Id" @bind-Value="@Account.Bank.Id" Data="Model.Banks" TextProperty="Name" class="w-100 mr-2"/>
+                    <RadzenButton Click="OnAddDeleteClickAsync">Add</RadzenButton>
+                </div>
             </div>
         </div>
-        <div class="col-5">
-            <p>&nbsp;</p>
-            <RadzenButton Click="OnSaveClickAsync">Save</RadzenButton>
-            <RadzenButton Click="OnCancelClickAsync">Cancel</RadzenButton>
+        <div class="d-flex mt-4 justify-content-end">
+            <RadzenButton Click="OnSaveClickAsync" class="mr-2" ButtonStyle="ButtonStyle.Success">Save</RadzenButton>
+            <RadzenButton Click="OnCancelClickAsync" ButtonStyle="ButtonStyle.Secondary">Cancel</RadzenButton>
         </div>
     </div>
 }

@@ -15,7 +15,7 @@ else
                 </div>
                 <div>
                     <RadzenButton @ref="refEditButton" Click="() => OnAddEditClickAsync(context)" IsBusy="IsBusy">Edit</RadzenButton>
-                    <RadzenButton @ref="refDeleteButton" Click="() => OnDeleteClickAsync(context)" IsBusy="IsBusy">Delete</RadzenButton>               
+                    <RadzenButton @ref="refDeleteButton" Click="() => OnDeleteClickAsync(context)" IsBusy="IsBusy" ButtonStyle="ButtonStyle.Danger">Delete</RadzenButton>               
                 </div>
             </div>
         </Template>
