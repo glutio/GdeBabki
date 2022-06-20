@@ -2,33 +2,34 @@
 @inject NavigationManager nav
 @inject ErrorService errorService
 
-<style>
-    .rz-textbox {
-        margin-bottom: 15px;
-    }
-</style>
-<RadzenCard>
-    <img src="/img/logo.png" class="logo"/>
-    <p>User name</p>
-    <RadzenTextBox @bind-Value="Model.UserName"></RadzenTextBox>
-    <p>Password</p>
-    <RadzenPassword @bind-Value="Model.Password"></RadzenPassword>
-    @if (Model.IsNewUser)
-    {
-        <p>Confirm password</p>
-        <RadzenPassword @bind-Value="Model.ConfirmPassword" s></RadzenPassword>
-        <RadzenButton Text="Create" Click="OnCreateButtonClickedAsync"></RadzenButton>   
-        <hr />
-        <RadzenButton Text="Existing user" Click="() => Model.IsNewUser = false"></RadzenButton>   
-    }
-    else
-    {
-        <RadzenButton Text="Login" Click="OnLoginButtonClickedAsync"></RadzenButton>
-        <hr />
-        <RadzenButton Text="New user" Click="() => Model.IsNewUser = true"></RadzenButton>   
-    }
-</RadzenCard>
-
+<BusyLoad Model="Model">
+    <style>
+        .rz-textbox {
+            margin-bottom: 15px;
+        }
+    </style>
+    <RadzenCard>
+        <img src="/img/logo.png" class="logo"/>
+        <p>User name</p>
+        <RadzenTextBox @bind-Value="Model.UserName"></RadzenTextBox>
+        <p>Password</p>
+        <RadzenPassword @bind-Value="Model.Password"></RadzenPassword>
+        @if (Model.IsNewUser)
+        {
+            <p>Confirm password</p>
+            <RadzenPassword @bind-Value="Model.ConfirmPassword" s></RadzenPassword>
+            <RadzenButton Text="Create" Click="OnCreateButtonClickedAsync"></RadzenButton>   
+            <hr />
+            <RadzenButton Text="Existing user" Click="() => Model.IsNewUser = false"></RadzenButton>   
+        }
+        else
+        {
+            <RadzenButton Text="Login" Click="OnLoginButtonClickedAsync"></RadzenButton>
+            <hr />
+            <RadzenButton Text="New user" Click="() => Model.IsNewUser = true"></RadzenButton>   
+        }
+    </RadzenCard>
+</BusyLoad>
 @code {
     [Parameter]
     public EventCallback LoggedIn { get; set; }

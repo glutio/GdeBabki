@@ -1,0 +1,22 @@
+﻿.busy-overlay {
+    background-color: white;
+    opacity: 0.5;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.busy-indicator-overlay {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 1;
+    background-color: transparent;
+}
+
+.busy-indicator {
+    margin-left: -1rem;
+    width: 5rem;
+}

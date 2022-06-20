@@ -4,8 +4,7 @@
 @inject NavigationManager navigationManager
 @inject DialogService dialogService
 
-@if (Model.IsLoaded)
-{
+<BusyLoad Model="Model">
     <RadzenCard>
         <div class="mb-4">
             <InputFile @ref="refInputFile" OnChange="OnFileChangeAsync" class="w-100 mb-2"/> 
@@ -51,11 +50,7 @@
             }
         </Columns>
     </RadzenDataGrid>    
-}
-else
-{
-    <p>Loading...</p>
-}
+</BusyLoad>
 
 @code {
     InputFile refInputFile;

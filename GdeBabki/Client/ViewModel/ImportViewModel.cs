@@ -4,7 +4,6 @@ using GdeBabki.Shared.DTO;
 using Microsoft.AspNetCore.Components.Forms;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -39,7 +38,16 @@ namespace GdeBabki.Client.ViewModel
 
         private async void AccountsApi_AccountsUpdated(object sender, EventArgs e)
         {
-            Accounts = await accountsApi.GetAccountsAsync();
+            try
+            {
+                IsBusy = true;
+                Accounts = await accountsApi.GetAccountsAsync();
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+
             RaisePropertyChanged(nameof(Accounts));
         }
 
@@ -52,6 +60,7 @@ namespace GdeBabki.Client.ViewModel
 
             try
             {
+                IsBusy = true;
                 var parser = new CsvParser();
                 SampleLines = await parser.LoadAsync(stream, count);
 
@@ -62,6 +71,7 @@ namespace GdeBabki.Client.ViewModel
             }
             finally
             {
+                IsBusy = false;
                 RaisePropertyChanged(nameof(SampleLines));
             }
         }
@@ -95,7 +105,15 @@ namespace GdeBabki.Client.ViewModel
             }
 
             using var stream = ImportFile.OpenReadStream(MAX_STREAM_SIZE);
-            await importApi.ImportAsync(AccountId.Value, stream, ColumnMapping);
+            try
+            {
+                IsBusy = true;
+                await importApi.ImportAsync(AccountId.Value, stream, ColumnMapping);
+            }
+            finally
+            {
+                IsBusy = false;
+            }
 
             errorService.AddSuccess($"{ImportFile.Name} imported");
             return true;

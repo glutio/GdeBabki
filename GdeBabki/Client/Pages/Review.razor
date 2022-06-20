@@ -1,7 +1,7 @@
 ﻿@page "/review"
 @inherits ViewBase<ReviewViewModel>
-@if (Model.IsLoaded)
-{
+
+<BusyLoad Model="Model">
     <RadzenCard Style="width: 100%;">
         <h5>Accounts</h5>
         <RadzenCheckBoxList Data="Model.Accounts" @bind-Value="Model.SelectedAccounts" ValueProperty="Id"
@@ -20,8 +20,7 @@
             </div>
         </div>
     </RadzenCard>
-    var style = Model.IsFrozen ? "border:1px solid pink" : "";
-    <RadzenDataGrid @ref="refGrid" TItem="Transaction" Data="Model.TransactionsView" AllowPaging="true" FilterMode="FilterMode.SimpleWithMenu" LoadData="Model.LoadData" Style="@style"
+    <RadzenDataGrid @ref="refGrid" TItem="Transaction" Data="Model.TransactionsView" AllowPaging="true" FilterMode="FilterMode.SimpleWithMenu" LoadData="Model.LoadData"
                 AllowFiltering="true" AllowColumnResize="true" Count="Model.TransactionsCount" PageSize="10" PagerHorizontalAlign="HorizontalAlign.Center" AllowSorting="true" 
                 SelectionMode="DataGridSelectionMode.Multiple" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" Filter="OnColumnFilterAsync" @bind-Value="Model.SelectedTransactions"
                 Sort="OnColumnSort">
@@ -102,11 +101,7 @@
             </RadzenDataGridColumn>
         </Columns>
     </RadzenDataGrid>
-}
-else
-{
-    <p>Loading...</p>
-}
+</BusyLoad>
 
 @code {
     [Parameter, SupplyParameterFromQuery]
@@ -153,13 +148,21 @@ else
 
     async Task ReloadGridAsync()
     {
-        Model.IsFrozen = false;
-        await refGrid.Reload();
-
-        var lastPage = Model.TransactionsCount / refGrid.PageSize;
-        if (refGrid.CurrentPage > lastPage)
+        try
         {
-            await refGrid.GoToPage(lastPage);
+            Model.IsBusy = true;
+            Model.IsFrozen = false;
+            await refGrid.Reload();
+
+            var lastPage = Model.TransactionsCount / refGrid.PageSize;
+            if (refGrid.CurrentPage > lastPage)
+            {
+                await refGrid.GoToPage(lastPage);
+            }          
+        }
+        finally
+        {
+            Model.IsBusy = false;
         }
     }
 
@@ -167,6 +170,7 @@ else
     {
         try
         {
+            Model.IsBusy = true;
             await Model.SaveTagAsync(e.Value, transaction.Id);
         }
         catch
@@ -174,12 +178,17 @@ else
             e.Cancel = true;
             throw;
         }
+        finally
+        {
+            Model.IsBusy = false;
+        }
     }
 
     async Task DeleteTagAsync(CancelEventArgs<string> e, Transaction transaction)
     {
         try
         {
+            Model.IsBusy = true;
             await Model.DeleteTagAsync(e.Value, transaction.Id);
         }
         catch
@@ -187,12 +196,17 @@ else
             e.Cancel = true;
             throw;
         }
+        finally
+        {
+            Model.IsBusy = false;
+        }
     }
 
     async Task SaveSharedTagAsync(CancelEventArgs<string> e)
     {
         try
         {
+            Model.IsBusy = true;
             await Model.SaveSharedTagAsync(e.Value);
         }
         catch
@@ -200,18 +214,27 @@ else
             e.Cancel = true;
             throw;
         }       
+        finally
+        {
+            Model.IsBusy = false;
+        }
     }
 
     async Task DeleteSharedTagAsync(CancelEventArgs<string> e)
     {
         try
         {
+            Model.IsBusy = true;
             await Model.DeleteSharedTagAsync(e.Value);
         }
         catch
         {
             e.Cancel = true;
             throw;
+        }
+        finally
+        {
+            Model.IsBusy = false;
         }
     }
 }

@@ -1,9 +1,8 @@
 ﻿@inherits ViewBase<BanksViewModel>
 @inject DialogService dialogService
 
-@if (Model.IsLoaded)
-{
-    if (Model.Banks.IsNullOrEmpty())
+<BusyLoad Model="Model">
+    @if (Model.Banks.IsNullOrEmpty())
     {
         <div class="w100 text-center">Plase add a bank</div>
     }
@@ -16,8 +15,8 @@
                         @context.Name
                     </div>
                     <div class="flex-shrink-0">
-                        <RadzenButton @ref="refEditButton" Click="() => OnAddEditClickAsync(context)" IsBusy="IsBusy" class="ml-2">Edit</RadzenButton>
-                        <RadzenButton @ref="refDeleteButton" Click="() => OnDeleteClickAsync(context)" IsBusy="IsBusy" ButtonStyle="ButtonStyle.Danger">Delete</RadzenButton>               
+                        <RadzenButton Click="() => OnAddEditClickAsync(context)" class="ml-2">Edit</RadzenButton>
+                        <RadzenButton Click="() => OnDeleteClickAsync(context)" ButtonStyle="ButtonStyle.Danger">Delete</RadzenButton>               
                     </div>
                 </div>
             </Template>
@@ -26,32 +25,22 @@
 
     <hr />
     <div class="d-flex justify-content-between m-2">
-        <RadzenButton @ref="refAddButton" Click="() => OnAddEditClickAsync(null)" IsBusy="IsBusy">Add</RadzenButton>
-        <RadzenButton Click="() => dialogService.Close()" IsBusy="IsBusy" ButtonStyle="ButtonStyle.Secondary">Close</RadzenButton>
+        <RadzenButton Click="() => OnAddEditClickAsync(null)">Add</RadzenButton>
+        <RadzenButton Click="() => dialogService.Close()" ButtonStyle="ButtonStyle.Secondary">Close</RadzenButton>
     </div>
-}
-else
-{
-    <p>Loading...</p>
-}
+</BusyLoad>
 
 @code {
-    bool IsBusy { get; set; } = false;
-
-    RadzenButton refAddButton;
-    RadzenButton refEditButton;
-    RadzenButton refDeleteButton;
-
     async void OnDeleteClickAsync(Bank bank)
     {
         try
         {
-            IsBusy = true;
+            Model.IsBusy = true;
             await Model.DeleteBankAsync(bank.Id);
         }
         finally
         {
-            IsBusy = false;
+            Model.IsBusy = false;
         }
     }
 
@@ -59,24 +48,24 @@ else
     {
         try
         {
-            IsBusy = true;
             var name = await dialogService.OpenInput($"{(bank?.Name == null ? "Add" : "Edit")} Bank", "Please enter bank name", bank?.Name);
             if (name == null)
             {
                 return;
             }
+
             bank = new Bank()
             {
                 Id = bank?.Id ?? Guid.Empty,
                 Name = name
             };
 
+            Model.IsBusy = true;
             await Model.UpsertBankAsync(bank);           
         }
         finally
         {
-            IsBusy = false;
-            StateHasChanged();
+            Model.IsBusy = false;
         }
     }
 }

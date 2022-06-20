@@ -69,7 +69,7 @@ namespace GdeBabki.Client.Services
             return list == null || list.Count == 0;
         }
 
-        public static double GetAxisStepSize(this decimal range, int steps)
+        public static double GetAxisStepSize(this decimal range, int steps = 5)
         {
             var d = (double)range;
             double x = Math.Pow(10.0, Math.Floor(Math.Log10(d)));

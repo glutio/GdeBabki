@@ -162,8 +162,15 @@ namespace GdeBabki.Client.ViewModel
 
         private async Task<List<Transaction>> GetTransactionsAsync()
         {
-            var transactions = await accountsApi.GetTransactionsAsync(SelectedAccounts);
-            return transactions;
+            try
+            {
+                IsBusy = true;
+                return await accountsApi.GetTransactionsAsync(SelectedAccounts);
+            }
+            finally
+            {
+                IsBusy = false;
+            }
         }
 
         public async Task OnSelectedAccountsChangeAsync()

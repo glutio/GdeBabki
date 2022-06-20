@@ -1,8 +1,6 @@
 ﻿@page "/analysis"
 @inherits ViewBase<AnalysisViewModel>
-<h3>Analysis</h3>
-@if (Model.IsLoaded)
-{
+<BusyLoad Model="Model">
     <RadzenCard Style="width: 100%;">
         <h5>Accounts</h5>
         <RadzenCheckBoxList Data="Model.Accounts" @bind-Value="Model.SelectedAccounts" ValueProperty="Id"
@@ -17,10 +15,11 @@
     <div>
         <h6>Average monthly spending</h6>
         @{
-            var fills = Model.AverageMonthlySpendingByTag?.Select(e => e.Key.ToBackgroundColor());
+            var averageMonthlySpendingByTag = Model.AverageMonthlySpendingByTag;
+            var fills = averageMonthlySpendingByTag?.Select(e => e.Key.ToBackgroundColor());
         }
         <RadzenChart>
-            <RadzenColumnSeries Data="Model.AverageMonthlySpendingByTag" CategoryProperty="Key" ValueProperty="Value" Fills="fills">
+            <RadzenColumnSeries Data="averageMonthlySpendingByTag" CategoryProperty="Key" ValueProperty="Value" Fills="fills">
                 <TooltipTemplate>
                     <p>@context.Value.ToCurrencyString()</p>
                 </TooltipTemplate>                
@@ -28,17 +27,17 @@
             
             <RadzenLegend Visible="false" />
             <RadzenColumnOptions Radius="5" />
-            @{
-                var max = Model.AverageMonthlySpendingByTag.Max(e => e.Value);
-                var step = max.GetAxisStepSize(5);
+            @{                
+                var max = averageMonthlySpendingByTag.IsNullOrEmpty() ? 0 : averageMonthlySpendingByTag.Max(e => e.Value);
+                var step = averageMonthlySpendingByTag.IsNullOrEmpty() ? 1 : max.GetAxisStepSize();
             }
             <RadzenValueAxis Formatter="ToCurrencyFormatter" Step="step" Min="0">
                 <RadzenGridLines Visible="true" />
             </RadzenValueAxis>
         </RadzenChart>
-        @if (!Model.AverageMonthlySpendingByTag.IsNullOrEmpty())
+        @if (!averageMonthlySpendingByTag.IsNullOrEmpty())
         {
-            <p>Total @Model.AverageMonthlySpendingByTag.Sum(e => e.Value).ToCurrencyString()</p>
+            <p>Total @averageMonthlySpendingByTag.Sum(e => e.Value).ToCurrencyString()</p>
         }
     </div>
 
@@ -74,11 +73,7 @@
             <p>Average @Model.SpendingByMonth.Average(e => e.Value).ToCurrencyString()</p>
         }
     </div>
-}
-else
-{
-    <p>Loading...</p>
-}
+</BusyLoad>
 
 @code {
     async Task OnSelectedAccountsChangeAsync()

@@ -2,9 +2,8 @@
 @inherits ViewBase<AccountsViewModel>
 @inject DialogService dialogService
 
-@if (Model.IsLoaded)
-{
-    if (Model.Accounts.IsNullOrEmpty())
+<BusyLoad Model="Model">
+    @if (Model.Accounts.IsNullOrEmpty())
     {
         <div class="w100 text-center">Plase add a bank account</div>
     }
@@ -47,13 +46,7 @@
         </div>
         <RadzenButton Click="() => dialogService.Close()" IsBusy="Model.IsBusy" ButtonStyle="ButtonStyle.Secondary">Close</RadzenButton>
     </div>
-    
-
-}
-else
-{
-    <p>Loading...</p>
-}
+</BusyLoad>
 
 @code {
     void OnAddClick()

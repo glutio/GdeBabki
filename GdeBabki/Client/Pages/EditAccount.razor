@@ -1,8 +1,7 @@
 ﻿@inherits ViewBase<EditAccountViewModel>
 @inject DialogService dialogService
 
-@if (Model.IsLoaded)
-{
+<BusyLoad Model="Model">
     <div class="d-flex justify-content-between flex-column">
         <div class="row">
             <div class="col-4">
@@ -13,7 +12,7 @@
                 <p><b>Bank</b></p>
                 <div class="d-flex">
                     <RadzenDropDown TValue="Guid" ValueProperty="Id" @bind-Value="@Account.Bank.Id" Data="Model.Banks" TextProperty="Name" class="w-100 mr-2"/>
-                    <RadzenButton Click="OnAddDeleteClickAsync">Banks</RadzenButton>
+                    <RadzenButton Click="OnBanksClickAsync">Banks</RadzenButton>
                 </div>
             </div>
         </div>
@@ -22,11 +21,7 @@
             <RadzenButton Click="OnCancelClickAsync" ButtonStyle="ButtonStyle.Secondary">Cancel</RadzenButton>
         </div>
     </div>
-}
-else
-{
-    <p>Loading...</p>
-}
+</BusyLoad>
 
 @code {
     [Parameter]
@@ -36,14 +31,22 @@ else
     [Parameter]
     public EventCallback<Account> Save { get; set; }
 
-    async Task OnAddDeleteClickAsync()
+    async Task OnBanksClickAsync()
     {
         await dialogService.OpenAsync<Banks>("Banks", options: GBUtility.ResizableDialogOptions);
     }
 
     async Task OnSaveClickAsync()
     {
-        await Save.InvokeAsync(Account);
+        try
+        {
+            Model.IsBusy = true;
+            await Save.InvokeAsync(Account);            
+        }
+        finally
+        {
+            Model.IsBusy = false;
+        }
     }
 
     async Task OnCancelClickAsync()

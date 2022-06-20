@@ -81,6 +81,7 @@ namespace GdeBabki.Client.ViewModel
                 var spendingByMonth = TransactionsQuery
                     .GroupBy(e => new DateTime(e.Date.Year, e.Date.Month, 1))
                     .OrderByDescending(g => g.Key)
+                    .Take(12)
                     .Select(g => new KeyValuePair<string, decimal>(g.Key.ToTransactionMonthYear(), g.Sum(e => -1 * e.Amount)));
 
 

@@ -24,6 +24,7 @@ namespace GdeBabki.Client.ViewModel
         {
             userService.LoginInfo = null;
             userService.IsLoggedIn = false;
+            IsLoaded = true;
             base.OnInitialized();
         }
 
@@ -46,17 +47,22 @@ namespace GdeBabki.Client.ViewModel
             userService.LoginInfo = new LoginInfo() { UserName = UserName, Password = Password };
             try
             {
+                IsBusy = true;
                 await userApi.Login();
+                userService.IsLoggedIn = true;
             }
             catch (Exception e)
             {
                 userService.LoginInfo = null;
-                errorService.AddError(e.ToString(), 10000000);
+                errorService.AddError(e.ToString());
                 return false;
+            }
+            finally
+            {
+                IsBusy = false;
             }
 
             errorService.AddInfo("Welcome to GdeBabki");
-            userService.IsLoggedIn = true;
             return true;
         }
 
