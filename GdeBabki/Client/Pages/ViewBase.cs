@@ -9,7 +9,7 @@ namespace GdeBabki.Client.Pages
     public class ViewBase<TModel> : ComponentBase, IDisposable where TModel : ViewModelBase
     {
         [Inject]
-        protected TModel Model { get; set; }
+        public TModel Model { get; set; }
 
         protected override void OnInitialized()
         {

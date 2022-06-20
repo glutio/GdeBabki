@@ -1,6 +1,5 @@
 ﻿@page "/review"
 @inherits ViewBase<ReviewViewModel>
-<h3>Review</h3>
 @if (Model.IsLoaded)
 {
     <RadzenCard Style="width: 100%;">
@@ -34,7 +33,7 @@
                 </HeaderTemplate>
                 <Template>
                     <RadzenCheckBox TValue="bool" Value="Model.SelectedTransactions != null && Model.SelectedTransactions.Contains(context)" 
-                    Change="@(() => { Console.WriteLine("A"); refGrid.SelectRow(context); })"></RadzenCheckBox>
+                    Change="() => refGrid.SelectRow(context)"></RadzenCheckBox>
                 </Template>
             </RadzenDataGridColumn>
             <RadzenDataGridColumn TItem="Transaction" Property="State" Width="2rem" Filterable="false" Sortable="false" TextAlign="TextAlign.Center">

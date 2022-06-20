@@ -13,7 +13,7 @@
                 <p><b>Bank</b></p>
                 <div class="d-flex">
                     <RadzenDropDown TValue="Guid" ValueProperty="Id" @bind-Value="@Account.Bank.Id" Data="Model.Banks" TextProperty="Name" class="w-100 mr-2"/>
-                    <RadzenButton Click="OnAddDeleteClickAsync">Add</RadzenButton>
+                    <RadzenButton Click="OnAddDeleteClickAsync">Banks</RadzenButton>
                 </div>
             </div>
         </div>
@@ -38,7 +38,7 @@ else
 
     async Task OnAddDeleteClickAsync()
     {
-        await dialogService.OpenAsync<Banks>("Banks");
+        await dialogService.OpenAsync<Banks>("Banks", options: GBUtility.ResizableDialogOptions);
     }
 
     async Task OnSaveClickAsync()

@@ -1,0 +1,59 @@
+﻿@using GdeBabki.Client.Model
+@using System.ComponentModel
+@inject IJSRuntime JS
+@implements IDisposable
+
+@typeparam TView
+
+@if (Model.IsLoaded)
+{
+    var style = Model.IsBusy ? "pointer-events: none;" : "";
+    <div @ref="refContent" style="@style">
+        @Content
+    </div>
+    @if (Model.IsBusy)
+    {
+        var bounds = GetBounds();
+        style = $"width:{bounds.width};height:{bounds.height};background-color:white;opacity:0.5";
+        <div style="@style">
+            Working...
+        </div>
+    }
+}
+else
+{
+    <p>Loading...</p>
+}
+
+@code {
+    [Parameter]
+    public TView Content { get; set; }
+
+    ElementReference refContent;
+
+    ViewModelBase Model => ((ViewBase<ViewModelBase>)Content).Model;
+    ElementBounds GetBounds()
+    {
+        var js = (IJSInProcessRuntime)JS;
+        var textBoxBounds = js.Invoke<ElementBounds>("window.GdeBabkiInterop.getBoundingClientRect", refContent);
+        return textBoxBounds;
+    }
+    protected override void OnInitialized()
+    {
+        Model.PropertyChanged += OnModelPropertyChanged;
+        base.OnInitialized();
+    }
+
+    void OnModelPropertyChanged(object sender, PropertyChangedEventArgs args)
+    {
+        if (args.PropertyName == nameof(Model.IsBusy) || args.PropertyName == nameof(Model.IsLoaded))
+        {
+            StateHasChanged();
+        }
+    }
+
+    public void Dispose()
+    {
+        Model.PropertyChanged -= OnModelPropertyChanged;
+    }
+}

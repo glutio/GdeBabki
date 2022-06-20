@@ -9,13 +9,13 @@
     <RadzenButton Text="Accounts..." Click="OnAccountsClickAsync" />
 </p>
 @code {
-    void OnBanksClickAsync(MouseEventArgs e)
+    async Task OnBanksClickAsync(MouseEventArgs e)
     {
-        dialogService.Open<Banks>("Banks", options: GBUtility.ResizableDialogOptions);
+        await dialogService.OpenAsync<Banks>("Banks", options: GBUtility.ResizableDialogOptions);
     }
 
-    void OnAccountsClickAsync(MouseEventArgs e)
+    async Task OnAccountsClickAsync(MouseEventArgs e)
     {
-        dialogService.Open<Accounts>("Accounts", options: GBUtility.ResizableDialogOptions);
+        await dialogService.OpenAsync<Accounts>("Accounts", options: GBUtility.ResizableDialogOptions);
     }
 }

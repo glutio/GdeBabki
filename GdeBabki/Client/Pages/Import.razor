@@ -4,7 +4,6 @@
 @inject NavigationManager navigationManager
 @inject DialogService dialogService
 
-<h3>Import</h3>
 @if (Model.IsLoaded)
 {
     <RadzenCard>
@@ -20,12 +19,16 @@
         </div>
         <p>Account</p>
         <div class="d-flex">
-            <RadzenDropDown TValue="Guid?" Data="Model.Accounts" ValueProperty="Id" TextProperty="Name" @bind-Value="Model.AccountId" class="w-100">
+            <RadzenDropDown TValue="Guid?" Data="Model.Accounts" ValueProperty="Id" TextProperty="Name" @bind-Value="Model.AccountId" class="w-100" Style="max-width:50rem">
                 <Template>
                     @context.Name <b>(@context.Bank.Name)</b>
                 </Template>
             </RadzenDropDown>
             <RadzenButton class="ml-2" Text="Accounts" Click="OnAccountsClickAsync"/>
+            @if (Model.CanImport)
+            {
+                <RadzenButton Click=@OnImportClickAsync ButtonStyle="ButtonStyle.Success" class="ml-2">Import</RadzenButton>
+            }
         </div>
     </RadzenCard>
     <RadzenDataGrid Data="Model.SampleLines" AllowColumnResize="true">
@@ -48,13 +51,6 @@
             }
         </Columns>
     </RadzenDataGrid>    
-    @if (Model.CanImport)
-    {
-        <hr />
-        <div class="d-flex w-100 justify-content-end">
-            <RadzenButton Click=@OnImportClickAsync ButtonStyle="ButtonStyle.Success">Import</RadzenButton>
-        </div>
-    }
 }
 else
 {
@@ -83,8 +79,8 @@ else
         }
     }
 
-    void OnAccountsClickAsync()
+    async Task OnAccountsClickAsync()
     {
-        dialogService.Open<Accounts>("Accounts", options: GBUtility.ResizableDialogOptions);
+        await dialogService.OpenAsync<Accounts>("Accounts", options: GBUtility.ResizableDialogOptions);
     }
 }
