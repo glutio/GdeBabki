@@ -1,0 +1,21 @@
+﻿@page "/profile"
+@inject DialogService dialogService
+<h3>Profile</h3>
+
+<p>
+    <RadzenButton Text="Banks..." Click="OnBanksClickAsync" />
+</p>
+<p>
+    <RadzenButton Text="Accounts..." Click="OnAccountsClickAsync" />
+</p>
+@code {
+    void OnBanksClickAsync(MouseEventArgs e)
+    {
+        dialogService.Open<Banks>("Banks", options: new DialogOptions() { Width = "700px", Resizable = true, Draggable = true });
+    }
+
+    void OnAccountsClickAsync(MouseEventArgs e)
+    {
+        dialogService.Open<Accounts>("Accounts", options: new DialogOptions() { Width = "700px", Resizable = true, Draggable = true });
+    }
+}

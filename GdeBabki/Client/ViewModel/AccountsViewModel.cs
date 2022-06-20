@@ -2,7 +2,6 @@
 using GdeBabki.Shared.DTO;
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 using System.Threading.Tasks;
 
 namespace GdeBabki.Client.ViewModel
@@ -70,19 +69,35 @@ namespace GdeBabki.Client.ViewModel
 
         public async void DeleteAccount(Guid accountId)
         {
-            await accountsApi.DeleteAccountAsync(accountId);
+            try
+            {
+                IsBusy = true;
+                await accountsApi.DeleteAccountAsync(accountId);
+            }
+            finally
+            {
+                IsBusy = false;
+            }
         }
 
         public async Task SaveAccountAsync(Account account)
         {
-            await accountsApi.UpsertAccountAsync(new UpsertAccount()
+            try
             {
-                AccountId = account.Id,
-                Name = account.Name,
-                BankId = account.Bank.Id
-            });
-            EditingAccount = null;
-            RaisePropertyChanged(nameof(EditingAccount));
+                IsBusy = true;
+                await accountsApi.UpsertAccountAsync(new UpsertAccount()
+                {
+                    AccountId = account.Id,
+                    Name = account.Name,
+                    BankId = account.Bank.Id
+                });
+                EditingAccount = null;
+                RaisePropertyChanged(nameof(EditingAccount));
+            }
+            finally
+            {
+                IsBusy = false;
+            }
         }
 
         public Account EditingAccount { get; set; }

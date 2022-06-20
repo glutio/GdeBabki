@@ -36,5 +36,7 @@ namespace GdeBabki.Client.ViewModel
         bool isLoaded;
         public bool IsLoaded { get { return isLoaded; } set { isLoaded = value; RaisePropertyChanged(); } }
 
+        bool isBusy;
+        public bool IsBusy { get { return isBusy; } set { isBusy = value; RaisePropertyChanged(); } }
     }
 }

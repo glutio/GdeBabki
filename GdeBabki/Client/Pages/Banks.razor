@@ -9,12 +9,12 @@ else
 {   
     <RadzenDataList Data="Model.Banks" TItem="Bank">
         <Template>
-            <div class="d-flex justify-content-between align-items-center">
+            <div class="d-flex justify-content-between align-items-center text-break">
                 <div>
                     @context.Name
                 </div>
-                <div>
-                    <RadzenButton @ref="refEditButton" Click="() => OnAddEditClickAsync(context)" IsBusy="IsBusy">Edit</RadzenButton>
+                <div class="flex-shrink-0">
+                    <RadzenButton @ref="refEditButton" Click="() => OnAddEditClickAsync(context)" IsBusy="IsBusy" class="ml-2">Edit</RadzenButton>
                     <RadzenButton @ref="refDeleteButton" Click="() => OnDeleteClickAsync(context)" IsBusy="IsBusy" ButtonStyle="ButtonStyle.Danger">Delete</RadzenButton>               
                 </div>
             </div>
