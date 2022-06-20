@@ -6,10 +6,10 @@
 @inherits ViewBase<ImportViewModel>
 @inject NavigationManager navigationManager
 
-<h1>Import</h1>
+<h3>Import</h3>
 @if (Model.IsLoaded)
 {
-    <InputFile OnChange="OnFileChangeAsync"/>
+    <InputFile @ref="refInputFile" OnChange="OnFileChangeAsync" class="w-100`"/>
     <p>Account</p>
     <RadzenDropDown TValue="Guid" Data="Model.Accounts" ValueProperty="Id" TextProperty="Name" @bind-Value="Model.AccountId">
         <Template>
@@ -46,6 +46,8 @@ else
 }
 
 @code {
+    InputFile refInputFile;
+
     async void OnFileChangeAsync(InputFileChangeEventArgs e)
     {
         Model.ImportFile = e.File;

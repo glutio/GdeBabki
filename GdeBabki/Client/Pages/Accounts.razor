@@ -43,7 +43,7 @@
         <div>
             @if (Model.EditingAccount == null)
             {
-                <RadzenButton Click="OnAddClick" class="m-2">Add</RadzenButton>       
+                <RadzenButton Click="OnAddClick">Add</RadzenButton>       
             }
         </div>
         <RadzenButton Click="() => dialogService.Close()" IsBusy="Model.IsBusy" ButtonStyle="ButtonStyle.Secondary">Close</RadzenButton>

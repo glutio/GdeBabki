@@ -1,32 +1,39 @@
 ﻿@inherits ViewBase<BanksViewModel>
 @inject DialogService dialogService
 
-@if (Model.Banks.IsNullOrEmpty())
+@if (Model.IsLoaded)
 {
-    <div class="w100 text-center">Plase add a bank</div>
+    if (Model.Banks.IsNullOrEmpty())
+    {
+        <div class="w100 text-center">Plase add a bank</div>
+    }
+    else
+    {   
+        <RadzenDataList Data="Model.Banks" TItem="Bank">
+            <Template>
+                <div class="d-flex justify-content-between align-items-center text-break">
+                    <div>
+                        @context.Name
+                    </div>
+                    <div class="flex-shrink-0">
+                        <RadzenButton @ref="refEditButton" Click="() => OnAddEditClickAsync(context)" IsBusy="IsBusy" class="ml-2">Edit</RadzenButton>
+                        <RadzenButton @ref="refDeleteButton" Click="() => OnDeleteClickAsync(context)" IsBusy="IsBusy" ButtonStyle="ButtonStyle.Danger">Delete</RadzenButton>               
+                    </div>
+                </div>
+            </Template>
+        </RadzenDataList>
+    }
+
+    <hr />
+    <div class="d-flex justify-content-between m-2">
+        <RadzenButton @ref="refAddButton" Click="() => OnAddEditClickAsync(null)" IsBusy="IsBusy">Add</RadzenButton>
+        <RadzenButton Click="() => dialogService.Close()" IsBusy="IsBusy" ButtonStyle="ButtonStyle.Secondary">Close</RadzenButton>
+    </div>
 }
 else
-{   
-    <RadzenDataList Data="Model.Banks" TItem="Bank">
-        <Template>
-            <div class="d-flex justify-content-between align-items-center text-break">
-                <div>
-                    @context.Name
-                </div>
-                <div class="flex-shrink-0">
-                    <RadzenButton @ref="refEditButton" Click="() => OnAddEditClickAsync(context)" IsBusy="IsBusy" class="ml-2">Edit</RadzenButton>
-                    <RadzenButton @ref="refDeleteButton" Click="() => OnDeleteClickAsync(context)" IsBusy="IsBusy" ButtonStyle="ButtonStyle.Danger">Delete</RadzenButton>               
-                </div>
-            </div>
-        </Template>
-    </RadzenDataList>
+{
+    <p>Loading...</p>
 }
-
-<hr />
-<div class="d-flex justify-content-between m-2">
-    <RadzenButton @ref="refAddButton" Click="() => OnAddEditClickAsync(null)" IsBusy="IsBusy">Add</RadzenButton>
-    <RadzenButton Click="() => dialogService.Close()" IsBusy="IsBusy" ButtonStyle="ButtonStyle.Secondary">Close</RadzenButton>
-</div>
 
 @code {
     bool IsBusy { get; set; } = false;
