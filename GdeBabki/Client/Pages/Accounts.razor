@@ -1,7 +1,6 @@
 ﻿@page "/accounts"
 @inherits ViewBase<AccountsViewModel>
 @inject DialogService dialogService
-@inject ErrorService es
 
 @if (Model.IsLoaded)
 {
@@ -15,7 +14,7 @@
             <Template>
                 @if (Model.EditingAccount == context)
                 {
-                    <EditAccount Account="context" Cancel="OnEditCancel" Save="OnEditSave" />
+                    <EditAccount Account="context" Cancel="OnEditCancel" Save="OnEditSaveAsync" />
                 }
                 else
                 {
@@ -67,16 +66,9 @@ else
         Model.EditAccount(account);
     }
 
-    async Task OnEditSave(Account account)
+    async Task OnEditSaveAsync(Account account)
     {
-        try
-        {
-            await Model.SaveAccountAsync(account);
-        }
-        catch (Exception e)
-        {
-            es.AddError(e.ToString());
-        }
+        await Model.SaveAccountAsync(account);
     }
 
     void OnEditCancel()
@@ -86,6 +78,6 @@ else
 
     void OnDeleteClick(Account account)
     {
-        Model.DeleteAccount(account.Id);
+        Model.DeleteAccountAsync(account.Id);
     }
 }

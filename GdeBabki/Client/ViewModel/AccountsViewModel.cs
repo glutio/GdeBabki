@@ -67,7 +67,7 @@ namespace GdeBabki.Client.ViewModel
             RaisePropertyChanged(nameof(EditingAccount));
         }
 
-        public async void DeleteAccount(Guid accountId)
+        public async void DeleteAccountAsync(Guid accountId)
         {
             try
             {

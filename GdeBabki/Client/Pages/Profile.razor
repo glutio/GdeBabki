@@ -11,11 +11,11 @@
 @code {
     void OnBanksClickAsync(MouseEventArgs e)
     {
-        dialogService.Open<Banks>("Banks", options: new DialogOptions() { Width = "700px", Resizable = true, Draggable = true });
+        dialogService.Open<Banks>("Banks", options: GBUtility.ResizableDialogOptions);
     }
 
     void OnAccountsClickAsync(MouseEventArgs e)
     {
-        dialogService.Open<Accounts>("Accounts", options: new DialogOptions() { Width = "700px", Resizable = true, Draggable = true });
+        dialogService.Open<Accounts>("Accounts", options: GBUtility.ResizableDialogOptions);
     }
 }

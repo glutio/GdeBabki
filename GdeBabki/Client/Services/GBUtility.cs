@@ -1,14 +1,14 @@
 ﻿using Radzen;
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using System.Security.Cryptography;
 
 namespace GdeBabki.Client.Services
 {
     public static class GBUtility
     {
+        public const string GENERAL_DATE_FORMAT = "d MMM yyyy H:mm";
+        public const string THOUSANDS_SEPARATED_FORMAT = "#,##0";
         public const string TRANSACTION_CURRENCY_FORMAT = "#,##0.#0";
         public const string TRANSACTION_DATE_FORMAT = "d MMM yyyy";
         public const string TRANSACTION_MONTH_YEAR_FORMAT = "MMM yyyy";
@@ -24,7 +24,7 @@ namespace GdeBabki.Client.Services
             ("white", "red"), ("white", "orange"), ("white", "blue"), ("white", "violet"), ("white", "black"), ("white", "gray"),
             ("gray", "orange"), ("gray", "yellow"), ("gray", "lime"), ("gray", "blue"), ("gray", "black"), ("gray", "white"),
         };
-        
+
         public static string ToCurrencyString(this decimal amount)
         {
             return amount.ToString(TRANSACTION_CURRENCY_FORMAT);
@@ -81,5 +81,6 @@ namespace GdeBabki.Client.Services
                 return x / 5.0;
         }
 
+        public static DialogOptions ResizableDialogOptions => new() { Width = "700px", Resizable = true, Draggable = true };
     }
 }

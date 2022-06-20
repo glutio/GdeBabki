@@ -1,33 +1,44 @@
 ﻿@page "/import"
-@using System.IO
-@using System.Text
-@using GdeBabki.Client.Services
-@using GdeBabki.Shared.ViewModels
+
 @inherits ViewBase<ImportViewModel>
 @inject NavigationManager navigationManager
+@inject DialogService dialogService
 
 <h3>Import</h3>
 @if (Model.IsLoaded)
 {
-    <InputFile @ref="refInputFile" OnChange="OnFileChangeAsync" class="w-100`"/>
-    <p>Account</p>
-    <RadzenDropDown TValue="Guid" Data="Model.Accounts" ValueProperty="Id" TextProperty="Name" @bind-Value="Model.AccountId">
-        <Template>
-            @context.Name (@context.Bank.Name)
-        </Template>
-    </RadzenDropDown>
-
+    <RadzenCard>
+        <div class="mb-4">
+            <InputFile @ref="refInputFile" OnChange="OnFileChangeAsync" class="w-100 mb-2"/> 
+            @if (Model.ImportFile != null)
+            {
+                <div>
+                    <b>Modified:</b> @Model.ImportFile.LastModified.ToString(GBUtility.GENERAL_DATE_FORMAT)
+                    &nbsp;<b>Size: </b> @((Model.ImportFile.Size / 1024).ToString(GBUtility.THOUSANDS_SEPARATED_FORMAT)) kB
+                </div>
+            }
+        </div>
+        <p>Account</p>
+        <div class="d-flex">
+            <RadzenDropDown TValue="Guid?" Data="Model.Accounts" ValueProperty="Id" TextProperty="Name" @bind-Value="Model.AccountId" class="w-100">
+                <Template>
+                    @context.Name <b>(@context.Bank.Name)</b>
+                </Template>
+            </RadzenDropDown>
+            <RadzenButton class="ml-2" Text="Accounts" Click="OnAccountsClickAsync"/>
+        </div>
+    </RadzenCard>
     <RadzenDataGrid Data="Model.SampleLines" AllowColumnResize="true">
         <Columns>
-            @foreach (var i in Enumerable.Range(0, Model.ColumnBindings?.Length ?? 0))
+            @foreach (var i in Enumerable.Range(0, Model.ColumnMapping?.Length ?? 0))
             {            
                 <RadzenDataGridColumn TItem="string[]">
                     <HeaderTemplate>
-                        <RadzenDropDown 
+                        <RadzenDropDown style="text-transform: none"
                             TValue="GBColumnName?" TextProperty="Value" ValueProperty="Key" 
                             Data="Enum.GetValues<GBColumnName>().Select(e => new KeyValuePair<GBColumnName, string>(e, ((GBColumnName)e).ToString())) " 
-                            @bind-Value="Model.ColumnBindings[i]"
-                            Change="@(e => OnColumnBindingChanged(i, (GBColumnName?)e))"
+                            @bind-Value="Model.ColumnMapping[i]"
+                            Change="@(e => OnColumnMappingChanged(i, (GBColumnName?)e))"
                         />  
                     </HeaderTemplate>
                     <Template>
@@ -36,9 +47,14 @@
                 </RadzenDataGridColumn>
             }
         </Columns>
-    </RadzenDataGrid>
-    
-    <RadzenButton Click=@OnImportClick>Import</RadzenButton>
+    </RadzenDataGrid>    
+    @if (Model.CanImport)
+    {
+        <hr />
+        <div class="d-flex w-100 justify-content-end">
+            <RadzenButton Click=@OnImportClickAsync ButtonStyle="ButtonStyle.Success">Import</RadzenButton>
+        </div>
+    }
 }
 else
 {
@@ -54,14 +70,21 @@ else
         await Model.LoadSampleLinesAsync(10);
     }
 
-    void OnColumnBindingChanged(int index, GBColumnName? val)
+    void OnColumnMappingChanged(int index, GBColumnName? val)
     {
-        Model.SetColumnBinding(index, val);
+        Model.SetColumnMapping(index, val);
     }
 
-    async void OnImportClick()
+    async Task OnImportClickAsync()
     {
-        await Model.ImportAsync();
-        navigationManager.NavigateTo($"/review?accountIds={Model.AccountId}");
+        if (await Model.ImportAsync())
+        {
+            navigationManager.NavigateTo($"/review?accountIds={Model.AccountId}");           
+        }
+    }
+
+    void OnAccountsClickAsync()
+    {
+        dialogService.Open<Accounts>("Accounts", options: GBUtility.ResizableDialogOptions);
     }
 }
