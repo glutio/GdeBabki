@@ -29,7 +29,7 @@ namespace GdeBabki.Server.Auth
 
         protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
         {
-            var userHasDbAccess = await databaseService.UserHasDbAccess();
+            var userHasDbAccess = await databaseService.UserHasDbAccessAsync();
             if (!userHasDbAccess)
             {
                 return AuthenticateResult.Fail(UNAUTHORIZED);

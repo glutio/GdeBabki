@@ -33,7 +33,7 @@ namespace GdeBabki.Server.Controllers
         {
             try
             {
-                await databaseService.CreateDatabase();
+                await databaseService.CreateDatabaseAsync();
             } 
             catch (DuplicateNameException)
             {

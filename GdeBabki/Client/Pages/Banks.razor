@@ -1,42 +1,75 @@
 ﻿@inherits ViewBase<BanksViewModel>
 @inject DialogService dialogService
 
-<RadzenDataList Data="Model.Banks" TItem="Bank">
-    <Template>
-        <div class="row">
-            <div class="col-3">
-                <p>@context.Name</p>
+@if (Model.Banks.IsNullOrEmpty())
+{
+    <div class="w100 text-center">Plase add a bank</div>
+}
+else
+{   
+    <RadzenDataList Data="Model.Banks" TItem="Bank">
+        <Template>
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    @context.Name
+                </div>
+                <div>
+                    <RadzenButton @ref="refEditButton" Click="() => OnAddEditClickAsync(context)" IsBusy="IsBusy">Edit</RadzenButton>
+                    <RadzenButton @ref="refDeleteButton" Click="() => OnDeleteClickAsync(context)" IsBusy="IsBusy">Delete</RadzenButton>               
+                </div>
             </div>
-            <div class="col">
-                <RadzenButton Click="() => OnAddEditClickAsync(context)">Edit</RadzenButton>
-                <RadzenButton Click="() => OnDeleteClickAsync(context)">Delete</RadzenButton>               
-            </div>
-        </div>
-    </Template>
-</RadzenDataList>
+        </Template>
+    </RadzenDataList>
+}
 
-<RadzenButton Click="() => OnAddEditClickAsync(null)">Add</RadzenButton>
-<RadzenButton Click="() => dialogService.Close()">Close</RadzenButton>
+<hr />
+<div class="d-flex justify-content-between m-2">
+    <RadzenButton @ref="refAddButton" Click="() => OnAddEditClickAsync(null)" IsBusy="IsBusy">Add</RadzenButton>
+    <RadzenButton Click="() => dialogService.Close()" IsBusy="IsBusy" ButtonStyle="ButtonStyle.Secondary">Close</RadzenButton>
+</div>
 
 @code {
+    bool IsBusy { get; set; } = false;
+
+    RadzenButton refAddButton;
+    RadzenButton refEditButton;
+    RadzenButton refDeleteButton;
 
     async void OnDeleteClickAsync(Bank bank)
     {
-        await Model.DeleteBankAsync(bank.Id);
+        try
+        {
+            IsBusy = true;
+            await Model.DeleteBankAsync(bank.Id);
+        }
+        finally
+        {
+            IsBusy = false;
+        }
     }
 
     async void OnAddEditClickAsync(Bank bank)
     {
-        var name = await dialogService.OpenInput("Bank Name", bank?.Name);
-        if (name == null)
-            return;
-
-        bank = new Bank()
+        try
+        {
+            IsBusy = true;
+            var name = await dialogService.OpenInput($"{(bank?.Name == null ? "Add" : "Edit")} Bank", "Please enter bank name", bank?.Name);
+            if (name == null)
+            {
+                return;
+            }
+            bank = new Bank()
             {
                 Id = bank?.Id ?? Guid.Empty,
                 Name = name
             };
 
-        await Model.UpsertBankAsync(bank);
+            await Model.UpsertBankAsync(bank);           
+        }
+        finally
+        {
+            IsBusy = false;
+            StateHasChanged();
+        }
     }
 }

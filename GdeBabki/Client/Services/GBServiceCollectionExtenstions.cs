@@ -34,9 +34,9 @@ namespace GdeBabki.Client.Services
             return services;
         }
 
-        public async static Task<string> OpenInput(this DialogService dialogService, string title, string value)
+        public async static Task<string> OpenInput(this DialogService dialogService, string title, string caption, string value)
         {
-            var result = await dialogService.OpenAsync<InputDialog>(title, new Dictionary<string, object>() { { "Value", value } });
+            var result = await dialogService.OpenAsync<InputDialog>(title, new Dictionary<string, object>() { { "Value", value }, { "Caption", caption } });
             return result;
         }
     }

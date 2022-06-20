@@ -18,7 +18,7 @@ namespace GdeBabki.Server.Services
             this.userService = userService;
         }
 
-        public async Task<bool> UserHasDbAccess()
+        public async Task<bool> UserHasDbAccessAsync()
         {
             try
             {
@@ -33,12 +33,12 @@ namespace GdeBabki.Server.Services
             return true;
         }
 
-        public async Task CreateDatabase()
+        public async Task CreateDatabaseAsync()
         {
-            var dbPath = userService.DBFilePath;
-            if (File.Exists(dbPath))
+            var dbFilePath = userService.DBFilePath;
+            if (File.Exists(dbFilePath))
             {
-                throw new DuplicateNameException($"Database {dbPath} alredy exists");
+                throw new DuplicateNameException($"Database {dbFilePath} alredy exists");
             }
             
             var options = new DbContextOptionsBuilder<BabkiDbContext>();
