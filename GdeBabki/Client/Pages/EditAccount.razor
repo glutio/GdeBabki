@@ -38,15 +38,7 @@
 
     async Task OnSaveClickAsync()
     {
-        try
-        {
-            Model.IsBusy = true;
-            await Save.InvokeAsync(Account);            
-        }
-        finally
-        {
-            Model.IsBusy = false;
-        }
+        await Save.InvokeAsync(Account);            
     }
 
     async Task OnCancelClickAsync()

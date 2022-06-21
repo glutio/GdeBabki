@@ -41,27 +41,33 @@ namespace GdeBabki.Client.ViewModel
 
                 var tagDateAmount = TransactionsQuery
                     .SelectMany(e => e.Tags
-                        .Select(t => new { Tag = t, e.Date, Amount = -1 * e.Amount }));
+                        .Select(t => new { Tag = t, e.Date, Amount = Math.Abs(e.Amount) }));
 
                 var tagSameMonthAmount = tagDateAmount
                     .GroupBy(e => new { e.Tag, Date = new DateTime(e.Date.Year, e.Date.Month, 1) })
                     .Select(g => new { g.Key.Tag, g.Key.Date, Amount = g.Sum(e => e.Amount) });
 
 
-                var now = DateTime.Now;
-                var lastSixMonths = Enumerable.Range(1, 6).Select(e => new DateTime(now.AddMonths(-e).Year, now.AddMonths(-e).Month, 1));
-                var interestingTags = tagSameMonthAmount.Where(e => e.Date > now.AddMonths(-6))
+                var lastSixMonths = tagSameMonthAmount
+                    .Select(e => e.Date)
+                    .Distinct()
+                    .OrderByDescending(e => e.Date)
+                    .Take(6)
+                    .ToList();
+
+                var interestingTags = tagSameMonthAmount
                     .GroupBy(e => e.Tag)
-                    .Where(g => g == null || g.Count() == 0 || g.All(e => lastSixMonths.All(m => e.Date == m)))
-                    .Select(g => g.Key);
+                    .Where(g => lastSixMonths.All(e => g.Any(m => m.Date == e)))
+                    .Select(g => g.Key)
+                    .ToList();
 
                 var tagAmount = tagSameMonthAmount
+                    .Where(e => interestingTags.Any(t => t == e.Tag))
                     .GroupBy(e => e.Tag)
                     .Select(g => new { Tag = g.Key, Amount = g.Sum(e => e.Amount) / g.Count() });
 
                 var averageMonthlySpendingByTag = tagAmount
                     .Select(e => new KeyValuePair<string, decimal>(e.Tag, e.Amount))
-                    //.Where(e => interestingTags.Any(t => t == e.Key))
                     .OrderByDescending(e => e.Value)
                     .Take(10);
 
@@ -82,10 +88,37 @@ namespace GdeBabki.Client.ViewModel
                     .GroupBy(e => new DateTime(e.Date.Year, e.Date.Month, 1))
                     .OrderByDescending(g => g.Key)
                     .Take(12)
-                    .Select(g => new KeyValuePair<string, decimal>(g.Key.ToTransactionMonthYear(), g.Sum(e => -1 * e.Amount)));
+                    .Select(g => new KeyValuePair<string, decimal>(g.Key.ToTransactionMonthYear(), g.Sum(e => Math.Abs(e.Amount))));
 
 
                 return spendingByMonth.ToList();
+            }
+        }
+
+        public List<KeyValuePair<string, decimal>> SpendingByTagThisMonth
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(SelectedMonth))
+                {
+                    return null;
+                }
+
+                var month = DateTime.Parse(SelectedMonth);
+
+                var thisMonth = TransactionsQuery
+                    .Where(e => e.Date.Month == month.Month && e.Date.Year == month.Year);
+
+                var tagsAmount = thisMonth
+                    .SelectMany(e => e.Tags
+                        .Select(t => new { Tag = t, Amount = Math.Abs(e.Amount) }))
+                    .GroupBy(e => e.Tag)
+                    .Select(g => new KeyValuePair<string, decimal>(g.Key, g.Sum(e => e.Amount))).ToList();
+
+                var untagged = new KeyValuePair<string, decimal>("_", thisMonth.Where(e => e.Tags.IsNullOrEmpty()).Sum(e => Math.Abs(e.Amount)));
+                tagsAmount.Add(untagged);
+
+                return tagsAmount.ToList();
             }
         }
 
@@ -114,12 +147,12 @@ namespace GdeBabki.Client.ViewModel
         public IEnumerable<Transaction> TransactionsQuery => Transactions.IsNullOrEmpty()
             ? null
             : Transactions
-                .Where(e => e.Amount < 0)
+                //.Where(e => e.Amount < 0)
                 .Where(e => ExcludeTags.IsNullOrEmpty() || !e.Tags.Any(t => ExcludeTags.Any(e => t == e)));
 
         public List<string> ExcludeTags { get; set; } = new List<string>();
         public List<Account> Accounts { get; set; }
         public IEnumerable<Guid> SelectedAccounts { get; set; }
-
+        public string SelectedMonth { get; set; }
     }
 }
