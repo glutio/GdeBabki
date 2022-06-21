@@ -19,6 +19,11 @@ namespace GdeBabki.Client.ViewModel
 
         public override async Task OnInitializedAsync()
         {
+            if (IsLoaded)
+            {
+                return;
+            }
+
             var tasks = new Task[]
             {
                 Task.Run(async () => Accounts = await accountsApi.GetAccountsAsync()),

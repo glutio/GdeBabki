@@ -74,7 +74,10 @@
                 <RadzenLegend Visible="false" />
                 <RadzenColumnOptions Radius="5" />
             </RadzenChart>
-            <p>Average @spendingByMonth.Average(e => e.Value).ToCurrencyString()</p>
+            <p>
+                <b>Average</b> @spendingByMonth.Average(e => e.Value).ToCurrencyString() &nbsp;
+                <b>Total</b> @spendingByMonth.Sum(e => e.Value).ToCurrencyString();
+            </p>
         }
     </div>
 

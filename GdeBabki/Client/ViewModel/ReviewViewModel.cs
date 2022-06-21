@@ -23,7 +23,6 @@ namespace GdeBabki.Client.ViewModel
         public List<Transaction> TransactionsView { get; private set; }
         public int TransactionsCount { get; set; }
 
-
         IList<Transaction> selectedTransactions;
         public IList<Transaction> SelectedTransactions { 
             get 
@@ -41,8 +40,22 @@ namespace GdeBabki.Client.ViewModel
         }
         public IList<Transaction> ActiveTransactions => SelectedTransactions.IsNullOrEmpty() ? TransactionsQuery : SelectedTransactions;
 
+        public FilterOperator TagsFilterOperator { get; set; } = FilterOperator.GreaterThan;
+        public FilterOperator AmountFilterOperator { get; set; } = FilterOperator.Equals;
+        public FilterOperator DescriptionFilterOperator { get; set; } = FilterOperator.Contains;
+        public FilterOperator DateFilterOperator { get; set; } = FilterOperator.Equals;
+
+        public object AmountFilterValue { get; set; }
+        public object DescriptionFilterValue { get; set; }
+        public object DateFilterValue { get; set; }
+
+        public SortOrder DateSortOrder { get; set; }
+        public SortOrder AmountSortOrder { get; set; }
+        public SortOrder DescriptionSortOrder { get; set; }
+
+        public int CurrentPage { get; set; }
+
         public List<string> FilterTags { get; set; } = new List<string>();
-        public FilterOperator TagsFilterOperator { get; set; }
         public List<string> SharedTags
         {
             get
@@ -74,6 +87,11 @@ namespace GdeBabki.Client.ViewModel
 
         public override async Task OnInitializedAsync()
         {
+            if (IsLoaded)
+            {                
+                return;
+            }
+
             Accounts = await accountsApi.GetAccountsAsync();
             if (SelectedAccounts == null)
             {
@@ -84,11 +102,60 @@ namespace GdeBabki.Client.ViewModel
             IsLoaded = true;
         }
 
+        public IQueryable<Transaction> AddTagsFilter(IQueryable<Transaction> query)
+        {
+            if (FilterTags.Count > 0)
+            {
+                switch (TagsFilterOperator)
+                {
+                    case FilterOperator.Equals: // e.Tag equals A B
+                        query = query.Where(e => !e.Tags.IsNullOrEmpty() && e.Tags.All(t => FilterTags.Any(f => t == f)));
+                        break;
+                    case FilterOperator.NotEquals: // e.Tag not equals A B
+                        query = query.Where(e => !e.Tags.IsNullOrEmpty() && FilterTags.All(f => e.Tags.All(t => t != f)));
+                        break;
+                    case FilterOperator.IsNull: // e.Tag is null or includes A || B
+                        query = query.Where(e => e.Tags.IsNullOrEmpty() || e.Tags.Any(t => FilterTags.Any(f => f == t)));
+                        break;
+                    case FilterOperator.IsNotNull: // e.Tag includes A | B
+                        query = query.Where(e => e.Tags.Any(t => FilterTags.Any(f => f == t)));
+                        break;
+                    case FilterOperator.GreaterThan: // e.Tag includes A | B
+                        query = query.Where(e => e.Tags.Any(t => FilterTags.Any(f => f == t)));
+                        break;
+                    case FilterOperator.GreaterThanOrEquals: // e.Tag includes A && B
+                        query = query.Where(e => FilterTags.All(f => e.Tags.Any(t => t == f)));
+                        break;
+                    case FilterOperator.LessThan: // e.Tag excludes A | B
+                        query = query.Where(e => FilterTags.Any(t => !e.Tags.Any(f => f == t)));
+                        break;
+                    case FilterOperator.LessThanOrEquals: // e.Tag excludes A & B
+                        query = query.Where(e => FilterTags.All(f => !e.Tags.Any(t => t == f)));
+                        break;
+                    default: // e.Tag includes A | B
+                        query = query.Where(e => e.Tags.Any(t => FilterTags.Any(f => f == t)));
+                        break;
+                }
+            }
+            else
+            {
+                switch (TagsFilterOperator)
+                {
+                    case FilterOperator.IsNotNull:
+                        query = query.Where(e => !e.Tags.IsNullOrEmpty());
+                        break;
+                    case FilterOperator.IsNull:
+                        query = query.Where(e => e.Tags.IsNullOrEmpty());
+                        break;
+                }
+
+            }
+
+            return query;
+        }
+
         public void LoadData(LoadDataArgs args)
         {
-            Stopwatch sw = new Stopwatch();
-            sw.Start();
-            Console.WriteLine("load data");
             if (!IsFrozen)
             {
                 var query = Transactions.AsQueryable();
@@ -97,52 +164,7 @@ namespace GdeBabki.Client.ViewModel
                     query = query.Where(args.Filter);
                 }
 
-                if (FilterTags.Count > 0)
-                {
-                    switch (TagsFilterOperator)
-                    {
-                        case FilterOperator.Equals: // e.Tag equals A B
-                            query = query.Where(e => !e.Tags.IsNullOrEmpty() && e.Tags.All(t => FilterTags.Any(f => t == f)));
-                            break;
-                        case FilterOperator.NotEquals: // e.Tag not equals A B
-                            query = query.Where(e => !e.Tags.IsNullOrEmpty() && FilterTags.All(f => e.Tags.All(t => t != f)));
-                            break;
-                        case FilterOperator.IsNull: // e.Tag is null or includes A || B
-                            query = query.Where(e => e.Tags.IsNullOrEmpty() || e.Tags.Any(t => FilterTags.Any(f => f == t)));
-                            break;
-                        case FilterOperator.IsNotNull: // e.Tag includes A | B
-                            query = query.Where(e => e.Tags.Any(t => FilterTags.Any(f => f == t)));
-                            break;
-                        case FilterOperator.GreaterThan: // e.Tag includes A | B
-                            query = query.Where(e => e.Tags.Any(t => FilterTags.Any(f => f == t)));
-                            break;
-                        case FilterOperator.GreaterThanOrEquals: // e.Tag includes A && B
-                            query = query.Where(e => FilterTags.All(f => e.Tags.Any(t => t == f)));
-                            break;
-                        case FilterOperator.LessThan: // e.Tag excludes A | B
-                            query = query.Where(e => FilterTags.Any(t => !e.Tags.Any(f => f == t)));
-                            break;
-                        case FilterOperator.LessThanOrEquals: // e.Tag excludes A & B
-                            query = query.Where(e => FilterTags.All(f => !e.Tags.Any(t => t == f)));
-                            break;
-                        default: // e.Tag includes A | B
-                            query = query.Where(e => e.Tags.Any(t => FilterTags.Any(f => f == t)));
-                            break;
-                    }
-                }
-                else
-                {
-                    switch (TagsFilterOperator)
-                    {
-                        case FilterOperator.IsNotNull:
-                            query = query.Where(e => !e.Tags.IsNullOrEmpty());
-                            break;
-                        case FilterOperator.IsNull:
-                            query = query.Where(e => e.Tags.IsNullOrEmpty());
-                            break;
-                    }
-
-                }
+                query = AddTagsFilter(query);
 
                 if (!string.IsNullOrEmpty(args.OrderBy))
                 {
@@ -151,12 +173,15 @@ namespace GdeBabki.Client.ViewModel
 
                 TransactionsQuery = query.ToList();
                 TransactionsCount = query.Count();
+
+                if (!SelectedTransactions.IsNullOrEmpty())
+                {
+                    SelectedTransactions = SelectedTransactions.Intersect(TransactionsQuery).ToList();
+                }
             }
 
             TransactionsView = TransactionsQuery.Skip(args.Skip.Value).Take(args.Top.Value).ToList();
 
-            sw.Stop();
-            Console.WriteLine(sw.ElapsedMilliseconds);
             IsFrozen = true;
         }
 

@@ -21,16 +21,19 @@ namespace GdeBabki.Client.Services
             services.AddSingleton<TagsApi>();
             services.AddSingleton<UserApi>();
 
+
             services.AddTransient<AccountsViewModel>();
             services.AddTransient<BanksViewModel>();
             services.AddTransient<EditAccountViewModel>();
             services.AddTransient<ImportViewModel>();
             services.AddTransient<ErrorViewModel>();
-            services.AddTransient<ReviewViewModel>();
             services.AddTransient<EditTagsViewModel>();
             services.AddTransient<PopupViewModel>();
-            services.AddTransient<AnalysisViewModel>();
             services.AddTransient<LoginViewModel>();
+
+            services.AddSingleton<ReviewViewModel>();
+            services.AddSingleton<AnalysisViewModel>();
+
             return services;
         }
 
