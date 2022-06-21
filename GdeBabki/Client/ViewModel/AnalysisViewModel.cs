@@ -47,11 +47,11 @@ namespace GdeBabki.Client.ViewModel
                     .GroupBy(e => new { e.Tag, Date = new DateTime(e.Date.Year, e.Date.Month, 1) })
                     .Select(g => new { g.Key.Tag, g.Key.Date, Amount = g.Sum(e => e.Amount) });
 
-
                 var lastSixMonths = tagSameMonthAmount
                     .Select(e => e.Date)
                     .Distinct()
                     .OrderByDescending(e => e.Date)
+                    .Skip(1)
                     .Take(6)
                     .ToList();
 
@@ -107,7 +107,8 @@ namespace GdeBabki.Client.ViewModel
                 var month = DateTime.Parse(SelectedMonth);
 
                 var thisMonth = TransactionsQuery
-                    .Where(e => e.Date.Month == month.Month && e.Date.Year == month.Year);
+                    .Where(e => e.Date.Month == month.Month && e.Date.Year == month.Year)
+                    .ToList();
 
                 var tagsAmount = thisMonth
                     .SelectMany(e => e.Tags
@@ -115,8 +116,11 @@ namespace GdeBabki.Client.ViewModel
                     .GroupBy(e => e.Tag)
                     .Select(g => new KeyValuePair<string, decimal>(g.Key, g.Sum(e => e.Amount))).ToList();
 
-                var untagged = new KeyValuePair<string, decimal>("_", thisMonth.Where(e => e.Tags.IsNullOrEmpty()).Sum(e => Math.Abs(e.Amount)));
-                tagsAmount.Add(untagged);
+                if (!thisMonth.IsNullOrEmpty())
+                {
+                    var untagged = new KeyValuePair<string, decimal>("_", thisMonth.Where(e => e.Tags.IsNullOrEmpty()).Sum(e => Math.Abs(e.Amount)));
+                    tagsAmount.Add(untagged);
+                }
 
                 return tagsAmount.ToList();
             }
