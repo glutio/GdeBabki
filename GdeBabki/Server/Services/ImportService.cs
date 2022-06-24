@@ -5,6 +5,8 @@ using GdeBabki.Shared;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.IO;
+using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace GdeBabki.Server.Services
@@ -47,16 +49,29 @@ namespace GdeBabki.Server.Services
         private GBTransaction ParseTransaction(string[] line, GBColumnName?[] filter)
         {
             var transaction = new GBTransaction();
-
+            
             for (var i = 0; i < filter.Length; i++)
             {
+                if (filter[i] != null && line.Length <= i)
+                {
+                    return null;
+                }
+
                 switch (filter[i])
                 {
                     case GBColumnName.TransactionId:
                         transaction.TransactionId = line[i];
                         break;
                     case GBColumnName.Amount:
-                        if (decimal.TryParse(line[i], out decimal amount))
+                        var sb = new StringBuilder();
+                        foreach(var c in line[i])
+                        {
+                            if (c=='-' || c == '.' || (c >= '0' && c <= '9'))
+                            {
+                                sb.Append(c);
+                            }
+                        }
+                        if (decimal.TryParse(sb.ToString(), out decimal amount))
                         {
                             transaction.Amount = amount;
                             break;

@@ -66,7 +66,14 @@ namespace GdeBabki.Client.ViewModel
 
                 if (SampleLines.Count > 0)
                 {
-                    ColumnMapping = new GBColumnName?[SampleLines[0].Length];
+                    ColumnMapping = new GBColumnName?[SampleLines.Select(e=>e.Length).Max()];
+                }
+
+                for(int i = 0; i < SampleLines.Count; i++)
+                {
+                    var array = SampleLines[i];
+                    Array.Resize(ref array, ColumnMapping.Length);
+                    SampleLines[i] = array;
                 }
             }
             finally
