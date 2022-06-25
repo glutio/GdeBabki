@@ -214,6 +214,7 @@ namespace GdeBabki.Client.ViewModel
                 {
                     Transactions.Remove(transaction);
                 }
+                SelectedTransactions = null;
             }
             finally
             {
