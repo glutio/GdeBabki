@@ -83,6 +83,7 @@ namespace GdeBabki.Client.ViewModel
             userService.LoginInfo = new LoginInfo() { UserName = UserName, Password = Password };
             try
             {
+                IsBusy = true;
                 await userApi.Create();
             }
             catch (Exception e)
@@ -90,6 +91,10 @@ namespace GdeBabki.Client.ViewModel
                 userService.LoginInfo = null;
                 errorService.AddError(e.ToString());
                 return false;
+            }
+            finally
+            {
+                IsBusy = false;
             }
 
             errorService.AddSuccess("New user registered successfully");
