@@ -22,8 +22,9 @@ namespace GdeBabki.Server.Controllers
 
         [Authorize]
         [HttpGet]
-        public IActionResult TestDatabaseConnection()
-        {            
+        public async Task<IActionResult> TestDatabaseConnection()
+        {
+            await databaseService.MigrateDatabaseAsync();
             return Ok();
         }
 

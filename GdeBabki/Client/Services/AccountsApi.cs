@@ -1,9 +1,12 @@
 ﻿using GdeBabki.Shared.DTO;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace GdeBabki.Client.Services
@@ -26,6 +29,17 @@ namespace GdeBabki.Client.Services
             var model = await response.Content.ReadFromJsonAsync<List<Transaction>>();
 
             return model;
+        }
+
+        public async Task DeleteTrasactionsAsync(IEnumerable<Guid> transactionIds)
+        {
+            var httpClient = httpFactory.CreateClient();
+            var request = new HttpRequestMessage(HttpMethod.Delete, "api/Accounts/Transactions");
+
+            request.Content = new StringContent(JsonConvert.SerializeObject(transactionIds), Encoding.UTF8, "application/json");
+            var response = await httpClient.SendAsync(request);
+
+            response.EnsureSuccessStatusCode();
         }
 
         public async Task<Guid> UpsertTransactionAsync(Transaction account)
@@ -92,7 +106,7 @@ namespace GdeBabki.Client.Services
         public async Task DeleteBankAsync(Guid bankId)
         {
             var httpClient = httpFactory.CreateClient();
-            var response = await httpClient.DeleteAsync($"api/Accounts/Banks?id={bankId}");
+            var response = await httpClient.DeleteAsync($"api/Accounts/Banks?bankId={bankId}");
             response.EnsureSuccessStatusCode();
 
             BanksUpdated?.Invoke(this, EventArgs.Empty);

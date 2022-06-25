@@ -22,18 +22,17 @@ namespace GdeBabki.Server.Services
         {
             using var db = await dbFactory.CreateDbContextAsync();
 
+            var dbTransaction = await db.Database.BeginTransactionAsync();
             var isExisting = await db.Tags.AnyAsync(e => e.Id == insertTag.TagId);
             if (!isExisting)
             {
                 db.Tags.Add(new GBTag() { Id = insertTag.TagId });
             }
-            //isExisting = await db.TagsTransactions.AnyAsync(e => e.TagId == insertTag.TagId && e.TransactionId == insertTag.TransactionId);
-            //if (!isExisting)
-            //{
+
             db.TagsTransactions.Add(new GBTagGBTransaction() { TagId = insertTag.TagId, TransactionId = insertTag.TransactionId });
-            //}
 
             await db.SaveChangesAsync();
+            await db.Database.CommitTransactionAsync();
         }
 
         public async Task DeleteTagAsync(string tagId, Guid transactionId)

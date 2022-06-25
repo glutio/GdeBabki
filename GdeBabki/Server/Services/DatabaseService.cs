@@ -33,6 +33,12 @@ namespace GdeBabki.Server.Services
             return true;
         }
 
+        public async Task MigrateDatabaseAsync()
+        {
+            using var db = await dbFactory.CreateDbContextAsync();
+            await db.Database.MigrateAsync();
+        }
+
         public async Task CreateDatabaseAsync()
         {
             var dbFilePath = userService.DBFilePath;

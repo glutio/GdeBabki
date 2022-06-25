@@ -5,7 +5,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Radzen;
 using System;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace GdeBabki.Client
@@ -25,7 +24,7 @@ namespace GdeBabki.Client
 
             builder.Services.AddBabkiServices();
             builder.Services.AddScoped<DialogService>();
-
+            builder.Services.AddScoped<ContextMenuService>();
             //AppDomain.CurrentDomain.UnhandledException += (s, e) =>
             //{
             //    var errorService = builder.Services.BuildServiceProvider().GetService<ErrorService>();

@@ -1,5 +1,6 @@
 ﻿@page "/review"
 @inherits ViewBase<ReviewViewModel>
+@inject ContextMenuService ContextMenuService
 
 <BusyLoad Model="Model">
     <RadzenCard Style="width: 100%;">
@@ -27,8 +28,8 @@
     }
     <RadzenDataGrid @ref="refGrid" TItem="Transaction" Data="Model.TransactionsView" AllowPaging="true" FilterMode="FilterMode.SimpleWithMenu" LoadData="Model.LoadData"
                 AllowFiltering="true" AllowColumnResize="true" Count="Model.TransactionsCount" PageSize="10" PagerHorizontalAlign="HorizontalAlign.Center" AllowSorting="true" 
-                SelectionMode="DataGridSelectionMode.Multiple" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" Filter="OnColumnFilterAsync" @bind-Value="Model.SelectedTransactions" Page="OnPageAsync"
-                 Sort="OnColumnSort">
+                SelectionMode="DataGridSelectionMode.Multiple" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" Filter="OnColumnFilterAsync" 
+                @bind-Value="Model.SelectedTransactions" Page="OnPageAsync" Sort="OnSort" CellContextMenu="OnContextMenuAsync">
         <Columns>
             <RadzenDataGridColumn TItem="Transaction" Sortable="false" Filterable="false" Width="3rem">
                 <HeaderTemplate>
@@ -130,11 +131,11 @@
         base.OnInitialized();
     }
 
-    protected override void OnAfterRender(bool firstRender)
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (refGrid != null)
         {
-            refGrid.GoToPage(Model.CurrentPage);
+            await refGrid.GoToPage(Model.CurrentPage);
         }
 
         base.OnAfterRender(firstRender);
@@ -162,12 +163,29 @@
         await ReloadGridAsync();
     }
 
-    void OnColumnSort()
+    void OnSort()
     {
         Model.IsFrozen = false;
     }
 
-    async Task ReloadTransactions(MouseEventArgs e)
+    void OnContextMenuAsync(DataGridCellMouseEventArgs<Transaction> args)
+    {
+        if (Model.SelectedTransactions.IsNullOrEmpty())
+        {
+            return;
+        }
+
+        ContextMenuService.Open(args, new List<ContextMenuItem>()
+        {
+            new ContextMenuItem() { Text = "Remove selected", Value = new Func<Task>(async () => {
+                await Model.DeleteTransactionAsync();
+                await ReloadGridAsync();
+            }) }
+        }, async e => await ((Func<Task>)e.Value)() );
+     }
+
+
+    async Task ReloadTransactions(MouseEventArgs args)
     {
         await ReloadGridAsync();
     }

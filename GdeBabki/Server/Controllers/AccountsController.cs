@@ -60,9 +60,9 @@ namespace GdeBabki.Server.Controllers
         }
 
         [HttpDelete("Banks")]
-        public async Task<IActionResult> DeleteBankAsync(Guid id)
+        public async Task<IActionResult> DeleteBankAsync([FromQuery] Guid bankId)
         {
-            await accountsService.DeleteBankAsync(id);
+            await accountsService.DeleteBankAsync(bankId);
             return Ok();
         }
 
@@ -78,6 +78,13 @@ namespace GdeBabki.Server.Controllers
         {
             var model = await accountsService.UpsertTransactionAsync(transaction);
             return model;
+        }
+
+        [HttpDelete("Transactions")]
+        public async Task<IActionResult> DeleteTransactionsAsync([FromBody]Guid[] transactionIds)
+        {
+            await accountsService.DeleteTransactionsAsync(transactionIds);
+            return Ok();
         }
     }
 }

@@ -41,21 +41,24 @@ namespace GdeBabki.Server.Services
         {
             using var db = await dbFactory.CreateDbContextAsync();
 
-            GBAccount gbAccount;
+            GBAccount gbAccount = new GBAccount()
+            {
+                Id = account.AccountId
+            };
+
             if (account.AccountId != Guid.Empty)
             {
-                gbAccount = await db.Accounts.FirstOrDefaultAsync(e => e.Id == account.AccountId);
+                db.Accounts.Attach(gbAccount);
             }
             else
             {
-                gbAccount = new GBAccount();
                 db.Accounts.Add(gbAccount);
             }
 
             gbAccount.Name = account.Name;
             gbAccount.BankId = account.BankId;
 
-            db.SaveChanges();
+            await db.SaveChangesAsync();
 
             return gbAccount.Id;
         }
@@ -70,7 +73,7 @@ namespace GdeBabki.Server.Services
             };
             db.Accounts.Remove(gbAccount);
 
-            db.SaveChanges();
+            await db.SaveChangesAsync();
         }
 
         public async Task<Bank[]> GetBanksAsync()
@@ -131,11 +134,32 @@ namespace GdeBabki.Server.Services
             return gbTransaction.Id;
         }
 
+        public async Task DeleteTransactionsAsync(Guid[] transactionIds)
+        {
+            using var db = await dbFactory.CreateDbContextAsync();
+            
+            using var dbTransaction = await db.Database.BeginTransactionAsync();
+            foreach (var transactionId in transactionIds)
+            {
+                var gbTransaction = new GBTransaction()
+                {
+                    Id = transactionId,
+                };
+                db.Transactions.Attach(gbTransaction);
+                
+                gbTransaction.IsDeleted = true;
+            }
+
+            await db.SaveChangesAsync();
+            await dbTransaction.CommitAsync();
+        }
+
         public async Task<Transaction[]> GetTransactionsAsync(Guid[] accountIds)
         {
             using var db = await dbFactory.CreateDbContextAsync();
-            var transactions = await db.Transactions.Include(e=>e.Tags)
-                .Where(e => accountIds == null || accountIds.Length == 0 || accountIds.Any(id => id == e.AccountId))                
+            var transactions = await db.Transactions.Include(e => e.Tags)
+                .Where(e => e.IsDeleted == false)                
+                .Where(e => accountIds == null || accountIds.Length == 0 || accountIds.Any(id => id == e.AccountId))
                 .Select(e => new Transaction()
                 {
                     Id = e.Id,
@@ -169,23 +193,22 @@ namespace GdeBabki.Server.Services
 
             gbBank.Name = bank.Name;
 
-            db.SaveChanges();
+            await db.SaveChangesAsync();
 
             return gbBank.Id;
         }
 
-        public async Task DeleteBankAsync([FromQuery] Guid id)
+        public async Task DeleteBankAsync(Guid bankId)
         {
             using var db = await dbFactory.CreateDbContextAsync();
 
             var gbBank = new GBBank()
             {
-                Id = id
+                Id = bankId
             };
-            db.Banks.Attach(gbBank);
             db.Banks.Remove(gbBank);
 
-            db.SaveChanges();
+            await db.SaveChangesAsync();
         }
 
     }

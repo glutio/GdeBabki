@@ -17,16 +17,16 @@
         @if (Model.IsNewUser)
         {
             <p>Confirm password</p>
-            <RadzenPassword @bind-Value="Model.ConfirmPassword" s></RadzenPassword>
-            <RadzenButton Text="Create" Click="OnCreateButtonClickedAsync"></RadzenButton>   
+            <RadzenPassword @bind-Value="Model.ConfirmPassword"></RadzenPassword>
+            <RadzenButton Text="Register" Click="OnCreateButtonClickedAsync"></RadzenButton>   
             <hr />
-            <RadzenButton Text="Existing user" Click="() => Model.IsNewUser = false"></RadzenButton>   
+            <RadzenButton Text="Login existing user" Click="() => Model.IsNewUser = false"></RadzenButton>   
         }
         else
         {
             <RadzenButton Text="Login" Click="OnLoginButtonClickedAsync"></RadzenButton>
             <hr />
-            <RadzenButton Text="New user" Click="() => Model.IsNewUser = true"></RadzenButton>   
+            <RadzenButton Text="Register new user" Click="() => Model.IsNewUser = true"></RadzenButton>   
         }
     </RadzenCard>
 </BusyLoad>

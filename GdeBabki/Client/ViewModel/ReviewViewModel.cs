@@ -1,5 +1,6 @@
 ﻿using GdeBabki.Client.Services;
 using GdeBabki.Shared.DTO;
+using Microsoft.AspNetCore.Http.Features;
 using Radzen;
 using System;
 using System.Collections.Generic;
@@ -24,19 +25,20 @@ namespace GdeBabki.Client.ViewModel
         public int TransactionsCount { get; set; }
 
         IList<Transaction> selectedTransactions;
-        public IList<Transaction> SelectedTransactions { 
-            get 
-            { 
-                return selectedTransactions;  
-            } 
-            set 
-            { 
-                if (value != selectedTransactions) 
-                { 
+        public IList<Transaction> SelectedTransactions
+        {
+            get
+            {
+                return selectedTransactions;
+            }
+            set
+            {
+                if (value != selectedTransactions)
+                {
                     selectedTransactions = value;
                     RaisePropertyChanged();
-                } 
-            } 
+                }
+            }
         }
         public IList<Transaction> ActiveTransactions => SelectedTransactions.IsNullOrEmpty() ? TransactionsQuery : SelectedTransactions;
 
@@ -66,8 +68,8 @@ namespace GdeBabki.Client.ViewModel
                 var sharedTags = ActiveTransactions
                     .SelectMany(e => e.Tags)
                     .Distinct()
-                    .Where(tag => 
-                        ActiveTransactions.All(tran => 
+                    .Where(tag =>
+                        ActiveTransactions.All(tran =>
                             tran.Tags.Any(e => e == tag)
                      ))
                     .ToList();
@@ -75,7 +77,6 @@ namespace GdeBabki.Client.ViewModel
                 return sharedTags;
             }
         }
-        public bool IsUpdatingSharedTags { get; set; }
 
         public bool IsFrozen { get; set; }
 
@@ -88,7 +89,7 @@ namespace GdeBabki.Client.ViewModel
         public override async Task OnInitializedAsync()
         {
             if (IsLoaded)
-            {                
+            {
                 return;
             }
 
@@ -185,12 +186,34 @@ namespace GdeBabki.Client.ViewModel
             IsFrozen = true;
         }
 
-        private async Task<List<Transaction>> GetTransactionsAsync()
+        async Task<List<Transaction>> GetTransactionsAsync()
         {
             try
             {
                 IsBusy = true;
                 return await accountsApi.GetTransactionsAsync(SelectedAccounts);
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+        }
+
+        public async Task DeleteTransactionAsync()
+        {
+            if (SelectedTransactions.IsNullOrEmpty())
+            {
+                return;
+            }
+
+            try
+            {
+                IsBusy = true;
+                await accountsApi.DeleteTrasactionsAsync(SelectedTransactions.Select(e => e.Id));
+                foreach(var transaction in SelectedTransactions)
+                {
+                    Transactions.Remove(transaction);
+                }
             }
             finally
             {

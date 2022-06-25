@@ -14,5 +14,6 @@ namespace GdeBabki.Server.Model
         public decimal Amount { get; set; }
         public ICollection<GBTagGBTransaction> Tags { get; set; }
         public GBTransactionState State { get; set; }
+        public bool IsDeleted { get; set; }
     }
 }
