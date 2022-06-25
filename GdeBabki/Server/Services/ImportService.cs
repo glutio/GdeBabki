@@ -32,8 +32,8 @@ namespace GdeBabki.Server.Services
                 var transaction = ParseTransaction(line, filter);
                 if (transaction != null)
                 {
-                    transaction.Id = transaction.GetMD5();
                     transaction.AccountId = accountId;
+                    transaction.Id = transaction.GetMD5();
 
                     var isExisting = await db.Transactions.AnyAsync(e => e.Id == transaction.Id);
                     if (!isExisting)
