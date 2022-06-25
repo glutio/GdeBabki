@@ -29,7 +29,7 @@
     <RadzenDataGrid @ref="refGrid" TItem="Transaction" Data="Model.TransactionsView" AllowPaging="true" FilterMode="FilterMode.SimpleWithMenu" LoadData="Model.LoadData"
                 AllowFiltering="true" AllowColumnResize="true" Count="Model.TransactionsCount" PageSize="10" PagerHorizontalAlign="HorizontalAlign.Center" AllowSorting="true" 
                 SelectionMode="DataGridSelectionMode.Multiple" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" Filter="OnColumnFilterAsync" 
-                @bind-Value="Model.SelectedTransactions" Page="OnPageAsync" Sort="OnSort" CellContextMenu="OnContextMenuAsync">
+                @bind-Value="Model.SelectedTransactions" Page="OnPageAsync" Sort="OnSort" CellContextMenu="OnContextMenuAsync" ColumnResized="OnColumnResized">
         <Columns>
             <RadzenDataGridColumn TItem="Transaction" Sortable="false" Filterable="false" Width="3rem">
                 <HeaderTemplate>
@@ -37,7 +37,7 @@
                         Change="@(args => Model.SelectedTransactions = args ? Model.TransactionsQuery.ToList() : null)"></RadzenCheckBox>
                 </HeaderTemplate>
                 <Template>
-                    <RadzenCheckBox TValue="bool" Value="selectedTransactions != null && selectedTransactions.Contains(context)" 
+                    <RadzenCheckBox @onclick:stopPropagation TValue="bool" Value="selectedTransactions != null && selectedTransactions.Contains(context)" 
                     Change="args => refGrid.SelectRow(context)"></RadzenCheckBox>
                 </Template>
             </RadzenDataGridColumn>
@@ -53,8 +53,9 @@
                     }
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="Transaction" Title="Date" Property="Date" Width="8rem" Filterable="true" FormatString="@GBUtility.TRANSACTION_DATE_FORMAT" 
-                            TextAlign="TextAlign.Right" SortOrder="Model.DateSortOrder" FilterOperator="Model.DateFilterOperator" FilterValue="Model.DateFilterValue">
+            <RadzenDataGridColumn TItem="Transaction" Title="Date" Property="@nameof(Transaction.Date)" Filterable="true" FormatString="{0:d MMM yyyy}" TextAlign="TextAlign.Right" 
+                            SortOrder="Model.DataGridColumnState[nameof(Transaction.Date)].SortOrder" FilterOperator="Model.DataGridColumnState[nameof(Transaction.Date)].FilterOperator" 
+                            FilterValue="Model.DataGridColumnState[nameof(Transaction.Date)].FilterValue" Width="@($"{Model.DataGridColumnState[nameof(Transaction.Date)].Width}px")">
                 <Template>
                     @(context.Date.Day)&nbsp;<b>@(context.Date.ToString("MMM"))&nbsp;@context.Date.Year</b>
                 </Template>
@@ -75,8 +76,14 @@
                     }
                 </FooterTemplate>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="Transaction" Title="Description" Property="Description" Filterable="true" FilterValue="Model.DescriptionFilterValue" SortOrder="Model.DescriptionSortOrder" FilterOperator="Model.DescriptionFilterOperator" />
-            <RadzenDataGridColumn TItem="Transaction" Title="Amount" Property="Amount" Width="8rem" Filterable="true" TextAlign="TextAlign.Right" FilterValue="Model.AmountFilterValue" SortOrder="Model.AmountSortOrder" FilterOperator="Model.AmountFilterOperator">
+
+            <RadzenDataGridColumn TItem="Transaction" Title="Description" Property="@nameof(Transaction.Description)" Filterable="true" 
+                        SortOrder="Model.DataGridColumnState[nameof(Transaction.Description)].SortOrder" FilterOperator="Model.DataGridColumnState[nameof(Transaction.Description)].FilterOperator" 
+                        FilterValue="Model.DataGridColumnState[nameof(Transaction.Description)].FilterValue" Width="@($"{Model.DataGridColumnState[nameof(Transaction.Description)].Width}px")" />
+
+            <RadzenDataGridColumn TItem="Transaction" Title="Amount" Property="@nameof(Transaction.Amount)" Filterable="true" TextAlign="TextAlign.Right"
+                            SortOrder="Model.DataGridColumnState[nameof(Transaction.Amount)].SortOrder" FilterOperator="Model.DataGridColumnState[nameof(Transaction.Amount)].FilterOperator" 
+                            FilterValue="Model.DataGridColumnState[nameof(Transaction.Amount)].FilterValue" Width="@($"{Model.DataGridColumnState[nameof(Transaction.Amount)].Width}px")">
                 <Template>
                     @if (context.Amount < 0)
                     {
@@ -94,9 +101,10 @@
                     }
                 </FooterTemplate>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn  @ref="refTagsFilterColumn" TItem="Transaction" Title="Tags" Property="Tags" Filterable="true" Sortable="false" FilterOperator="Model.TagsFilterOperator" >
+            <RadzenDataGridColumn  @ref="refTagsFilterColumn" TItem="Transaction" Title="Tags" Property="@nameof(Transaction.Tags)" Filterable="true" Sortable="false" 
+                FilterOperator="Model.DataGridColumnState[nameof(Transaction.Tags)].FilterOperator" Width="@($"{Model.DataGridColumnState[nameof(Transaction.Tags)].Width}px")">
                 <FilterTemplate>
-                    <EditTags @ref="refTagsFilter" Tags="Model.FilterTags" TagsUpdated="ReloadGridAsync"></EditTags>
+                    <EditTags @ref="refTagsFilter" Tags="Model.TagsFilterValue" TagsUpdated="ReloadGridAsync"></EditTags>
                     <RadzenDataGridFilterMenu Column="refTagsFilterColumn" Grid="refGrid" TItem="Transaction" />
                 </FilterTemplate>
                 <Template>
@@ -152,20 +160,22 @@
         await ReloadGridAsync();
     }
 
-    async Task OnColumnFilterAsync(DataGridColumnFilterEventArgs<Transaction> e)
+    async Task OnColumnFilterAsync(DataGridColumnFilterEventArgs<Transaction> args)
     {
-        if (e.Column == refTagsFilterColumn)
-        {
-            Model.TagsFilterOperator = e.FilterOperator;
-        }
-
+        Model.DataGridColumnState[args.Column.Property].FilterOperator = args.FilterOperator;
         Model.SelectedTransactions = null;
         await ReloadGridAsync();
     }
 
-    void OnSort()
+    void OnSort(DataGridColumnSortEventArgs<Transaction> args)
     {
+        Model.DataGridColumnState[args.Column.Property].SortOrder = args.SortOrder;
         Model.IsFrozen = false;
+    }
+
+    void OnColumnResized(DataGridColumnResizedEventArgs<Transaction> args)
+    {
+        Model.DataGridColumnState[args.Column.Property].Width = args.Width;
     }
 
     void OnContextMenuAsync(DataGridCellMouseEventArgs<Transaction> args)

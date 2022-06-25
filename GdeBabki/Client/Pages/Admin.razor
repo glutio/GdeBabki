@@ -1,0 +1,20 @@
+﻿@page "/admin"
+@inherits ViewBase<AdminViewModel>
+
+<BusyLoad Model="Model">
+    @foreach(var file in Model.DBFiles)
+    {
+        <div>
+            @file
+            <RadzenButton Text="Delete" Click="OnDeleteFileAsync"></RadzenButton>
+        </div>
+        
+    }
+</BusyLoad>
+
+@code {
+    Task OnDeleteFileAsync(MouseEventArgs args)
+    {
+        return Task.CompletedTask;
+    }
+}

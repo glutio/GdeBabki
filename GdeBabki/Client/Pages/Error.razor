@@ -7,7 +7,8 @@
             ErrorService.NotificationType.Info => ("royalblue", "white", "info_outline"),
             ErrorService.NotificationType.Success => ("lightgreen", "black", "task_alt"),
             ErrorService.NotificationType.Warning => ("lightyellow", "black", "warning_amber"),
-            ErrorService.NotificationType.Error => ("crimson", "white", "dangerous")
+            ErrorService.NotificationType.Error => ("crimson", "white", "dangerous"),
+            _ => ("royalblue", "white", "info_outline")
         };
 
         var style = $"background-color:{notificationStyle.background_color};color:{notificationStyle.foreground_color};";

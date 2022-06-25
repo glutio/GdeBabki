@@ -1,10 +1,9 @@
-﻿using GdeBabki.Client.Services;
+﻿using GdeBabki.Client.Pages;
+using GdeBabki.Client.Services;
 using GdeBabki.Shared.DTO;
-using Microsoft.AspNetCore.Http.Features;
 using Radzen;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Linq.Dynamic.Core;
 using System.Threading.Tasks;
@@ -42,22 +41,18 @@ namespace GdeBabki.Client.ViewModel
         }
         public IList<Transaction> ActiveTransactions => SelectedTransactions.IsNullOrEmpty() ? TransactionsQuery : SelectedTransactions;
 
-        public FilterOperator TagsFilterOperator { get; set; } = FilterOperator.GreaterThan;
-        public FilterOperator AmountFilterOperator { get; set; } = FilterOperator.Equals;
-        public FilterOperator DescriptionFilterOperator { get; set; } = FilterOperator.Contains;
-        public FilterOperator DateFilterOperator { get; set; } = FilterOperator.Equals;
-
-        public object AmountFilterValue { get; set; }
-        public object DescriptionFilterValue { get; set; }
-        public object DateFilterValue { get; set; }
-
-        public SortOrder DateSortOrder { get; set; }
-        public SortOrder AmountSortOrder { get; set; }
-        public SortOrder DescriptionSortOrder { get; set; }
-
         public int CurrentPage { get; set; }
 
-        public List<string> FilterTags { get; set; } = new List<string>();
+        public Dictionary<string, Review.DataGridColumnState> DataGridColumnState { get; } = new Dictionary<string, Review.DataGridColumnState>() 
+        { 
+            { nameof(Transaction.Date), new Review.DataGridColumnState() { Width = 100, SortOrder = SortOrder.Descending }  },
+            { nameof(Transaction.Description), new Review.DataGridColumnState() { FilterOperator = FilterOperator.Contains } },
+            { nameof(Transaction.Amount), new Review.DataGridColumnState() { Width = 100 } },
+            { nameof(Transaction.Tags), new Review.DataGridColumnState() { FilterOperator = FilterOperator.GreaterThan }  },
+        };
+
+        public List<string> TagsFilterValue { get; set; } = new List<string>();
+        
         public List<string> SharedTags
         {
             get
@@ -105,42 +100,43 @@ namespace GdeBabki.Client.ViewModel
 
         public IQueryable<Transaction> AddTagsFilter(IQueryable<Transaction> query)
         {
-            if (FilterTags.Count > 0)
+            var filterOperator = DataGridColumnState[nameof(Transaction.Tags)].FilterOperator;
+            if (TagsFilterValue.Count > 0)
             {
-                switch (TagsFilterOperator)
+                switch (filterOperator)
                 {
                     case FilterOperator.Equals: // e.Tag equals A B
-                        query = query.Where(e => !e.Tags.IsNullOrEmpty() && e.Tags.All(t => FilterTags.Any(f => t == f)));
+                        query = query.Where(e => !e.Tags.IsNullOrEmpty() && e.Tags.All(t => TagsFilterValue.Any(f => t == f)));
                         break;
                     case FilterOperator.NotEquals: // e.Tag not equals A B
-                        query = query.Where(e => !e.Tags.IsNullOrEmpty() && FilterTags.All(f => e.Tags.All(t => t != f)));
+                        query = query.Where(e => !e.Tags.IsNullOrEmpty() && TagsFilterValue.All(f => e.Tags.All(t => t != f)));
                         break;
                     case FilterOperator.IsNull: // e.Tag is null or includes A || B
-                        query = query.Where(e => e.Tags.IsNullOrEmpty() || e.Tags.Any(t => FilterTags.Any(f => f == t)));
+                        query = query.Where(e => e.Tags.IsNullOrEmpty() || e.Tags.Any(t => TagsFilterValue.Any(f => f == t)));
                         break;
                     case FilterOperator.IsNotNull: // e.Tag includes A | B
-                        query = query.Where(e => e.Tags.Any(t => FilterTags.Any(f => f == t)));
+                        query = query.Where(e => e.Tags.Any(t => TagsFilterValue.Any(f => f == t)));
                         break;
                     case FilterOperator.GreaterThan: // e.Tag includes A | B
-                        query = query.Where(e => e.Tags.Any(t => FilterTags.Any(f => f == t)));
+                        query = query.Where(e => e.Tags.Any(t => TagsFilterValue.Any(f => f == t)));
                         break;
                     case FilterOperator.GreaterThanOrEquals: // e.Tag includes A && B
-                        query = query.Where(e => FilterTags.All(f => e.Tags.Any(t => t == f)));
+                        query = query.Where(e => TagsFilterValue.All(f => e.Tags.Any(t => t == f)));
                         break;
                     case FilterOperator.LessThan: // e.Tag excludes A | B
-                        query = query.Where(e => FilterTags.Any(t => !e.Tags.Any(f => f == t)));
+                        query = query.Where(e => TagsFilterValue.Any(t => !e.Tags.Any(f => f == t)));
                         break;
                     case FilterOperator.LessThanOrEquals: // e.Tag excludes A & B
-                        query = query.Where(e => FilterTags.All(f => !e.Tags.Any(t => t == f)));
+                        query = query.Where(e => TagsFilterValue.All(f => !e.Tags.Any(t => t == f)));
                         break;
                     default: // e.Tag includes A | B
-                        query = query.Where(e => e.Tags.Any(t => FilterTags.Any(f => f == t)));
+                        query = query.Where(e => e.Tags.Any(t => TagsFilterValue.Any(f => f == t)));
                         break;
                 }
             }
             else
             {
-                switch (TagsFilterOperator)
+                switch (filterOperator)
                 {
                     case FilterOperator.IsNotNull:
                         query = query.Where(e => !e.Tags.IsNullOrEmpty());
