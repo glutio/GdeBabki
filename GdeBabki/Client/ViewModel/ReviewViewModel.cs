@@ -45,9 +45,9 @@ namespace GdeBabki.Client.ViewModel
 
         public Dictionary<string, Review.DataGridColumnState> DataGridColumnState { get; } = new Dictionary<string, Review.DataGridColumnState>() 
         { 
-            { nameof(Transaction.Date), new Review.DataGridColumnState() { Width = 100, SortOrder = SortOrder.Descending }  },
+            { nameof(Transaction.Date), new Review.DataGridColumnState() { Width = 130, SortOrder = SortOrder.Descending }  },
             { nameof(Transaction.Description), new Review.DataGridColumnState() { FilterOperator = FilterOperator.Contains } },
-            { nameof(Transaction.Amount), new Review.DataGridColumnState() { Width = 100 } },
+            { nameof(Transaction.Amount), new Review.DataGridColumnState() { Width = 110 } },
             { nameof(Transaction.Tags), new Review.DataGridColumnState() { FilterOperator = FilterOperator.GreaterThan }  },
         };
 
@@ -220,54 +220,98 @@ namespace GdeBabki.Client.ViewModel
 
         public async Task OnSelectedAccountsChangeAsync()
         {
-            SelectedTransactions = null;
-            Transactions = await GetTransactionsAsync();
+            try
+            {
+                IsBusy = true;
+                SelectedTransactions = null;
+                Transactions = await GetTransactionsAsync();
+            }
+            finally 
+            { 
+                IsBusy = false; 
+            }
+
             RaisePropertyChanged(nameof(Transactions));
         }
 
         public async Task SaveTagAsync(string tag, Guid transactionId)
         {
-            await tagsApi.AddTagAsync(new TransactionTag()
+            try
             {
-                TagId = tag,
-                TransactionId = transactionId
-            });
+                IsBusy = true;
+                await tagsApi.AddTagAsync(new TransactionTag()
+                {
+                    TagId = tag,
+                    TransactionId = transactionId
+                });
+            }            
+            finally
+            {
+                IsBusy = false;
+            }
         }
+
 
         public async Task DeleteTagAsync(string tag, Guid transactionId)
         {
-            await tagsApi.DeleteTagAsync(tag, transactionId);
+            try
+            {
+                IsBusy = true;
+                await tagsApi.DeleteTagAsync(tag, transactionId);
+            }
+            finally
+            {
+                IsBusy = false;
+            }
         }
 
         public async Task SaveSharedTagAsync(string tag)
         {
-            var transactions = ActiveTransactions.Where(e => !e.Tags.Any(t => t == tag));
-
-            await tagsApi.AddSharedTagAsync(new SharedTag()
+            try
             {
-                TagId = tag,
-                TransactionIds = transactions.Select(e => e.Id).ToList()
-            });
+                IsBusy = true;
 
-            foreach (var transaction in transactions)
+                var transactions = ActiveTransactions.Where(e => !e.Tags.Any(t => t == tag));
+
+                await tagsApi.AddSharedTagAsync(new SharedTag()
+                {
+                    TagId = tag,
+                    TransactionIds = transactions.Select(e => e.Id).ToList()
+                });
+
+                foreach (var transaction in transactions)
+                {
+                    transaction.Tags.Add(tag);
+                }
+            }
+            finally
             {
-                transaction.Tags.Add(tag);
+                IsBusy = false;
             }
         }
 
         public async Task DeleteSharedTagAsync(string tag)
         {
-            var transactions = ActiveTransactions.Where(e => e.Tags.Any(t => t == tag));
-
-            await tagsApi.DeleteSharedTagsAsync(new SharedTag()
+            try
             {
-                TagId = tag,
-                TransactionIds = transactions.Select(e => e.Id).ToList()
-            });
+                IsBusy = true;
 
-            foreach (var transaction in transactions)
+                var transactions = ActiveTransactions.Where(e => e.Tags.Any(t => t == tag));
+
+                await tagsApi.DeleteSharedTagsAsync(new SharedTag()
+                {
+                    TagId = tag,
+                    TransactionIds = transactions.Select(e => e.Id).ToList()
+                });
+
+                foreach (var transaction in transactions)
+                {
+                    transaction.Tags.Remove(tag);
+                }
+            }
+            finally
             {
-                transaction.Tags.Remove(tag);
+                IsBusy = false;
             }
         }
     }

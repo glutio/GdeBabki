@@ -17,7 +17,7 @@
             </div>
             <div style="flex:auto"></div>
             <div>
-                <RadzenButton Icon="cached" Click="ReloadTransactions"></RadzenButton>
+                <RadzenButton Icon="cached" Click="ReloadTransactionsAsync"></RadzenButton>
             </div>
         </div>
     </RadzenCard>
@@ -195,36 +195,27 @@
      }
 
 
-    async Task ReloadTransactions(MouseEventArgs args)
+    async Task ReloadTransactionsAsync(MouseEventArgs args)
     {
         await ReloadGridAsync();
     }
 
     async Task ReloadGridAsync()
     {
-        try
-        {
-            Model.IsBusy = true;
-            Model.IsFrozen = false;
-            await refGrid.Reload();
+        Model.IsFrozen = false;
+        await refGrid.Reload();
 
-            var lastPage = Model.TransactionsCount / refGrid.PageSize;
-            if (refGrid.CurrentPage > lastPage)
-            {
-                await refGrid.GoToPage(lastPage);
-            }          
-        }
-        finally
+        var lastPage = Model.TransactionsCount / refGrid.PageSize;
+        if (refGrid.CurrentPage > lastPage)
         {
-            Model.IsBusy = false;
-        }
+            await refGrid.GoToPage(lastPage);
+        }          
     }
 
     async Task SaveTagAsync(CancelEventArgs<string> e, Transaction transaction)
     {
         try
         {
-            Model.IsBusy = true;
             await Model.SaveTagAsync(e.Value, transaction.Id);
         }
         catch
@@ -232,17 +223,12 @@
             e.Cancel = true;
             throw;
         }
-        finally
-        {
-            Model.IsBusy = false;
-        }
     }
 
     async Task DeleteTagAsync(CancelEventArgs<string> e, Transaction transaction)
     {
         try
         {
-            Model.IsBusy = true;
             await Model.DeleteTagAsync(e.Value, transaction.Id);
         }
         catch
@@ -250,17 +236,12 @@
             e.Cancel = true;
             throw;
         }
-        finally
-        {
-            Model.IsBusy = false;
-        }
     }
 
     async Task SaveSharedTagAsync(CancelEventArgs<string> e)
     {
         try
         {
-            Model.IsBusy = true;
             await Model.SaveSharedTagAsync(e.Value);
         }
         catch
@@ -268,27 +249,18 @@
             e.Cancel = true;
             throw;
         }       
-        finally
-        {
-            Model.IsBusy = false;
-        }
     }
 
     async Task DeleteSharedTagAsync(CancelEventArgs<string> e)
     {
         try
         {
-            Model.IsBusy = true;
             await Model.DeleteSharedTagAsync(e.Value);
         }
         catch
         {
             e.Cancel = true;
             throw;
-        }
-        finally
-        {
-            Model.IsBusy = false;
         }
     }
 }
