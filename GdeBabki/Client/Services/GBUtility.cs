@@ -18,7 +18,7 @@ namespace GdeBabki.Client.Services
             ("orange", "yellow"), ("orange", "green"), ("orange", "blue"), ("orange", "black"), ("orange", "white"),
             ("yellow", "red"), ("yellow", "blue"),("yellow", "violet"),("yellow", "black"),("yellow", "gray"),
             ("green", "blue"), ("green", "black"),
-            ("blue", "yellow"), ("blue", "green"), ("blue", "white"),
+            ("blue", "yellow"), ("blue", "white"),
             ("violet", "yellow"), ("violet", "black"), ("violet", "white"),
             ("black", "red"), ("black", "orange"), ("black", "yellow"), ("black", "green"), ("black", "violet"), ("black", "white"), ("black", "gray"),
             ("white", "red"), ("white", "orange"), ("white", "blue"), ("white", "violet"), ("white", "black"), ("white", "gray"),

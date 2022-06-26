@@ -122,17 +122,14 @@ namespace GdeBabki.Client.ViewModel
 
         public async Task OnSelectedAccountsChangedAsync()
         {
-            Reset();
-            try
+            Transactions = await accountsApi.GetTransactionsAsync(SelectedAccounts);
+
+            if (!SelectedTransactions.IsNullOrEmpty())
             {
-                IsBusy = true;
-                Transactions = await accountsApi.GetTransactionsAsync(SelectedAccounts);
-            }
-            finally
-            {
-                IsBusy = false;
+                SelectedTransactions = SelectedTransactions.Intersect(Transactions).ToList();
             }
 
+            IsFrozen = false;
             RaisePropertyChanged(nameof(Transactions));
         }
 
@@ -141,6 +138,7 @@ namespace GdeBabki.Client.ViewModel
             SelectedTransactions = null;
             IsFrozen = false;
             CurrentPage = 0;
+            TagsFilterValue.Clear();
             DataGridColumnState = new Dictionary<string, Review.DataGridColumnState>()
             {
                 { nameof(Transaction.Date), new Review.DataGridColumnState() { Width = 130, SortOrder = SortOrder.Descending }  },
@@ -228,6 +226,9 @@ namespace GdeBabki.Client.ViewModel
                     SelectedTransactions = SelectedTransactions.Intersect(TransactionsQuery).ToList();
                 }
             }
+
+            var pageMax = (int)Math.Ceiling((double)TransactionsCount / args.Top.Value);
+            args.Skip = Math.Min(args.Top.Value * (pageMax - 1), args.Skip.Value);
 
             TransactionsView = TransactionsQuery.Skip(args.Skip.Value).Take(args.Top.Value).ToList();
 
