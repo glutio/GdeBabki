@@ -9,10 +9,12 @@ namespace GdeBabki.Client.ViewModel
     public class BanksViewModel: ViewModelBase
     {
         private readonly AccountsApi accountsApi;
+        private readonly ErrorService errorService;
 
-        public BanksViewModel(AccountsApi accountsApi)
+        public BanksViewModel(AccountsApi accountsApi, ErrorService errorService)
         {
             this.accountsApi = accountsApi;
+            this.errorService = errorService;
             accountsApi.BanksUpdated += AccountsApi_BanksUpdated;
         }
 
@@ -36,7 +38,7 @@ namespace GdeBabki.Client.ViewModel
 
         public async Task UpsertBankAsync(Bank bank)
         {
-            var id = await accountsApi.UpsertBankAsync(bank);
+            await accountsApi.UpsertBankAsync(bank);
         }
 
         public async Task DeleteBankAsync(Guid id)
@@ -44,6 +46,16 @@ namespace GdeBabki.Client.ViewModel
             await accountsApi.DeleteBankAsync(id);
         }
 
+        public bool Validate(string bankName)
+        {
+            if (string.IsNullOrWhiteSpace(bankName))
+            {
+                errorService.AddWarning("Please provide a bank name");
+                return false;
+            }
+
+            return true;
+        }
         public List<Bank> Banks { get; set; }
     }
 }

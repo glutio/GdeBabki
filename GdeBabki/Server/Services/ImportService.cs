@@ -4,6 +4,7 @@ using GdeBabki.Server.Model;
 using GdeBabki.Shared;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -26,7 +27,8 @@ namespace GdeBabki.Server.Services
             var lines = await parser.LoadAsync(stream);
 
             using var db = await dbFactory.CreateDbContextAsync();
-            using var dbTransaction = await db.Database.BeginTransactionAsync();
+
+            var list = new List<GBTransaction>();
             foreach (var line in lines)
             {
                 var transaction = ParseTransaction(line, filter);
@@ -35,21 +37,26 @@ namespace GdeBabki.Server.Services
                     transaction.AccountId = accountId;
                     transaction.Id = transaction.GetMD5();
 
-                    var isExisting = await db.Transactions.AnyAsync(e => e.Id == transaction.Id);
+                    var isExisting = await db.Transactions.AnyAsync(e => e.Id == transaction.Id) || list.Any(e => e.Id == transaction.Id);
                     if (!isExisting)
                     {
-                        db.Transactions.Add(transaction);
+                        list.Add(transaction);
                     }
                 }
             }
+            
+            using var dbTransaction = await db.Database.BeginTransactionAsync();
+            
+            db.Transactions.AddRange(list);            
             await db.SaveChangesAsync();
+
             await dbTransaction.CommitAsync();
         }
 
         private GBTransaction ParseTransaction(string[] line, GBColumnName?[] filter)
         {
             var transaction = new GBTransaction();
-            
+
             for (var i = 0; i < filter.Length; i++)
             {
                 if (filter[i] != null && line.Length <= i)
@@ -64,9 +71,9 @@ namespace GdeBabki.Server.Services
                         break;
                     case GBColumnName.Amount:
                         var sb = new StringBuilder();
-                        foreach(var c in line[i])
+                        foreach (var c in line[i])
                         {
-                            if (c=='-' || c == '.' || (c >= '0' && c <= '9'))
+                            if (c == '-' || c == '.' || (c >= '0' && c <= '9'))
                             {
                                 sb.Append(c);
                             }

@@ -9,10 +9,12 @@ namespace GdeBabki.Client.ViewModel
     public class EditAccountViewModel: ViewModelBase, IDisposable
     {
         private readonly AccountsApi accountsApi;
+        private readonly ErrorService errorService;
 
-        public EditAccountViewModel(AccountsApi accountsApi)
+        public EditAccountViewModel(AccountsApi accountsApi, ErrorService errorService)
         {
             this.accountsApi = accountsApi;
+            this.errorService = errorService;
         }
 
         public override void Dispose()
@@ -32,6 +34,22 @@ namespace GdeBabki.Client.ViewModel
             accountsApi.BanksUpdated += AccountsApi_BanksUpdated;
             Banks = await accountsApi.GetBanksAsync();
             IsLoaded = true;
+        }
+
+        public bool Validate()
+        {
+            if (string.IsNullOrWhiteSpace(Account.Name))
+            {
+                errorService.AddWarning("Please provide account name");
+                return false;
+            }
+            if (Account.Bank.Id == Guid.Empty)
+            {
+                errorService.AddWarning("Please select a bank");
+                return false;
+            }
+
+            return true;
         }
 
         public Account Account { get; set; }

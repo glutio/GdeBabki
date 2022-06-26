@@ -6,12 +6,12 @@
         <div class="row">
             <div class="col-4">
                 <p><b>Account name</b></p>
-                <RadzenTextBox @bind-Value="@Account.Name" Placeholder="account name" class="w-100" />
+                <RadzenTextBox @bind-Value="@Model.Account.Name" class="w-100" />
             </div>
             <div class="col-8">
                 <p><b>Bank</b></p>
                 <div class="d-flex">
-                    <RadzenDropDown TValue="Guid" ValueProperty="Id" @bind-Value="@Account.Bank.Id" Data="Model.Banks" TextProperty="Name" class="w-100 mr-2"/>
+                    <RadzenDropDown TValue="Guid" ValueProperty="Id" @bind-Value="@Model.Account.Bank.Id" Data="Model.Banks" TextProperty="Name" class="w-100 mr-2"/>
                     <RadzenButton Click="OnBanksClickAsync">Banks</RadzenButton>
                 </div>
             </div>
@@ -25,7 +25,7 @@
 
 @code {
     [Parameter]
-    public Account Account { get; set; }
+    public Account Account { get { return Model.Account; } set { Model.Account = value; } }
     [Parameter]
     public EventCallback Cancel { get; set; }
     [Parameter]
@@ -38,7 +38,10 @@
 
     async Task OnSaveClickAsync()
     {
-        await Save.InvokeAsync(Account);            
+        if (Model.Validate())
+        {
+            await Save.InvokeAsync(Account);            
+        };
     }
 
     async Task OnCancelClickAsync()

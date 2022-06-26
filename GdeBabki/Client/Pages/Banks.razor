@@ -36,6 +36,7 @@
         try
         {
             Model.IsBusy = true;
+            await Task.Yield();
             await Model.DeleteBankAsync(bank.Id);
         }
         finally
@@ -48,19 +49,24 @@
     {
         try
         {
-            var name = await dialogService.OpenInput($"{(bank?.Name == null ? "Add" : "Edit")} Bank", "Please enter bank name", bank?.Name);
-            if (name == null)
+            string name;
+            do
             {
-                return;
-            }
+                name = await dialogService.OpenInput($"{(bank?.Name == null ? "Add" : "Edit")} Bank", "Please enter bank name", "");
+                if (name == null)
+                {
+                    return;
+                }
+            } while (!Model.Validate(name));
+
+            Model.IsBusy = true;
+            await Task.Yield();
 
             bank = new Bank()
             {
                 Id = bank?.Id ?? Guid.Empty,
                 Name = name
             };
-
-            Model.IsBusy = true;
             await Model.UpsertBankAsync(bank);           
         }
         finally

@@ -68,37 +68,21 @@ namespace GdeBabki.Client.ViewModel
             RaisePropertyChanged(nameof(EditingAccount));
         }
 
-        public async void DeleteAccountAsync(Guid accountId)
+        public async Task DeleteAccountAsync(Guid accountId)
         {
-            try
-            {
-                IsBusy = true;
-                await accountsApi.DeleteAccountAsync(accountId);
-            }
-            finally
-            {
-                IsBusy = false;
-            }
+            await accountsApi.DeleteAccountAsync(accountId);
         }
 
         public async Task SaveAccountAsync(Account account)
         {
-            try
+            await accountsApi.UpsertAccountAsync(new UpsertAccount()
             {
-                IsBusy = true;
-                await accountsApi.UpsertAccountAsync(new UpsertAccount()
-                {
-                    AccountId = account.Id,
-                    Name = account.Name,
-                    BankId = account.Bank.Id
-                });
-                EditingAccount = null;
-                RaisePropertyChanged(nameof(EditingAccount));
-            }
-            finally
-            {
-                IsBusy = false;
-            }
+                AccountId = account.Id,
+                Name = account.Name,
+                BankId = account.Bank.Id
+            });
+            EditingAccount = null;
+            RaisePropertyChanged(nameof(EditingAccount));
         }
 
         public Account EditingAccount { get; set; }

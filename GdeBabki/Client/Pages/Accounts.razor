@@ -27,8 +27,8 @@
                             </div>
                         </div>
                         <div class="flex-shrink-0">
-                            <RadzenButton Text="Edit" class="ml-2" Click="() => OnEditClick(context)" IsBusy="Model.IsBusy"></RadzenButton>
-                            <RadzenButton Text="Delete" Click="() => OnDeleteClick(context)" ButtonStyle="ButtonStyle.Danger" IsBusy="Model.IsBusy"></RadzenButton>
+                            <RadzenButton Text="Edit" class="ml-2" Click="() => OnEditClick(context)"></RadzenButton>
+                            <RadzenButton Text="Delete" Click="() => OnDeleteClickAsync(context)" ButtonStyle="ButtonStyle.Danger"></RadzenButton>
                         </div>
                     </div>
                 }
@@ -61,7 +61,16 @@
 
     async Task OnEditSaveAsync(Account account)
     {
-        await Model.SaveAccountAsync(account);
+        try
+        {
+            Model.IsBusy = true;
+            await Task.Yield();
+            await Model.SaveAccountAsync(account);
+        }
+        finally
+        {
+            Model.IsBusy = false;
+        }
     }
 
     void OnEditCancel()
@@ -69,8 +78,17 @@
         Model.CancelEditingAccount();
     }
 
-    void OnDeleteClick(Account account)
+    async Task OnDeleteClickAsync(Account account)
     {
-        Model.DeleteAccountAsync(account.Id);
+        try
+        {
+            Model.IsBusy = true;
+            await Task.Yield();
+            await Model.DeleteAccountAsync(account.Id);
+        }
+        finally
+        {
+            Model.IsBusy = false;
+        }
     }
 }
