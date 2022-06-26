@@ -15,9 +15,10 @@ namespace GdeBabki.Client.ViewModel
             this.accountsApi = accountsApi;
         }
 
-        protected override void OnDispose()
+        public override void Dispose()
         {
             accountsApi.BanksUpdated -= AccountsApi_BanksUpdated;
+            base.Dispose();
         }
 
         private async void AccountsApi_BanksUpdated(object sender, EventArgs e)

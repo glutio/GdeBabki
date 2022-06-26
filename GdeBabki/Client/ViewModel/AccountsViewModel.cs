@@ -22,9 +22,10 @@ namespace GdeBabki.Client.ViewModel
             IsLoaded = true;
         }
 
-        protected override void OnDispose()
+        public override void Dispose()
         {
             accountsApi.AccountsUpdated -= AccountsApi_AccountsUpdated;
+            base.Dispose();
         }
 
         private async void AccountsApi_AccountsUpdated(object sender, EventArgs e)

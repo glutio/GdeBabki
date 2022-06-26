@@ -6,7 +6,7 @@
     <RadzenCard Style="width: 100%;">
         <h5>Accounts</h5>
         <RadzenCheckBoxList Data="Model.Accounts" @bind-Value="Model.SelectedAccounts" ValueProperty="Id"
-                        TValue="Guid" TextProperty="FullName" Change="OnSelectedAccountsChangeAsync">
+                        TValue="Guid" TextProperty="FullName" Change="e => OnSelectedAccountsChangedAsync()">
         </RadzenCheckBoxList>
     </RadzenCard>
     <RadzenCard>
@@ -130,10 +130,9 @@
 
     protected override void OnInitialized()
     {
-        if (AccountIds != null && AccountIds.Length > 0) 
+        if (!AccountIds.IsNullOrEmpty()) 
         {
             Model.SelectedAccounts = AccountIds;
-            Model.IsLoaded = false;
         }
 
         base.OnInitialized();
@@ -141,9 +140,17 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (refGrid != null)
+        if (Model.IsLoaded && firstRender)
         {
-            await refGrid.GoToPage(Model.CurrentPage);
+            if (!AccountIds.IsNullOrEmpty())
+            {
+                await OnSelectedAccountsChangedAsync();
+            }
+            else
+            {
+                await refGrid.GoToPage(Model.CurrentPage);
+                await ReloadGridAsync();
+            }
         }
 
         base.OnAfterRender(firstRender);
@@ -154,9 +161,9 @@
         Model.CurrentPage = args.PageIndex;
     }
 
-    async Task OnSelectedAccountsChangeAsync(IEnumerable<Guid> accounts)
+    async Task OnSelectedAccountsChangedAsync()
     {
-        await Model.OnSelectedAccountsChangeAsync();
+        await Model.OnSelectedAccountsChangedAsync();
         await ReloadGridAsync();
     }
 
@@ -169,6 +176,14 @@
 
     void OnSort(DataGridColumnSortEventArgs<Transaction> args)
     {
+        if (!refGrid.AllowMultiColumnSorting)
+        {
+            foreach (var column in Model.DataGridColumnState.Values)
+            {
+                column.SortOrder = null;
+            }
+        }
+
         Model.DataGridColumnState[args.Column.Property].SortOrder = args.SortOrder;
         Model.IsFrozen = false;
     }
@@ -188,7 +203,7 @@
         ContextMenuService.Open(args, new List<ContextMenuItem>()
         {
             new ContextMenuItem() { Text = "Remove selected", Value = new Func<Task>(async () => {
-                await Model.DeleteTransactionAsync();
+                await Model.DeleteSelectedTransactionsAsync();
                 await ReloadGridAsync();
             }) }
         }, async e => await ((Func<Task>)e.Value)() );

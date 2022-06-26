@@ -22,9 +22,10 @@ namespace GdeBabki.Client.ViewModel
             RaisePropertyChanged(nameof(Banks));
         }
 
-        protected override void OnDispose()
+        public override void Dispose()
         {
             accountsApi.BanksUpdated -= AccountsApi_BanksUpdated;
+            base.Dispose();
         }
 
         public override async Task OnInitializedAsync()

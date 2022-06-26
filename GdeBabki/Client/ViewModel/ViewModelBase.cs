@@ -1,6 +1,4 @@
-﻿using GdeBabki.Client.Services;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
@@ -15,21 +13,12 @@ namespace GdeBabki.Client.ViewModel
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        public virtual void OnInitialized()
-        {
-        }
-
         public virtual Task OnInitializedAsync()
         {
             return Task.CompletedTask;
         }
 
-        public void Dispose()
-        {
-            OnDispose();
-        }
-
-        protected virtual void OnDispose()
+        public virtual void Dispose()
         {
         }
 

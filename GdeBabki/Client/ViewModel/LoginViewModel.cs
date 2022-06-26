@@ -20,12 +20,12 @@ namespace GdeBabki.Client.ViewModel
 
         public bool IsNewUser { get; set; }
 
-        public override void OnInitialized()
+        public override Task OnInitializedAsync()
         {
             userService.LoginInfo = null;
             userService.IsLoggedIn = false;
             IsLoaded = true;
-            base.OnInitialized();
+            return base.OnInitializedAsync();
         }
 
         public LoginViewModel(UserApi userApi, ErrorService errorService, UserService userService, IWebAssemblyHostEnvironment webAssemblyHostEnvironment)

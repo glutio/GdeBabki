@@ -21,13 +21,13 @@ namespace GdeBabki.Client.ViewModel
             this.tagsApi = tagsApi;
         }
 
-        public override void OnInitialized()
+        public override Task OnInitializedAsync()
         {
             if (Tags == null)
             {
                 Tags = new List<string>();
             }
-            base.OnInitialized();
+            return base.OnInitializedAsync();
         }
 
         public void AddTag()

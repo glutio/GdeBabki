@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace GdeBabki.Client.ViewModel
 {
-    public class ReviewViewModel : ViewModelBase
+    public class ReviewViewModel : ViewModelBase, IDisposable
     {
         private readonly AccountsApi accountsApi;
         private readonly TagsApi tagsApi;
@@ -43,16 +43,10 @@ namespace GdeBabki.Client.ViewModel
 
         public int CurrentPage { get; set; }
 
-        public Dictionary<string, Review.DataGridColumnState> DataGridColumnState { get; } = new Dictionary<string, Review.DataGridColumnState>() 
-        { 
-            { nameof(Transaction.Date), new Review.DataGridColumnState() { Width = 130, SortOrder = SortOrder.Descending }  },
-            { nameof(Transaction.Description), new Review.DataGridColumnState() { FilterOperator = FilterOperator.Contains } },
-            { nameof(Transaction.Amount), new Review.DataGridColumnState() { Width = 110 } },
-            { nameof(Transaction.Tags), new Review.DataGridColumnState() { FilterOperator = FilterOperator.GreaterThan }  },
-        };
+        public Dictionary<string, Review.DataGridColumnState> DataGridColumnState { get; private set; } 
 
         public List<string> TagsFilterValue { get; set; } = new List<string>();
-        
+
         public List<string> SharedTags
         {
             get
@@ -83,19 +77,77 @@ namespace GdeBabki.Client.ViewModel
 
         public override async Task OnInitializedAsync()
         {
-            if (IsLoaded)
+            if (!IsLoaded)
             {
-                return;
-            }
+                var tasks = new Task[]
+                {
+                    Task.Run(async () => Accounts = await accountsApi.GetAccountsAsync()),
+                    Task.Run(async () => Transactions = await accountsApi.GetTransactionsAsync(SelectedAccounts))
+                };
 
+                await Task.WhenAll(tasks);
+
+                accountsApi.AccountsUpdated += AccountsApi_AccountsUpdated;
+                
+                Reset();
+                
+                IsLoaded = true;
+            }
+        }
+
+        private async void AccountsApi_AccountsUpdated(object sender, EventArgs e)
+        {
             Accounts = await accountsApi.GetAccountsAsync();
             if (SelectedAccounts == null)
             {
-                SelectedAccounts = Accounts.Select(e => e.Id).ToArray();
+                await OnSelectedAccountsChangedAsync();
+            }
+            else
+            {
+                var selectedChanged = !SelectedAccounts.All(e => Accounts.Any(a => a.Id == e));
+                SelectedAccounts = SelectedAccounts.Where(e => Accounts.Any(a => a.Id == e));
+
+                if (selectedChanged)
+                {
+                    await OnSelectedAccountsChangedAsync();
+                }
+            }
+        }
+
+        public override void Dispose()
+        {
+            accountsApi.AccountsUpdated -= AccountsApi_AccountsUpdated;
+            base.Dispose();
+        }
+
+        public async Task OnSelectedAccountsChangedAsync()
+        {
+            Reset();
+            try
+            {
+                IsBusy = true;
+                Transactions = await accountsApi.GetTransactionsAsync(SelectedAccounts);
+            }
+            finally
+            {
+                IsBusy = false;
             }
 
-            Transactions = await GetTransactionsAsync();
-            IsLoaded = true;
+            RaisePropertyChanged(nameof(Transactions));
+        }
+
+        public void Reset()
+        {
+            SelectedTransactions = null;
+            IsFrozen = false;
+            CurrentPage = 0;
+            DataGridColumnState = new Dictionary<string, Review.DataGridColumnState>()
+            {
+                { nameof(Transaction.Date), new Review.DataGridColumnState() { Width = 130, SortOrder = SortOrder.Descending }  },
+                { nameof(Transaction.Description), new Review.DataGridColumnState() { FilterOperator = FilterOperator.Contains } },
+                { nameof(Transaction.Amount), new Review.DataGridColumnState() { Width = 110 } },
+                { nameof(Transaction.Tags), new Review.DataGridColumnState() { FilterOperator = FilterOperator.GreaterThan }  },
+            };
         }
 
         public IQueryable<Transaction> AddTagsFilter(IQueryable<Transaction> query)
@@ -182,20 +234,7 @@ namespace GdeBabki.Client.ViewModel
             IsFrozen = true;
         }
 
-        async Task<List<Transaction>> GetTransactionsAsync()
-        {
-            try
-            {
-                IsBusy = true;
-                return await accountsApi.GetTransactionsAsync(SelectedAccounts);
-            }
-            finally
-            {
-                IsBusy = false;
-            }
-        }
-
-        public async Task DeleteTransactionAsync()
+        public async Task DeleteSelectedTransactionsAsync()
         {
             if (SelectedTransactions.IsNullOrEmpty())
             {
@@ -206,7 +245,7 @@ namespace GdeBabki.Client.ViewModel
             {
                 IsBusy = true;
                 await accountsApi.DeleteTrasactionsAsync(SelectedTransactions.Select(e => e.Id));
-                foreach(var transaction in SelectedTransactions)
+                foreach (var transaction in SelectedTransactions)
                 {
                     Transactions.Remove(transaction);
                 }
@@ -216,22 +255,6 @@ namespace GdeBabki.Client.ViewModel
             {
                 IsBusy = false;
             }
-        }
-
-        public async Task OnSelectedAccountsChangeAsync()
-        {
-            try
-            {
-                IsBusy = true;
-                SelectedTransactions = null;
-                Transactions = await GetTransactionsAsync();
-            }
-            finally 
-            { 
-                IsBusy = false; 
-            }
-
-            RaisePropertyChanged(nameof(Transactions));
         }
 
         public async Task SaveTagAsync(string tag, Guid transactionId)
@@ -244,7 +267,7 @@ namespace GdeBabki.Client.ViewModel
                     TagId = tag,
                     TransactionId = transactionId
                 });
-            }            
+            }
             finally
             {
                 IsBusy = false;

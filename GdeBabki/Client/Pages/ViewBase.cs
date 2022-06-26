@@ -11,10 +11,16 @@ namespace GdeBabki.Client.Pages
         [Inject]
         public TModel Model { get; set; }
 
-        protected override void OnInitialized()
+        protected async override Task OnInitializedAsync()
         {
-            Model.OnInitialized();
             Model.PropertyChanged += Model_PropertyChanged;
+            await Model.OnInitializedAsync();
+            await base.OnInitializedAsync();
+        }
+
+        public virtual void Dispose()
+        {
+            Model.PropertyChanged -= Model_PropertyChanged;
         }
 
         private void Model_PropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -22,22 +28,6 @@ namespace GdeBabki.Client.Pages
             OnPropertyChanged(sender, e);
         }
 
-        protected async override Task OnInitializedAsync()
-        {
-            await Model.OnInitializedAsync();
-            await base.OnInitializedAsync();
-        }
-
-        public void Dispose()
-        {
-            OnDispose();
-        }
-
-        protected virtual void OnDispose()
-        {
-            Model.PropertyChanged -= OnPropertyChanged;
-            Model.Dispose();
-        }
         protected virtual void OnPropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             StateHasChanged();

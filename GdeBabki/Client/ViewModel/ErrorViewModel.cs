@@ -26,16 +26,18 @@ namespace GdeBabki.Client.ViewModel
             errorService.ExpireErrors();
         }
 
-        public override void OnInitialized()
+        public override Task OnInitializedAsync()
         {
             errorService.ErrorUpdated += ErrorService_ErrorUpdated;
             timer = new Timer(TimerElapsed, null, 0, 100);
+            return base.OnInitializedAsync();
         }
 
-        protected override void OnDispose()
+        public override void Dispose()
         {
             timer.Dispose();
             errorService.ErrorUpdated -= ErrorService_ErrorUpdated;
+            base.Dispose();
         }
 
         private void ErrorService_ErrorUpdated(object sender, EventArgs e)
