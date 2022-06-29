@@ -1,4 +1,5 @@
 ﻿using GdeBabki.Client.Services;
+using Microsoft.Extensions.Logging.Abstractions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,12 +11,13 @@ namespace GdeBabki.Client.ViewModel
     {
         private readonly TagsApi tagsApi;
 
-        public List<string> Tags { get; set; }
+        private List<string> tags;
+        public List<string> Tags { get { if (tags == null) { tags = new(); } return tags; } set => tags = value; }
         public string Tag { get; set; }
         public List<string> SuggestedTags { get; set; }
         public string LastTag => Tags == null || Tags.Count == 0 ? null : Tags[Tags.Count - 1];
         public bool HasNewTag => !string.IsNullOrWhiteSpace(Tag) && !Tags.Contains(Tag.ToUpper());
-        
+
         public EditTagsViewModel(TagsApi tagsApi)
         {
             this.tagsApi = tagsApi;
@@ -49,7 +51,7 @@ namespace GdeBabki.Client.ViewModel
             Tags.Remove(tag);
             RaisePropertyChanged(nameof(Tags));
         }
-        
+
         public void DeleteLastTag()
         {
             if (string.IsNullOrEmpty(Tag) && Tags.Count > 0)

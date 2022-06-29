@@ -104,7 +104,7 @@
             <RadzenDataGridColumn @ref="refTagsFilterColumn" TItem="Transaction" Title="Tags" Property="@nameof(Transaction.Tags)" Filterable="true" Sortable="false"
                                   FilterOperator="Model.DataGridColumnState[nameof(Transaction.Tags)].FilterOperator" Width="@($"{Model.DataGridColumnState[nameof(Transaction.Tags)].Width}px")">
                 <FilterTemplate>
-                    <EditTags @ref="refTagsFilter" Tags="Model.TagsFilterValue" TagsUpdated="TagsFilterUpdated"></EditTags>
+                    <EditTags @ref="refTagsFilter" Tags="(List<string>)Model.DataGridColumnState[nameof(Transaction.Tags)].FilterValue" TagsUpdated="TagsFilterUpdated"></EditTags>
                     <RadzenDataGridFilterMenu Column="refTagsFilterColumn" Grid="refGrid" TItem="Transaction" />
                 </FilterTemplate>
                 <Template>
@@ -165,7 +165,7 @@
             await refGrid.LastPage();
         }
     }
-    
+
     void OnPageAsync(PagerEventArgs args)
     {
         Model.CurrentPage = args.PageIndex;
@@ -196,12 +196,9 @@
         Model.IsFrozen = false;
     }
 
-    async Task TagsFilterUpdated()
+    void TagsFilterUpdated()
     {
-        Model.SelectedTransactions = null;
-    
-        await refGrid.FirstPage();
-        await ReloadGridAsync();
+        refGrid.OnFilter(new ChangeEventArgs() { Value = refTagsFilter.Tags }, refTagsFilterColumn, true);
     }
 
     void OnSort(DataGridColumnSortEventArgs<Transaction> args)
