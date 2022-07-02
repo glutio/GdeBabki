@@ -4,6 +4,7 @@ using Radzen.Blazor;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 
 namespace GdeBabki.Client.ViewModel
@@ -15,6 +16,7 @@ namespace GdeBabki.Client.ViewModel
         public AnalysisViewModel(AccountsApi accountsApi)
         {
             this.accountsApi = accountsApi;
+            SelectedDateRange = DateRange[0].Value;
         }
 
         public override async Task OnInitializedAsync()
@@ -71,20 +73,19 @@ namespace GdeBabki.Client.ViewModel
                         .Select(t => new { Tag = t, e.Date, Amount = Math.Abs(e.Amount) }));
 
                 var tagSameMonthAmount = tagDateAmount
-                    .GroupBy(e => new { e.Tag, Date = new DateTime(e.Date.Year, e.Date.Month, 1) })
+                    .GroupBy(e => new { e.Tag, Date = e.Date.ToMonth() })
                     .Select(g => new { g.Key.Tag, g.Key.Date, Amount = g.Sum(e => e.Amount) });
 
-                var lastSixMonths = tagSameMonthAmount
+                var allMonths = tagSameMonthAmount
                     .Select(e => e.Date)
                     .Distinct()
-                    .OrderByDescending(e => e.Date)
+                    .OrderByDescending(e=> e.Date)
                     .Skip(1)
-                    .Take(6)
                     .ToList();
 
                 var interestingTags = tagSameMonthAmount
                     .GroupBy(e => e.Tag)
-                    .Where(g => lastSixMonths.All(e => g.Any(m => m.Date == e)))
+                    .Where(g => allMonths.Sum(m => g.Any(t => t.Date == m) ? 1 : 0) >= allMonths.Count * 0.8)
                     .Select(g => g.Key)
                     .ToList();
 
@@ -95,8 +96,7 @@ namespace GdeBabki.Client.ViewModel
 
                 var averageMonthlySpendingByTag = tagAmount
                     .Select(e => new KeyValuePair<string, decimal>(e.Tag, e.Amount))
-                    .OrderByDescending(e => e.Value)
-                    .Take(10);
+                    .OrderByDescending(e => e.Value);
 
                 return averageMonthlySpendingByTag.ToList();
             }
@@ -112,11 +112,9 @@ namespace GdeBabki.Client.ViewModel
                 }
 
                 var spendingByMonth = TransactionsQuery
-                    .GroupBy(e => new DateTime(e.Date.Year, e.Date.Month, 1))
-                    .OrderByDescending(g => g.Key)
-                    .Take(12)
+                    .GroupBy(e => e.Date.ToMonth())
+                    .OrderBy(g => g.Key)
                     .Select(g => new KeyValuePair<string, decimal>(g.Key.ToTransactionMonthYear(), g.Sum(e => Math.Abs(e.Amount))));
-
 
                 return spendingByMonth.ToList();
             }
@@ -141,15 +139,19 @@ namespace GdeBabki.Client.ViewModel
                     .SelectMany(e => e.Tags
                         .Select(t => new { Tag = t, Amount = Math.Abs(e.Amount) }))
                     .GroupBy(e => e.Tag)
-                    .Select(g => new KeyValuePair<string, decimal>(g.Key, g.Sum(e => e.Amount))).ToList();
+                    .Select(g => new KeyValuePair<string, decimal>(g.Key, g.Sum(e => e.Amount)))
+                    .ToList();
 
                 if (!thisMonth.IsNullOrEmpty())
                 {
-                    var untagged = new KeyValuePair<string, decimal>("_", thisMonth.Where(e => e.Tags.IsNullOrEmpty()).Sum(e => Math.Abs(e.Amount)));
-                    tagsAmount.Add(untagged);
+                    var untagged = new KeyValuePair<string, decimal>("", thisMonth.Where(e => e.Tags.IsNullOrEmpty()).Sum(e => Math.Abs(e.Amount)));
+                    if (untagged.Value != 0)
+                    {
+                        tagsAmount.Add(untagged);
+                    }
                 }
 
-                return tagsAmount.ToList();
+                return tagsAmount.OrderByDescending(e=>e.Value).ToList();
             }
         }
 
@@ -174,14 +176,45 @@ namespace GdeBabki.Client.ViewModel
         }
 
         public List<Transaction> Transactions { get; set; }
-        public IEnumerable<Transaction> TransactionsQuery => Transactions.IsNullOrEmpty()
-            ? null
-            : Transactions
-                .Where(e => ExcludeTags.IsNullOrEmpty() || !e.Tags.Any(t => ExcludeTags.Any(e => t == e)));
+        public IEnumerable<Transaction> TransactionsQuery
+        {
+            get
+            {
+                var query = Transactions.IsNullOrEmpty()
+                    ? null
+                    : Transactions
+                        .Where(e => ExcludeTags.IsNullOrEmpty() || !e.Tags.Any(t => ExcludeTags.Any(e => t == e)));
+                
+                return SelectedDateRange(query);
+            }
+        }
 
         public List<string> ExcludeTags { get; set; } = new List<string>();
         public List<Account> Accounts { get; set; }
         public IEnumerable<Guid> SelectedAccounts { get; set; }
         public string SelectedMonth { get; set; }
+        public DateRangeFilter SelectedDateRange { get; set; }
+
+        public delegate IEnumerable<Transaction> DateRangeFilter (IEnumerable<Transaction> query);
+
+        static IEnumerable<Transaction> RecentMonthsFilter(IEnumerable<Transaction> query, int months)
+        {
+            return query.GroupBy(e => e.Date.ToMonth()).OrderByDescending(g => g.Key).Take(months).SelectMany(g => g);
+        }
+
+        static IEnumerable<Transaction> YearToDateFilter(IEnumerable<Transaction> query)
+        {
+            return query.GroupBy(e => e.Date.ToYear()).OrderByDescending(g => g.Key).Take(1).SelectMany(g => g);
+        }
+
+        public List<KeyValuePair<string, DateRangeFilter>> DateRange { get; } = new List<KeyValuePair<string, DateRangeFilter>>()
+        {
+            new KeyValuePair<string, DateRangeFilter>("All", q => q),
+            new KeyValuePair<string, DateRangeFilter>("3 months", q => RecentMonthsFilter(q, 3)),
+            new KeyValuePair<string, DateRangeFilter>("6 months", q => RecentMonthsFilter(q, 6)),
+            new KeyValuePair<string, DateRangeFilter>("9 months", q => RecentMonthsFilter(q, 9)),
+            new KeyValuePair<string, DateRangeFilter>("12 months", q => RecentMonthsFilter(q, 12)),
+            new KeyValuePair<string, DateRangeFilter>("Year to date", q => YearToDateFilter(q)),
+        };
     }
 }

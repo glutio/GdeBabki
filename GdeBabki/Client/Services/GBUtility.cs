@@ -82,5 +82,16 @@ namespace GdeBabki.Client.Services
         }
 
         public static DialogOptions ResizableDialogOptions => new() { Width = "700px", Resizable = true, Draggable = true };
+
+        public static DateTime ToMonth(this DateTime d)
+        {
+            return new DateTime(d.Year, d.Month, 1);
+        }
+
+        public static DateTime ToYear(this DateTime d)
+        {
+            return new DateTime(d.Year, 1, 1);
+        }
+
     }
 }

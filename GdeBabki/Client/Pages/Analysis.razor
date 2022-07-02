@@ -1,4 +1,5 @@
 ﻿@page "/analysis"
+@using System.Linq.Expressions
 @inherits ViewBase<AnalysisViewModel>
 
 <BusyLoad Model="Model">
@@ -23,8 +24,12 @@
         <RadzenCard>
             <div class="d-flex flex-row justify-content-between">
                 <div class="d-flex flex-row align-items-center">
-                    <h5 class="m-0 mr-2">Exclude tags</h5>
+                    <h5 class="m-0 mr-2">Exclude Tags</h5>
                     <EditTags Tags="Model.ExcludeTags" TagsUpdated="StateHasChanged"></EditTags>
+                </div>
+                <div class="d-flex flex-row align-items-center">
+                    <h5 class="m-0 mr-2">Date range</h5>
+                    <RadzenDropDown Data="Model.DateRange" TValue="AnalysisViewModel.DateRangeFilter" TextProperty="Key" ValueProperty="Value" @bind-Value="Model.SelectedDateRange" Change="args => StateHasChanged()" />
                 </div>
             </div>
         </RadzenCard>
@@ -35,13 +40,14 @@
             }
             @if (!averageMonthlySpendingByTag.IsNullOrEmpty())
             {
-                <h6>Average monthly spending</h6>
+                <h4 style="margin-bottom:-20px;margin-top:20px">Average monthly spending</h4>
                 var fills = averageMonthlySpendingByTag?.Select(e => e.Key.ToBackgroundColor());
+                var strokes = averageMonthlySpendingByTag?.Select(e => e.Key.ToForegroundColor());
                 <RadzenChart>
-                    <RadzenColumnSeries Data="averageMonthlySpendingByTag" CategoryProperty="Key" ValueProperty="Value" Fills="fills">
+                    <RadzenColumnSeries Data="averageMonthlySpendingByTag" CategoryProperty="Key" ValueProperty="Value" Fills="fills" Strokes="strokes" StrokeWidth="1">
                         <TooltipTemplate>
                             <p>@context.Value.ToCurrencyString()</p>
-                        </TooltipTemplate>                
+                        </TooltipTemplate>                        
                     </RadzenColumnSeries>
 
                     <RadzenLegend Visible="false" />
@@ -54,22 +60,22 @@
                         <RadzenGridLines Visible="true" />
                     </RadzenValueAxis>
                 </RadzenChart>
-                <p>Total @averageMonthlySpendingByTag.Sum(e => e.Value).ToCurrencyString()</p>
+                <p><b>Total</b> @averageMonthlySpendingByTag.Sum(e => e.Value).ToCurrencyString()</p>
             }
         </div>
-
+        <hr />
         <div>
             @{
                 var spendingByMonth = Model.SpendingByMonth;
             }
             @if (!spendingByMonth.IsNullOrEmpty())
             {
-                <h6>Spending by month</h6>
-                <RadzenChart>
+                <h4 style="margin-bottom:-20px">Spending by month</h4>
+                <RadzenChart SeriesClick="OnSpedingByMonthSeriesClick">
                     <RadzenColumnSeries Data="Model.SpendingByMonth" CategoryProperty="Key" ValueProperty="Value">
                         <TooltipTemplate>
                             <div style="max-width:500px">
-                                <p>@context.Value.ToCurrencyString()</p>
+                                <p>@context.Key - @context.Value.ToCurrencyString()</p>
                                 <div style="overflow:auto;max-height:500px">
                                     @foreach (var tag in Model.GetTagsInMonth(DateTime.Parse(context.Key)))
                                     {
@@ -96,14 +102,16 @@
                 </p>
             }
         </div>
-
+        <hr />
         <div>
             @if (!spendingByMonth.IsNullOrEmpty())
             {
-                <h6>Spending in @Model.SelectedMonth</h6>
                 var months = spendingByMonth.Select(e => e.Key).ToList();
-                <RadzenDropDown Data="months" @bind-Value="Model.SelectedMonth" TValue="string"></RadzenDropDown>
                 var spendingByTagThisMonth = Model.SpendingByTagThisMonth;
+                <div class="d-flex flex-row align-items-center" style="margin-bottom: -20px">
+                    <h4 class="mr-2" style="margin-bottom:0">Spending in</h4>
+                    <RadzenDropDown Data="months" @bind-Value="Model.SelectedMonth" TValue="string"></RadzenDropDown>
+                </div>
                 @if (!spendingByTagThisMonth.IsNullOrEmpty())
                 {
                     <RadzenChart>
@@ -128,6 +136,8 @@
 </BusyLoad>
 
 @code {
+
+
     async Task OnSelectedAccountsChangedAsync()
     {
         await Model.OnSelectedAccountsChangedAsync();
@@ -137,5 +147,10 @@
     {
         var d = Convert.ToDecimal(o);
         return d.ToCurrencyString();
+    }
+
+    void OnSpedingByMonthSeriesClick(SeriesClickEventArgs args)
+    {
+        Model.SelectedMonth = (string)args.Category;
     }
 }
