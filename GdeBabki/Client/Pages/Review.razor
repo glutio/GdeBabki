@@ -3,119 +3,128 @@
 @inject ContextMenuService ContextMenuService
 
 <BusyLoad Model="Model">
-    <RadzenCard Style="width: 100%;">
-        <h5>Accounts</h5>
-        <RadzenCheckBoxList Data="Model.Accounts" @bind-Value="Model.SelectedAccounts" ValueProperty="Id"
-                            TValue="Guid" TextProperty="FullName" Change="e => OnSelectedAccountsChangedAsync()">
-        </RadzenCheckBoxList>
-    </RadzenCard>
     <RadzenCard>
-        <h5>Shared Tags</h5>
-        <div class="d-flex flex-row">
-            <div>
-                <EditTags @ref="refSharedTags" Tags="Model.SharedTags" BeforeSave="SaveSharedTagAsync" BeforeDelete="DeleteSharedTagAsync"></EditTags>
+        @if (!Model.Accounts.IsNullOrEmpty())
+        {
+            <div class="d-flex flex-row align-items-center">
+                <h5 class="m-0 mr-2">Accounts</h5>
+                <RadzenCheckBoxList Data="Model.Accounts" @bind-Value="Model.SelectedAccounts" ValueProperty="Id"
+                                    TValue="Guid" TextProperty="FullName" Change="async args => await OnSelectedAccountsChangedAsync()">
+                </RadzenCheckBoxList>
             </div>
-            <div style="flex:auto"></div>
-            <div>
-                <RadzenButton Icon="cached" Click="e => ReloadGridAsync()"></RadzenButton>
-            </div>
-        </div>
+        }
+        else
+        {
+            <div class="w100 text-center">Please import your bank transactions to begin</div>       
+        }
     </RadzenCard>
+    @if (!Model.Accounts.IsNullOrEmpty())
+    {
+        <RadzenCard>
+            <div class="d-flex flex-row justify-content-between">
+                <div class="d-flex flex-row align-items-center">
+                    <h5 class="m-0 mr-2">Shared Tags</h5>
+                    <EditTags @ref="refSharedTags" Tags="Model.SharedTags" BeforeSave="SaveSharedTagAsync" BeforeDelete="DeleteSharedTagAsync"></EditTags>
+                </div>
+                <div>
+                    <RadzenButton Icon="cached" Click="e => ReloadGridAsync()"></RadzenButton>
+                </div>
+            </div>
+        </RadzenCard>
 
-    @{
         var activeTransactions = Model.ActiveTransactions;
         var selectedTransactions = Model.SelectedTransactions;
+        <RadzenDataGrid @ref="refGrid" TItem="Transaction" Data="Model.TransactionsView" AllowPaging="true" FilterMode="FilterMode.SimpleWithMenu" LoadData="Model.LoadData"
+                        AllowFiltering="true" AllowColumnResize="true" Count="Model.TransactionsCount" PageSize="10" PagerHorizontalAlign="HorizontalAlign.Center" AllowSorting="true"
+                        SelectionMode="DataGridSelectionMode.Multiple" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" Filter="OnColumnFilterAsync"
+                        @bind-Value="Model.SelectedTransactions" Page="OnPageAsync" Sort="OnColumnSort" CellContextMenu="OnContextMenuAsync" ColumnResized="OnColumnResized">
+            <Columns>
+                <RadzenDataGridColumn TItem="Transaction" Sortable="false" Filterable="false" Width="3rem">
+                    <HeaderTemplate>
+                        <RadzenCheckBox TValue="bool" Value="!selectedTransactions.IsNullOrEmpty()"
+                                        Change="@(args => Model.SelectedTransactions = args ? Model.TransactionsQuery.ToList() : null)"></RadzenCheckBox>
+                    </HeaderTemplate>
+                    <Template>
+                        <RadzenCheckBox @onclick:stopPropagation TValue="bool" Value="selectedTransactions != null && selectedTransactions.Contains(context)"
+                                        Change="args => refGrid.SelectRow(context)"></RadzenCheckBox>
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="Transaction" Property="State" Width="2rem" Filterable="false" Sortable="false" TextAlign="TextAlign.Center">
+                    <Template>
+                        @if (context.State == GBTransactionState.Imported)
+                        {
+                            <span style="background-color:gold">&nbsp;</span>
+                        }
+                        else
+                        {
+                            <span style="background-color:green">&nbsp;</span>
+                        }
+                    </Template>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn TItem="Transaction" Title="Date" Property="@nameof(Transaction.Date)" Filterable="true" FormatString="{0:d MMM yyyy}" TextAlign="TextAlign.Right"
+                                      SortOrder="Model.DataGridColumnState[nameof(Transaction.Date)].SortOrder" FilterOperator="Model.DataGridColumnState[nameof(Transaction.Date)].FilterOperator"
+                                      FilterValue="Model.DataGridColumnState[nameof(Transaction.Date)].FilterValue" Width="@($"{Model.DataGridColumnState[nameof(Transaction.Date)].Width}px")">
+                    <Template>
+                        @(context.Date.Day)&nbsp;<b>@(context.Date.ToString("MMM"))&nbsp;@context.Date.Year</b>
+                    </Template>
+                    <FooterTemplate>
+                        @if (Model.TransactionsCount > 0)
+                        {
+                            var grouping = activeTransactions.GroupBy(e => new DateTime(e.Date.Year, e.Date.Month, 1));
+                            // times a month
+                            var timesPerMonth = @grouping.Select(g => g.Count()).Average();
+                            <b>@timesPerMonth.ToString("0.#") / </b>
+                            // number of months
+                            <b>@grouping.Count() / </b>
+                            var monthlySpending = @grouping.Select(g => g.Sum(e => e.Amount)).Average();
+                            // total per time
+                            <b>@((monthlySpending/(decimal)timesPerMonth).ToCurrencyString()) / </b>
+                            // total per month
+                            <b>@monthlySpending.ToCurrencyString()</b>
+                        }
+                    </FooterTemplate>
+                </RadzenDataGridColumn>
+
+                <RadzenDataGridColumn TItem="Transaction" Title="Description" Property="@nameof(Transaction.Description)" Filterable="true"
+                                      SortOrder="Model.DataGridColumnState[nameof(Transaction.Description)].SortOrder" FilterOperator="Model.DataGridColumnState[nameof(Transaction.Description)].FilterOperator"
+                                      FilterValue="Model.DataGridColumnState[nameof(Transaction.Description)].FilterValue" Width="@($"{Model.DataGridColumnState[nameof(Transaction.Description)].Width}px")" />
+
+                <RadzenDataGridColumn TItem="Transaction" Title="Amount" Property="@nameof(Transaction.Amount)" Filterable="true" TextAlign="TextAlign.Right"
+                                      SortOrder="Model.DataGridColumnState[nameof(Transaction.Amount)].SortOrder" FilterOperator="Model.DataGridColumnState[nameof(Transaction.Amount)].FilterOperator"
+                                      FilterValue="Model.DataGridColumnState[nameof(Transaction.Amount)].FilterValue" Width="@($"{Model.DataGridColumnState[nameof(Transaction.Amount)].Width}px")">
+                    <Template>
+                        @if (context.Amount < 0)
+                        {
+                            <span style="color:red">@context.Amount.ToCurrencyString()</span>
+                        }
+                        else
+                        {
+                            <span style="color:green">@context.Amount.ToCurrencyString()</span>
+                        }
+                    </Template>
+                    <FooterTemplate>
+                        @if (Model.TransactionsCount > 0)
+                        {
+                            <b>@activeTransactions.Sum(e => e.Amount).ToCurrencyString() </b>
+                        }
+                    </FooterTemplate>
+                </RadzenDataGridColumn>
+                <RadzenDataGridColumn @ref="refTagsFilterColumn" TItem="Transaction" Title="Tags" Property="@nameof(Transaction.Tags)" Filterable="true" Sortable="false"
+                                      FilterOperator="Model.DataGridColumnState[nameof(Transaction.Tags)].FilterOperator" Width="@($"{Model.DataGridColumnState[nameof(Transaction.Tags)].Width}px")">
+                    <FilterTemplate>
+                        <EditTags @ref="refTagsFilter" Tags="(List<string>)Model.DataGridColumnState[nameof(Transaction.Tags)].FilterValue" TagsUpdated="TagsFilterUpdated"></EditTags>
+                        <RadzenDataGridFilterMenu Column="refTagsFilterColumn" Grid="refGrid" TItem="Transaction" />
+                    </FilterTemplate>
+                    <Template>
+                        <div @onclick:stopPropagation>
+                            <EditTags Tags="@context.Tags" BeforeSave="e => SaveTagAsync(e, context)" BeforeDelete="e => DeleteTagAsync(e, context)" TagsUpdated="StateHasChanged">
+                            </EditTags>
+                        </div>
+                    </Template>
+                </RadzenDataGridColumn>
+            </Columns>
+        </RadzenDataGrid>
     }
-    <RadzenDataGrid @ref="refGrid" TItem="Transaction" Data="Model.TransactionsView" AllowPaging="true" FilterMode="FilterMode.SimpleWithMenu" LoadData="Model.LoadData"
-                    AllowFiltering="true" AllowColumnResize="true" Count="Model.TransactionsCount" PageSize="10" PagerHorizontalAlign="HorizontalAlign.Center" AllowSorting="true"
-                    SelectionMode="DataGridSelectionMode.Multiple" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" Filter="OnColumnFilterAsync"
-                    @bind-Value="Model.SelectedTransactions" Page="OnPageAsync" Sort="OnSort" CellContextMenu="OnContextMenuAsync" ColumnResized="OnColumnResized">
-        <Columns>
-            <RadzenDataGridColumn TItem="Transaction" Sortable="false" Filterable="false" Width="3rem">
-                <HeaderTemplate>
-                    <RadzenCheckBox TValue="bool" Value="!selectedTransactions.IsNullOrEmpty()"
-                                    Change="@(args => Model.SelectedTransactions = args ? Model.TransactionsQuery.ToList() : null)"></RadzenCheckBox>
-                </HeaderTemplate>
-                <Template>
-                    <RadzenCheckBox @onclick:stopPropagation TValue="bool" Value="selectedTransactions != null && selectedTransactions.Contains(context)"
-                                    Change="args => refGrid.SelectRow(context)"></RadzenCheckBox>
-                </Template>
-            </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="Transaction" Property="State" Width="2rem" Filterable="false" Sortable="false" TextAlign="TextAlign.Center">
-                <Template>
-                    @if (context.State == GBTransactionState.Imported)
-                    {
-                        <span style="background-color:gold">&nbsp;</span>
-                    }
-                    else
-                    {
-                        <span style="background-color:green">&nbsp;</span>
-                    }
-                </Template>
-            </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="Transaction" Title="Date" Property="@nameof(Transaction.Date)" Filterable="true" FormatString="{0:d MMM yyyy}" TextAlign="TextAlign.Right"
-                                  SortOrder="Model.DataGridColumnState[nameof(Transaction.Date)].SortOrder" FilterOperator="Model.DataGridColumnState[nameof(Transaction.Date)].FilterOperator"
-                                  FilterValue="Model.DataGridColumnState[nameof(Transaction.Date)].FilterValue" Width="@($"{Model.DataGridColumnState[nameof(Transaction.Date)].Width}px")">
-                <Template>
-                    @(context.Date.Day)&nbsp;<b>@(context.Date.ToString("MMM"))&nbsp;@context.Date.Year</b>
-                </Template>
-                <FooterTemplate>
-                    @if (Model.TransactionsCount > 0)
-                    {
-                        var grouping = activeTransactions.GroupBy(e => new DateTime(e.Date.Year, e.Date.Month, 1));
-                        // times a month
-                        var timesPerMonth = @grouping.Select(g => g.Count()).Average();
-                        <b>@timesPerMonth.ToString("0.#") / </b>
-                        // number of months
-                        <b>@grouping.Count() / </b>
-                        var monthlySpending = @grouping.Select(g => g.Sum(e => e.Amount)).Average();
-                        // total per time
-                        <b>@((monthlySpending/(decimal)timesPerMonth).ToCurrencyString()) / </b>
-                        // total per month
-                        <b>@monthlySpending.ToCurrencyString()</b>
-                    }
-                </FooterTemplate>
-            </RadzenDataGridColumn>
-
-            <RadzenDataGridColumn TItem="Transaction" Title="Description" Property="@nameof(Transaction.Description)" Filterable="true"
-                                  SortOrder="Model.DataGridColumnState[nameof(Transaction.Description)].SortOrder" FilterOperator="Model.DataGridColumnState[nameof(Transaction.Description)].FilterOperator"
-                                  FilterValue="Model.DataGridColumnState[nameof(Transaction.Description)].FilterValue" Width="@($"{Model.DataGridColumnState[nameof(Transaction.Description)].Width}px")" />
-
-            <RadzenDataGridColumn TItem="Transaction" Title="Amount" Property="@nameof(Transaction.Amount)" Filterable="true" TextAlign="TextAlign.Right"
-                                  SortOrder="Model.DataGridColumnState[nameof(Transaction.Amount)].SortOrder" FilterOperator="Model.DataGridColumnState[nameof(Transaction.Amount)].FilterOperator"
-                                  FilterValue="Model.DataGridColumnState[nameof(Transaction.Amount)].FilterValue" Width="@($"{Model.DataGridColumnState[nameof(Transaction.Amount)].Width}px")">
-                <Template>
-                    @if (context.Amount < 0)
-                    {
-                        <span style="color:red">@context.Amount.ToCurrencyString()</span>
-                    }
-                    else
-                    {
-                        <span style="color:green">@context.Amount.ToCurrencyString()</span>
-                    }
-                </Template>
-                <FooterTemplate>
-                    @if (Model.TransactionsCount > 0)
-                    {
-                        <b>@activeTransactions.Sum(e => e.Amount).ToCurrencyString() </b>
-                    }
-                </FooterTemplate>
-            </RadzenDataGridColumn>
-            <RadzenDataGridColumn @ref="refTagsFilterColumn" TItem="Transaction" Title="Tags" Property="@nameof(Transaction.Tags)" Filterable="true" Sortable="false"
-                                  FilterOperator="Model.DataGridColumnState[nameof(Transaction.Tags)].FilterOperator" Width="@($"{Model.DataGridColumnState[nameof(Transaction.Tags)].Width}px")">
-                <FilterTemplate>
-                    <EditTags @ref="refTagsFilter" Tags="(List<string>)Model.DataGridColumnState[nameof(Transaction.Tags)].FilterValue" TagsUpdated="TagsFilterUpdated"></EditTags>
-                    <RadzenDataGridFilterMenu Column="refTagsFilterColumn" Grid="refGrid" TItem="Transaction" />
-                </FilterTemplate>
-                <Template>
-                    <div @onclick:stopPropagation>
-                        <EditTags Tags="@context.Tags" BeforeSave="e => SaveTagAsync(e, context)" BeforeDelete="e => DeleteTagAsync(e, context)" TagsUpdated="StateHasChanged">
-                        </EditTags>
-                    </div>
-                </Template>
-            </RadzenDataGridColumn>
-        </Columns>
-    </RadzenDataGrid>
 </BusyLoad>
 
 @code {
@@ -140,18 +149,18 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (Model.IsLoaded && firstRender)
+        if (Model.IsLoaded && firstRender && !Model.Accounts.IsNullOrEmpty())
         {
-            if (!AccountIds.IsNullOrEmpty())
-            {
-                Model.Reset();
-                await OnSelectedAccountsChangedAsync();
-            }
-            else
+            if (AccountIds.IsNullOrEmpty())
             {
                 await refGrid.GoToPage(Model.CurrentPage);
                 await ReloadGridAsync();
                 await EnsurePage();
+            }
+            else
+            {
+                Model.Reset();
+                await OnSelectedAccountsChangedAsync();
             }
         }
 
@@ -164,11 +173,6 @@
         {
             await refGrid.LastPage();
         }
-    }
-
-    void OnPageAsync(PagerEventArgs args)
-    {
-        Model.CurrentPage = args.PageIndex;
     }
 
     async Task OnSelectedAccountsChangedAsync()
@@ -187,6 +191,16 @@
         await ReloadGridAsync();
     }
 
+    void TagsFilterUpdated()
+    {
+        refGrid.OnFilter(new ChangeEventArgs() { Value = refTagsFilter.Tags }, refTagsFilterColumn, true);
+    }
+
+    void OnPageAsync(PagerEventArgs args)
+    {
+        Model.CurrentPage = args.PageIndex;
+    }
+
     void OnColumnFilterAsync(DataGridColumnFilterEventArgs<Transaction> args)
     {
         Model.DataGridColumnState[args.Column.Property].FilterOperator = args.FilterOperator;
@@ -196,12 +210,7 @@
         Model.IsFrozen = false;
     }
 
-    void TagsFilterUpdated()
-    {
-        refGrid.OnFilter(new ChangeEventArgs() { Value = refTagsFilter.Tags }, refTagsFilterColumn, true);
-    }
-
-    void OnSort(DataGridColumnSortEventArgs<Transaction> args)
+    void OnColumnSort(DataGridColumnSortEventArgs<Transaction> args)
     {
         if (!refGrid.AllowMultiColumnSorting)
         {
@@ -235,7 +244,6 @@
             }) }
         }, async e => await ((Func<Task>)e.Value)());
     }
-
 
     async Task ReloadGridAsync()
     {

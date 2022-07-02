@@ -100,11 +100,12 @@
     {
         if (string.IsNullOrEmpty(Model.Tag) && Model.LastTag != null)
         {
-            var cancelArgs = new CancelEventArgs<string>(Model.LastTag);
+            var lastTag = Model.LastTag;
+            var cancelArgs = new CancelEventArgs<string>(lastTag);
             await BeforeDelete.InvokeAsync(cancelArgs);
             if (!cancelArgs.Cancel)
             {
-                Model.DeleteLastTag();
+                Tags.Remove(lastTag);
                 await TagsUpdated.InvokeAsync();
             }
         }

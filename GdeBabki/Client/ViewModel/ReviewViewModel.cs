@@ -41,12 +41,6 @@ namespace GdeBabki.Client.ViewModel
         }
         public IList<Transaction> ActiveTransactions => SelectedTransactions.IsNullOrEmpty() ? TransactionsQuery : SelectedTransactions;
 
-        public int CurrentPage { get; set; }
-
-        public Dictionary<string, Review.DataGridColumnState> DataGridColumnState { get; private set; } 
-
-        public List<string> TagsFilterValue { get; set; } = new List<string>();
-
         public List<string> SharedTags
         {
             get
@@ -67,6 +61,8 @@ namespace GdeBabki.Client.ViewModel
             }
         }
 
+        public Dictionary<string, Review.DataGridColumnState> DataGridColumnState { get; private set; }
+        public int CurrentPage { get; set; }
         public bool IsFrozen { get; set; }
 
         public ReviewViewModel(AccountsApi accountsApi, TagsApi tagsApi)
@@ -79,15 +75,12 @@ namespace GdeBabki.Client.ViewModel
         {
             if (!IsLoaded)
             {
-                var tasks = new Task[]
-                {
-                    Task.Run(async () => Accounts = await accountsApi.GetAccountsAsync()),
-                    Task.Run(async () => Transactions = await accountsApi.GetTransactionsAsync(SelectedAccounts))
-                };
-
-                await Task.WhenAll(tasks);
-
                 accountsApi.AccountsUpdated += AccountsApi_AccountsUpdated;
+                
+                await Task.WhenAll(new Task[] {
+                    Task.Run(async () => Transactions = await accountsApi.GetTransactionsAsync(SelectedAccounts)),
+                    Task.Run(async () => Accounts = await accountsApi.GetAccountsAsync()),
+                });
                 
                 Reset();
                 
@@ -95,22 +88,20 @@ namespace GdeBabki.Client.ViewModel
             }
         }
 
-        private async void AccountsApi_AccountsUpdated(object sender, EventArgs e)
+        private async void AccountsApi_AccountsUpdated(object sender, System.EventArgs e)
         {
             Accounts = await accountsApi.GetAccountsAsync();
-            if (SelectedAccounts == null)
+
+            bool selectedChanged = true;
+            if (SelectedAccounts != null)
+            {
+                selectedChanged = !SelectedAccounts.All(e => Accounts.Any(a => a.Id == e));
+                SelectedAccounts = SelectedAccounts.Where(e => Accounts.Any(a => a.Id == e)).ToList();
+            }
+
+            if (selectedChanged)
             {
                 await OnSelectedAccountsChangedAsync();
-            }
-            else
-            {
-                var selectedChanged = !SelectedAccounts.All(e => Accounts.Any(a => a.Id == e));
-                SelectedAccounts = SelectedAccounts.Where(e => Accounts.Any(a => a.Id == e));
-
-                if (selectedChanged)
-                {
-                    await OnSelectedAccountsChangedAsync();
-                }
             }
         }
 
@@ -138,7 +129,6 @@ namespace GdeBabki.Client.ViewModel
             SelectedTransactions = null;
             IsFrozen = false;
             CurrentPage = 0;
-            TagsFilterValue.Clear();
             DataGridColumnState = new Dictionary<string, Review.DataGridColumnState>()
             {
                 { nameof(Transaction.Date), new Review.DataGridColumnState() { Width = 130, SortOrder = SortOrder.Descending }  },
@@ -275,7 +265,6 @@ namespace GdeBabki.Client.ViewModel
                 IsBusy = false;
             }
         }
-
 
         public async Task DeleteTagAsync(string tag, Guid transactionId)
         {

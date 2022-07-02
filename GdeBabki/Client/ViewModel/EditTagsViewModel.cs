@@ -15,7 +15,7 @@ namespace GdeBabki.Client.ViewModel
         public List<string> Tags { get { if (tags == null) { tags = new(); } return tags; } set => tags = value; }
         public string Tag { get; set; }
         public List<string> SuggestedTags { get; set; }
-        public string LastTag => Tags == null || Tags.Count == 0 ? null : Tags[Tags.Count - 1];
+        public string LastTag => Tags.IsNullOrEmpty() ? null : Tags[Tags.Count - 1];
         public bool HasNewTag => !string.IsNullOrWhiteSpace(Tag) && !Tags.Contains(Tag.ToUpper());
 
         public EditTagsViewModel(TagsApi tagsApi)

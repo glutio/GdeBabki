@@ -19,20 +19,42 @@ namespace GdeBabki.Client.ViewModel
 
         public override async Task OnInitializedAsync()
         {
-            if (IsLoaded)
+            if (!IsLoaded)
             {
-                return;
+                accountsApi.AccountsUpdated += AccountsApi_AccountsUpdated;
+
+                await Task.WhenAll(new Task[] {
+                    Task.Run(async () => Transactions = await accountsApi.GetTransactionsAsync(SelectedAccounts)),
+                    Task.Run(async () => Accounts = await accountsApi.GetAccountsAsync()),
+                });
+
+                IsLoaded = true;
             }
 
-            var tasks = new Task[]
-            {
-                Task.Run(async () => Accounts = await accountsApi.GetAccountsAsync()),
-                Task.Run(async () => Transactions = await accountsApi.GetTransactionsAsync(SelectedAccounts))
-            };
-
-            await Task.WhenAll(tasks);
-            IsLoaded = true;
             await base.OnInitializedAsync();
+        }
+
+        private async void AccountsApi_AccountsUpdated(object sender, System.EventArgs e)
+        {
+            Accounts = await accountsApi.GetAccountsAsync();
+
+            bool selectedChanged = true;
+            if (SelectedAccounts != null)
+            {
+                selectedChanged = !SelectedAccounts.All(e => Accounts.Any(a => a.Id == e));
+                SelectedAccounts = SelectedAccounts.Where(e => Accounts.Any(a => a.Id == e)).ToList();
+            }
+
+            if (selectedChanged)
+            {
+                await OnSelectedAccountsChangedAsync();
+            }
+        }
+
+        public override void Dispose()
+        {
+            accountsApi.AccountsUpdated -= AccountsApi_AccountsUpdated;
+            base.Dispose();
         }
 
         public List<KeyValuePair<string, decimal>> AverageMonthlySpendingByTag
@@ -145,18 +167,16 @@ namespace GdeBabki.Client.ViewModel
                 .ToArray();
         }
 
-        public async Task OnSelectedAccountsChangeAsync()
+        public async Task OnSelectedAccountsChangedAsync()
         {
             Transactions = await accountsApi.GetTransactionsAsync(SelectedAccounts);
             RaisePropertyChanged(nameof(Transactions));
         }
 
-
         public List<Transaction> Transactions { get; set; }
         public IEnumerable<Transaction> TransactionsQuery => Transactions.IsNullOrEmpty()
             ? null
             : Transactions
-                //.Where(e => e.Amount < 0)
                 .Where(e => ExcludeTags.IsNullOrEmpty() || !e.Tags.Any(t => ExcludeTags.Any(e => t == e)));
 
         public List<string> ExcludeTags { get; set; } = new List<string>();
