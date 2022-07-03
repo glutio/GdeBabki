@@ -23,19 +23,11 @@
 }
 else
 {
-    <style>
-        html, body, div#app {
-            height: 100%;
-        }
-
-        div#app {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-    </style>
-    <GdeBabki.Client.Pages.Login LoggedIn="StateHasChanged"/>
+    <div class="d-flex justify-content-center align-items-center" style="height:100vh">
+        <GdeBabki.Client.Pages.Login LoggedIn="StateHasChanged"/>
+    </div>
 }
+<GdeBabki.Client.Pages.Error/>
 
 @code {
     protected override async Task OnAfterRenderAsync(bool firstRender)
