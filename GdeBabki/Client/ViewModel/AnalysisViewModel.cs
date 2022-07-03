@@ -16,7 +16,7 @@ namespace GdeBabki.Client.ViewModel
         public AnalysisViewModel(AccountsApi accountsApi)
         {
             this.accountsApi = accountsApi;
-            SelectedDateRange = DateRange[0].Value;
+            SelectedDateRange = DateRange[1].Value;
         }
 
         public override async Task OnInitializedAsync()
@@ -79,7 +79,7 @@ namespace GdeBabki.Client.ViewModel
                 var allMonths = tagSameMonthAmount
                     .Select(e => e.Date)
                     .Distinct()
-                    .OrderByDescending(e=> e.Date)
+                    .OrderByDescending(e => e.Date)
                     .Skip(1)
                     .ToList();
 
@@ -151,7 +151,7 @@ namespace GdeBabki.Client.ViewModel
                     }
                 }
 
-                return tagsAmount.OrderByDescending(e=>e.Value).ToList();
+                return tagsAmount.OrderByDescending(e => e.Value).ToList();
             }
         }
 
@@ -169,6 +169,34 @@ namespace GdeBabki.Client.ViewModel
                 .ToArray();
         }
 
+        public List<KeyValuePair<string, List<KeyValuePair<string, decimal>>>> SpendingThisTag
+        {
+            get
+            {
+                if (SpendingCategoryTags.IsNullOrEmpty())
+                {
+                    return null;
+                }
+                var list = new List<KeyValuePair<string, List<KeyValuePair<string, decimal>>>>();
+                foreach (var tag in SpendingCategoryTags)
+                {
+                    var tagSpending = TransactionsQuery
+                        .Where(e => e.Tags.Contains(tag))
+                        .GroupBy(e => e.Date.ToMonth())
+                        .Select(g => new KeyValuePair<string, decimal>(g.Key.ToTransactionMonthYear(), g.Sum(e => Math.Abs(e.Amount))))
+                        .ToList();
+
+                    if (!tagSpending.IsNullOrEmpty())
+                    {
+                        list.Add(new KeyValuePair<string, List<KeyValuePair<string, decimal>>>(tag, tagSpending));
+                    }
+                }
+
+                return list;
+            }
+        }
+
+
         public async Task OnSelectedAccountsChangedAsync()
         {
             Transactions = await accountsApi.GetTransactionsAsync(SelectedAccounts);
@@ -184,18 +212,19 @@ namespace GdeBabki.Client.ViewModel
                     ? null
                     : Transactions
                         .Where(e => ExcludeTags.IsNullOrEmpty() || !e.Tags.Any(t => ExcludeTags.Any(e => t == e)));
-                
+
                 return SelectedDateRange(query);
             }
         }
 
         public List<string> ExcludeTags { get; set; } = new List<string>();
+        public List<string> SpendingCategoryTags { get; set; } = new List<string>();
         public List<Account> Accounts { get; set; }
         public IEnumerable<Guid> SelectedAccounts { get; set; }
         public string SelectedMonth { get; set; }
         public DateRangeFilter SelectedDateRange { get; set; }
 
-        public delegate IEnumerable<Transaction> DateRangeFilter (IEnumerable<Transaction> query);
+        public delegate IEnumerable<Transaction> DateRangeFilter(IEnumerable<Transaction> query);
 
         static IEnumerable<Transaction> RecentMonthsFilter(IEnumerable<Transaction> query, int months)
         {
