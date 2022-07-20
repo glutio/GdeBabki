@@ -73,6 +73,9 @@
                 <h4 style="margin-bottom:-20px">Spending by month</h4>
                 <RadzenChart SeriesClick="OnSpendingByMonthSeriesClick">
                     <RadzenColumnSeries Data="Model.SpendingByMonth" CategoryProperty="Key" ValueProperty="Value">
+                        <ChildContent>
+                            <RadzenSeriesMeanLine LineType="LineType.Dashed" Stroke="red" StrokeWidth="1" />
+                        </ChildContent>
                         <TooltipTemplate>
                             <div style="max-width:500px">
                                 <p>@context.Key - @context.Value.ToCurrencyString()</p>
@@ -82,11 +85,11 @@
                                         var style = $"float:left;margin:2px;padding:10px;border-radius:5px;background:{tag.ToBackgroundColor()};color:{tag.ToForegroundColor()}";
                                 <span style="@style">@tag</span>
                                     }
-                        </div>
-                    </div>
-                </TooltipTemplate>
-            </RadzenColumnSeries>
-            @{
+                                </div>
+                            </div>
+                        </TooltipTemplate>
+                    </RadzenColumnSeries>
+                    @{
                         var max = spendingByMonth.Max(e => e.Value);
                         var step = max.GetAxisStepSize();
                     }
